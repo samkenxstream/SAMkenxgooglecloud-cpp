@@ -44,6 +44,23 @@ ContactCenterInsightsTracingStub::CreateConversation(
                            child_->CreateConversation(context, request));
 }
 
+future<StatusOr<google::longrunning::Operation>>
+ContactCenterInsightsTracingStub::AsyncUploadConversation(
+    google::cloud::CompletionQueue& cq,
+    std::shared_ptr<grpc::ClientContext> context,
+    google::cloud::contactcenterinsights::v1::UploadConversationRequest const&
+        request) {
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.contactcenterinsights.v1.ContactCenterInsights",
+      "UploadConversation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUploadConversation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
+}
+
 StatusOr<google::cloud::contactcenterinsights::v1::Conversation>
 ContactCenterInsightsTracingStub::UpdateConversation(
     grpc::ClientContext& context,
@@ -102,10 +119,18 @@ Status ContactCenterInsightsTracingStub::DeleteConversation(
 future<StatusOr<google::longrunning::Operation>>
 ContactCenterInsightsTracingStub::AsyncCreateAnalysis(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::contactcenterinsights::v1::CreateAnalysisRequest const&
         request) {
-  return child_->AsyncCreateAnalysis(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.contactcenterinsights.v1.ContactCenterInsights",
+      "CreateAnalysis");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateAnalysis(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::contactcenterinsights::v1::Analysis>
@@ -152,37 +177,69 @@ Status ContactCenterInsightsTracingStub::DeleteAnalysis(
 future<StatusOr<google::longrunning::Operation>>
 ContactCenterInsightsTracingStub::AsyncBulkAnalyzeConversations(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::contactcenterinsights::v1::
         BulkAnalyzeConversationsRequest const& request) {
-  return child_->AsyncBulkAnalyzeConversations(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.contactcenterinsights.v1.ContactCenterInsights",
+      "BulkAnalyzeConversations");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncBulkAnalyzeConversations(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 ContactCenterInsightsTracingStub::AsyncIngestConversations(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::contactcenterinsights::v1::IngestConversationsRequest const&
         request) {
-  return child_->AsyncIngestConversations(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.contactcenterinsights.v1.ContactCenterInsights",
+      "IngestConversations");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncIngestConversations(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 ContactCenterInsightsTracingStub::AsyncExportInsightsData(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::contactcenterinsights::v1::ExportInsightsDataRequest const&
         request) {
-  return child_->AsyncExportInsightsData(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.contactcenterinsights.v1.ContactCenterInsights",
+      "ExportInsightsData");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncExportInsightsData(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 ContactCenterInsightsTracingStub::AsyncCreateIssueModel(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::contactcenterinsights::v1::CreateIssueModelRequest const&
         request) {
-  return child_->AsyncCreateIssueModel(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.contactcenterinsights.v1.ContactCenterInsights",
+      "CreateIssueModel");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateIssueModel(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::contactcenterinsights::v1::IssueModel>
@@ -230,28 +287,52 @@ ContactCenterInsightsTracingStub::ListIssueModels(
 future<StatusOr<google::longrunning::Operation>>
 ContactCenterInsightsTracingStub::AsyncDeleteIssueModel(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::contactcenterinsights::v1::DeleteIssueModelRequest const&
         request) {
-  return child_->AsyncDeleteIssueModel(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.contactcenterinsights.v1.ContactCenterInsights",
+      "DeleteIssueModel");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDeleteIssueModel(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 ContactCenterInsightsTracingStub::AsyncDeployIssueModel(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::contactcenterinsights::v1::DeployIssueModelRequest const&
         request) {
-  return child_->AsyncDeployIssueModel(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.contactcenterinsights.v1.ContactCenterInsights",
+      "DeployIssueModel");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDeployIssueModel(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 ContactCenterInsightsTracingStub::AsyncUndeployIssueModel(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::contactcenterinsights::v1::UndeployIssueModelRequest const&
         request) {
-  return child_->AsyncUndeployIssueModel(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.contactcenterinsights.v1.ContactCenterInsights",
+      "UndeployIssueModel");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUndeployIssueModel(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::contactcenterinsights::v1::Issue>
@@ -500,16 +581,30 @@ Status ContactCenterInsightsTracingStub::DeleteView(
 future<StatusOr<google::longrunning::Operation>>
 ContactCenterInsightsTracingStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return child_->AsyncGetOperation(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.longrunning.Operations", "GetOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncGetOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<Status> ContactCenterInsightsTracingStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return child_->AsyncCancelOperation(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.longrunning.Operations",
+                                     "CancelOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCancelOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY

@@ -57,9 +57,12 @@ DefaultDocumentsStub::GetDocument(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentsStub::AsyncCreateDocument(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::dialogflow::v2::CreateDocumentRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::dialogflow::v2::CreateDocumentRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::dialogflow::v2::CreateDocumentRequest const& request,
@@ -72,9 +75,12 @@ DefaultDocumentsStub::AsyncCreateDocument(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentsStub::AsyncImportDocuments(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::dialogflow::v2::ImportDocumentsRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::dialogflow::v2::ImportDocumentsRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::dialogflow::v2::ImportDocumentsRequest const& request,
@@ -87,9 +93,12 @@ DefaultDocumentsStub::AsyncImportDocuments(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentsStub::AsyncDeleteDocument(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::dialogflow::v2::DeleteDocumentRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::dialogflow::v2::DeleteDocumentRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::dialogflow::v2::DeleteDocumentRequest const& request,
@@ -102,9 +111,12 @@ DefaultDocumentsStub::AsyncDeleteDocument(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentsStub::AsyncUpdateDocument(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::dialogflow::v2::UpdateDocumentRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::dialogflow::v2::UpdateDocumentRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::dialogflow::v2::UpdateDocumentRequest const& request,
@@ -117,9 +129,12 @@ DefaultDocumentsStub::AsyncUpdateDocument(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentsStub::AsyncReloadDocument(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::dialogflow::v2::ReloadDocumentRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::dialogflow::v2::ReloadDocumentRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::dialogflow::v2::ReloadDocumentRequest const& request,
@@ -132,9 +147,12 @@ DefaultDocumentsStub::AsyncReloadDocument(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentsStub::AsyncExportDocument(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::dialogflow::v2::ExportDocumentRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::dialogflow::v2::ExportDocumentRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::dialogflow::v2::ExportDocumentRequest const& request,
@@ -147,9 +165,11 @@ DefaultDocumentsStub::AsyncExportDocument(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentsStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -160,16 +180,17 @@ DefaultDocumentsStub::AsyncGetOperation(
 
 future<Status> DefaultDocumentsStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

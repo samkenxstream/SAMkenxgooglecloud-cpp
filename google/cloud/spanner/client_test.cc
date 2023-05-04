@@ -25,7 +25,6 @@
 #include "google/cloud/testing_util/is_proto_equal.h"
 #include "google/cloud/testing_util/scoped_environment.h"
 #include "google/cloud/testing_util/status_matchers.h"
-#include "absl/memory/memory.h"
 #include "absl/types/optional.h"
 #include <google/protobuf/text_format.h>
 #include <gmock/gmock.h>
@@ -44,6 +43,7 @@ namespace {
 using ::google::cloud::spanner_mocks::MockConnection;
 using ::google::cloud::spanner_mocks::MockResultSetSource;
 using ::google::cloud::spanner_testing::SessionNotFoundError;
+using ::google::cloud::testing_util::IsOkAndHolds;
 using ::google::cloud::testing_util::IsProtoEqual;
 using ::google::cloud::testing_util::StatusIs;
 using ::google::protobuf::TextFormat;
@@ -52,8 +52,10 @@ using ::testing::DoAll;
 using ::testing::ElementsAre;
 using ::testing::Eq;
 using ::testing::HasSubstr;
+using ::testing::Pair;
 using ::testing::Return;
 using ::testing::SaveArg;
+using ::testing::UnorderedElementsAre;
 
 TEST(ClientTest, CopyAndMove) {
   auto conn1 = std::make_shared<MockConnection>();
@@ -84,7 +86,7 @@ TEST(ClientTest, ReadSuccess) {
   auto conn = std::make_shared<MockConnection>();
   Client client(conn);
 
-  auto source = absl::make_unique<MockResultSetSource>();
+  auto source = std::make_unique<MockResultSetSource>();
   auto constexpr kText = R"pb(
     row_type: {
       fields: {
@@ -112,24 +114,17 @@ TEST(ClientTest, ReadSuccess) {
   auto rows = client.Read("table", std::move(keys), {"column1", "column2"});
 
   using RowType = std::tuple<std::string, std::int64_t>;
-  auto expected = std::vector<RowType>{
-      RowType("Steve", 12),
-      RowType("Ann", 42),
-  };
-  int row_number = 0;
-  for (auto& row : StreamOf<RowType>(rows)) {
-    EXPECT_STATUS_OK(row);
-    EXPECT_EQ(*row, expected[row_number]);
-    ++row_number;
-  }
-  EXPECT_EQ(row_number, expected.size());
+  auto stream = StreamOf<RowType>(rows);
+  auto actual = std::vector<StatusOr<RowType>>{stream.begin(), stream.end()};
+  EXPECT_THAT(actual, ElementsAre(IsOkAndHolds(RowType("Steve", 12)),
+                                  IsOkAndHolds(RowType("Ann", 42))));
 }
 
 TEST(ClientTest, ReadFailure) {
   auto conn = std::make_shared<MockConnection>();
   Client client(conn);
 
-  auto source = absl::make_unique<MockResultSetSource>();
+  auto source = std::make_unique<MockResultSetSource>();
   auto constexpr kText = R"pb(
     row_type: {
       fields: {
@@ -155,12 +150,12 @@ TEST(ClientTest, ReadFailure) {
   auto tups = StreamOf<std::tuple<std::string>>(rows);
   auto iter = tups.begin();
   EXPECT_NE(iter, tups.end());
-  EXPECT_STATUS_OK(*iter);
+  ASSERT_STATUS_OK(*iter);
   EXPECT_EQ(std::get<0>(**iter), "Steve");
 
   ++iter;
   EXPECT_NE(iter, tups.end());
-  EXPECT_STATUS_OK(*iter);
+  ASSERT_STATUS_OK(*iter);
   EXPECT_EQ(std::get<0>(**iter), "Ann");
 
   ++iter;
@@ -171,7 +166,7 @@ TEST(ClientTest, ExecuteQuerySuccess) {
   auto conn = std::make_shared<MockConnection>();
   Client client(conn);
 
-  auto source = absl::make_unique<MockResultSetSource>();
+  auto source = std::make_unique<MockResultSetSource>();
   auto constexpr kText = R"pb(
     row_type: {
       fields: {
@@ -199,24 +194,17 @@ TEST(ClientTest, ExecuteQuerySuccess) {
   auto rows = client.ExecuteQuery(SqlStatement("SELECT * FROM Table;"));
 
   using RowType = std::tuple<std::string, std::int64_t>;
-  auto expected = std::vector<RowType>{
-      RowType("Steve", 12),
-      RowType("Ann", 42),
-  };
-  int row_number = 0;
-  for (auto& row : StreamOf<RowType>(rows)) {
-    EXPECT_STATUS_OK(row);
-    EXPECT_EQ(*row, expected[row_number]);
-    ++row_number;
-  }
-  EXPECT_EQ(row_number, expected.size());
+  auto stream = StreamOf<RowType>(rows);
+  auto actual = std::vector<StatusOr<RowType>>{stream.begin(), stream.end()};
+  EXPECT_THAT(actual, ElementsAre(IsOkAndHolds(RowType("Steve", 12)),
+                                  IsOkAndHolds(RowType("Ann", 42))));
 }
 
 TEST(ClientTest, ExecuteQueryFailure) {
   auto conn = std::make_shared<MockConnection>();
   Client client(conn);
 
-  auto source = absl::make_unique<MockResultSetSource>();
+  auto source = std::make_unique<MockResultSetSource>();
   auto constexpr kText = R"pb(
     row_type: {
       fields: {
@@ -242,12 +230,12 @@ TEST(ClientTest, ExecuteQueryFailure) {
   auto tups = StreamOf<std::tuple<std::string>>(rows);
   auto iter = tups.begin();
   EXPECT_NE(iter, tups.end());
-  EXPECT_STATUS_OK(*iter);
+  ASSERT_STATUS_OK(*iter);
   EXPECT_EQ(std::get<0>(**iter), "Steve");
 
   ++iter;
   EXPECT_NE(iter, tups.end());
-  EXPECT_STATUS_OK(*iter);
+  ASSERT_STATUS_OK(*iter);
   EXPECT_EQ(std::get<0>(**iter), "Ann");
 
   ++iter;
@@ -275,7 +263,7 @@ TEST(ClientTest, ExecuteBatchDmlSuccess) {
   auto txn = MakeReadWriteTransaction();
   auto actual = client.ExecuteBatchDml(txn, request);
 
-  EXPECT_STATUS_OK(actual);
+  ASSERT_STATUS_OK(actual);
   EXPECT_STATUS_OK(actual->status);
   EXPECT_EQ(actual->stats.size(), request.size());
 }
@@ -301,14 +289,14 @@ TEST(ClientTest, ExecuteBatchDmlError) {
   auto txn = MakeReadWriteTransaction();
   auto actual = client.ExecuteBatchDml(txn, request);
 
-  EXPECT_STATUS_OK(actual);
+  ASSERT_STATUS_OK(actual);
   EXPECT_THAT(actual->status, StatusIs(StatusCode::kUnknown, "some error"));
   EXPECT_NE(actual->stats.size(), request.size());
   EXPECT_EQ(actual->stats.size(), 1);
 }
 
 TEST(ClientTest, ExecutePartitionedDmlSuccess) {
-  auto source = absl::make_unique<MockResultSetSource>();
+  auto source = std::make_unique<MockResultSetSource>();
   google::spanner::v1::ResultSetMetadata metadata;
   EXPECT_CALL(*source, Metadata()).WillRepeatedly(Return(metadata));
   EXPECT_CALL(*source, NextRow()).WillRepeatedly(Return(Row()));
@@ -324,7 +312,7 @@ TEST(ClientTest, ExecutePartitionedDmlSuccess) {
 
   Client client(conn);
   auto result = client.ExecutePartitionedDml(SqlStatement(sql_statement));
-  EXPECT_STATUS_OK(result);
+  ASSERT_STATUS_OK(result);
   EXPECT_EQ(7, result->row_count_lower_bound);
 }
 
@@ -340,7 +328,7 @@ TEST(ClientTest, CommitSuccess) {
 
   auto txn = MakeReadWriteTransaction();
   auto commit = client.Commit(txn, {});
-  EXPECT_STATUS_OK(commit);
+  ASSERT_STATUS_OK(commit);
   EXPECT_EQ(ts, commit->commit_timestamp);
 }
 
@@ -389,7 +377,7 @@ TEST(ClientTest, CommitMutatorSuccess) {
   Connection::ReadParams actual_read_params{txn, {}, {}, {}, {}, {}};
   Connection::CommitParams actual_commit_params{txn, {}, {}};
 
-  auto source = absl::make_unique<MockResultSetSource>();
+  auto source = std::make_unique<MockResultSetSource>();
   auto constexpr kText = R"pb(
     row_type: {
       fields: {
@@ -423,7 +411,7 @@ TEST(ClientTest, CommitMutatorSuccess) {
   };
 
   auto result = client.Commit(mutator);
-  EXPECT_STATUS_OK(result);
+  ASSERT_STATUS_OK(result);
   EXPECT_EQ(*timestamp, result->commit_timestamp);
 
   EXPECT_EQ("T", actual_read_params.table);
@@ -437,7 +425,7 @@ TEST(ClientTest, CommitMutatorRollback) {
   Transaction txn = MakeReadWriteTransaction();  // placeholder
   Connection::ReadParams actual_read_params{txn, {}, {}, {}, {}, {}};
 
-  auto source = absl::make_unique<MockResultSetSource>();
+  auto source = std::make_unique<MockResultSetSource>();
   auto constexpr kText = R"pb(
     row_type: {
       fields: {
@@ -479,7 +467,7 @@ TEST(ClientTest, CommitMutatorRollbackError) {
   Transaction txn = MakeReadWriteTransaction();  // placeholder
   Connection::ReadParams actual_read_params{txn, {}, {}, {}, {}, {}};
 
-  auto source = absl::make_unique<MockResultSetSource>();
+  auto source = std::make_unique<MockResultSetSource>();
   auto constexpr kText = R"pb(
     row_type: {
       fields: {
@@ -521,7 +509,7 @@ TEST(ClientTest, CommitMutatorRollbackError) {
 TEST(ClientTest, CommitMutatorException) {
   auto conn = std::make_shared<MockConnection>();
 
-  auto source = absl::make_unique<MockResultSetSource>();
+  auto source = std::make_unique<MockResultSetSource>();
   auto constexpr kText = R"pb(
     row_type: {
       fields: {
@@ -604,7 +592,7 @@ TEST(ClientTest, CommitMutatorRerunTransientFailures) {
 
   Client client(conn);
   auto result = client.Commit(mutator);
-  EXPECT_STATUS_OK(result);
+  ASSERT_STATUS_OK(result);
   EXPECT_EQ(*timestamp, result->commit_timestamp);
 }
 
@@ -672,7 +660,7 @@ TEST(ClientTest, CommitMutations) {
 
   Client client(conn);
   auto result = client.Commit({mutation});
-  EXPECT_STATUS_OK(result);
+  ASSERT_STATUS_OK(result);
   EXPECT_EQ(*timestamp, result->commit_timestamp);
 }
 
@@ -774,7 +762,7 @@ TEST(ClientTest, CommitMutatorWithTags) {
       .WillOnce([&](Connection::SqlParams const& params) {
         EXPECT_EQ(params.query_options.request_tag(), "action=ExecuteQuery");
         EXPECT_THAT(params.transaction, HasTag(transaction_tag));
-        return RowStream(absl::make_unique<MockResultSetSource>());
+        return RowStream(std::make_unique<MockResultSetSource>());
       });
   EXPECT_CALL(*conn, ExecuteBatchDml)
       .WillOnce([&](Connection::ExecuteBatchDmlParams const& params) {
@@ -786,7 +774,7 @@ TEST(ClientTest, CommitMutatorWithTags) {
   EXPECT_CALL(*conn, Read).WillOnce([&](Connection::ReadParams const& params) {
     EXPECT_EQ(params.read_options.request_tag, "action=Read");
     EXPECT_THAT(params.transaction, HasTag(transaction_tag));
-    return RowStream(absl::make_unique<MockResultSetSource>());
+    return RowStream(std::make_unique<MockResultSetSource>());
   });
   EXPECT_CALL(*conn, Commit)
       .WillOnce([&](Connection::CommitParams const& params) {
@@ -811,7 +799,7 @@ TEST(ClientTest, CommitMutatorWithTags) {
   };
   auto result = client.Commit(
       mutator, Options{}.set<TransactionTagOption>(transaction_tag));
-  EXPECT_STATUS_OK(result);
+  ASSERT_STATUS_OK(result);
   EXPECT_EQ(*timestamp, result->commit_timestamp);
 }
 
@@ -860,7 +848,7 @@ TEST(ClientTest, CommitMutatorSessionAffinity) {
       [](Transaction const&) { return Mutations{}; },
       LimitedErrorCountTransactionRerunPolicy(num_aborts).clone(),
       ExponentialBackoffPolicy(zero_duration, zero_duration, 2).clone());
-  EXPECT_STATUS_OK(result);
+  ASSERT_STATUS_OK(result);
   EXPECT_EQ(*timestamp, result->commit_timestamp);
 }
 
@@ -887,7 +875,7 @@ TEST(ClientTest, CommitMutatorSessionNotFound) {
 
   Client client(conn);
   auto result = client.Commit(mutator);
-  EXPECT_STATUS_OK(result);
+  ASSERT_STATUS_OK(result);
   EXPECT_EQ(*timestamp, result->commit_timestamp);
 }
 
@@ -916,7 +904,7 @@ TEST(ClientTest, CommitSessionNotFound) {
 
   Client client(conn);
   auto result = client.Commit(mutator);
-  EXPECT_STATUS_OK(result);
+  ASSERT_STATUS_OK(result);
   EXPECT_EQ(*timestamp, result->commit_timestamp);
 }
 
@@ -946,7 +934,7 @@ TEST(ClientTest, ProfileQuerySuccess) {
   auto conn = std::make_shared<MockConnection>();
   Client client(conn);
 
-  auto source = absl::make_unique<MockResultSetSource>();
+  auto source = std::make_unique<MockResultSetSource>();
   auto constexpr kText0 = R"pb(
     row_type: {
       fields: {
@@ -985,32 +973,25 @@ TEST(ClientTest, ProfileQuerySuccess) {
   auto rows = client.ProfileQuery(SqlStatement("SELECT * FROM Table;"));
 
   using RowType = std::tuple<std::string, std::int64_t>;
-  auto expected = std::vector<RowType>{
-      RowType("Ann", 42),
-  };
-  int row_number = 0;
-  for (auto& row : StreamOf<RowType>(rows)) {
-    EXPECT_STATUS_OK(row);
-    EXPECT_EQ(*row, expected[row_number]);
-    ++row_number;
-  }
-  EXPECT_EQ(row_number, expected.size());
+  auto stream = StreamOf<RowType>(rows);
+  auto actual = std::vector<StatusOr<RowType>>{stream.begin(), stream.end()};
+  EXPECT_THAT(actual, ElementsAre(IsOkAndHolds(RowType("Ann", 42))));
+
   auto actual_plan = rows.ExecutionPlan();
   ASSERT_TRUE(actual_plan);
   EXPECT_THAT(*actual_plan, IsProtoEqual(stats.query_plan()));
 
   auto actual_stats = rows.ExecutionStats();
   ASSERT_TRUE(actual_stats);
-  std::unordered_map<std::string, std::string> expected_stats{
-      {"elapsed_time", "42 secs"}};
-  EXPECT_EQ(expected_stats, *actual_stats);
+  EXPECT_THAT(*actual_stats,
+              UnorderedElementsAre(Pair("elapsed_time", "42 secs")));
 }
 
 TEST(ClientTest, ProfileQueryWithOptionsSuccess) {
   auto conn = std::make_shared<MockConnection>();
   Client client(conn);
 
-  auto source = absl::make_unique<MockResultSetSource>();
+  auto source = std::make_unique<MockResultSetSource>();
   auto constexpr kText0 = R"pb(
     row_type: {
       fields: {
@@ -1052,16 +1033,9 @@ TEST(ClientTest, ProfileQueryWithOptionsSuccess) {
       SqlStatement("SELECT * FROM Table;"));
 
   using RowType = std::tuple<std::string, std::int64_t>;
-  auto expected = std::vector<RowType>{
-      RowType("Ann", 42),
-  };
-  int row_number = 0;
-  for (auto& row : StreamOf<RowType>(rows)) {
-    EXPECT_STATUS_OK(row);
-    EXPECT_EQ(*row, expected[row_number]);
-    ++row_number;
-  }
-  EXPECT_EQ(row_number, expected.size());
+  auto stream = StreamOf<RowType>(rows);
+  auto actual = std::vector<StatusOr<RowType>>{stream.begin(), stream.end()};
+  EXPECT_THAT(actual, ElementsAre(IsOkAndHolds(RowType("Ann", 42))));
 
   auto actual_plan = rows.ExecutionPlan();
   ASSERT_TRUE(actual_plan);
@@ -1069,9 +1043,8 @@ TEST(ClientTest, ProfileQueryWithOptionsSuccess) {
 
   auto actual_stats = rows.ExecutionStats();
   ASSERT_TRUE(actual_stats);
-  std::unordered_map<std::string, std::string> expected_stats{
-      {"elapsed_time", "42 secs"}};
-  EXPECT_EQ(expected_stats, *actual_stats);
+  EXPECT_THAT(*actual_stats,
+              UnorderedElementsAre(Pair("elapsed_time", "42 secs")));
 }
 
 struct StringOption {

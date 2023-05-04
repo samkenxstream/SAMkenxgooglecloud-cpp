@@ -18,7 +18,9 @@
 #include "google/cloud/bigquery/v2/minimal/internal/bigquery_http_response.h"
 #include "google/cloud/bigquery/v2/minimal/internal/job.h"
 #include "google/cloud/status_or.h"
+#include "google/cloud/tracing_options.h"
 #include "google/cloud/version.h"
+#include "absl/strings/string_view.h"
 
 namespace google {
 namespace cloud {
@@ -33,7 +35,31 @@ class GetJobResponse {
   static StatusOr<GetJobResponse> BuildFromHttpResponse(
       BigQueryHttpResponse const& http_response);
 
+  std::string DebugString(absl::string_view name,
+                          TracingOptions const& options = {},
+                          int indent = 0) const;
+
   Job job;
+  BigQueryHttpResponse http_response;
+};
+
+// Parses the BigQueryHttpResponse and builds a ListJobsResponse.
+class ListJobsResponse {
+ public:
+  ListJobsResponse() = default;
+  // Builds ListJobsResponse from HttpResponse.
+  static StatusOr<ListJobsResponse> BuildFromHttpResponse(
+      BigQueryHttpResponse const& http_response);
+
+  std::string DebugString(absl::string_view name,
+                          TracingOptions const& options = {},
+                          int indent = 0) const;
+
+  std::vector<ListFormatJob> jobs;
+  std::string next_page_token;
+  std::string kind;
+  std::string etag;
+
   BigQueryHttpResponse http_response;
 };
 

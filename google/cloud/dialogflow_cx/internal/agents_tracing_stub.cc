@@ -89,17 +89,31 @@ Status AgentsTracingStub::DeleteAgent(
 future<StatusOr<google::longrunning::Operation>>
 AgentsTracingStub::AsyncExportAgent(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::dialogflow::cx::v3::ExportAgentRequest const& request) {
-  return child_->AsyncExportAgent(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.dialogflow.cx.v3.Agents",
+                                     "ExportAgent");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncExportAgent(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 AgentsTracingStub::AsyncRestoreAgent(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::dialogflow::cx::v3::RestoreAgentRequest const& request) {
-  return child_->AsyncRestoreAgent(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.dialogflow.cx.v3.Agents",
+                                     "RestoreAgent");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncRestoreAgent(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::dialogflow::cx::v3::AgentValidationResult>
@@ -130,16 +144,30 @@ AgentsTracingStub::GetAgentValidationResult(
 future<StatusOr<google::longrunning::Operation>>
 AgentsTracingStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return child_->AsyncGetOperation(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.longrunning.Operations", "GetOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncGetOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<Status> AgentsTracingStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return child_->AsyncCancelOperation(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.longrunning.Operations",
+                                     "CancelOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCancelOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY

@@ -62,12 +62,12 @@ CloudFilestoreManagerLogging::GetInstance(
 future<StatusOr<google::longrunning::Operation>>
 CloudFilestoreManagerLogging::AsyncCreateInstance(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::CreateInstanceRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](
           google::cloud::CompletionQueue& cq,
-          std::unique_ptr<grpc::ClientContext> context,
+          std::shared_ptr<grpc::ClientContext> context,
           google::cloud::filestore::v1::CreateInstanceRequest const& request) {
         return child_->AsyncCreateInstance(cq, std::move(context), request);
       },
@@ -77,12 +77,12 @@ CloudFilestoreManagerLogging::AsyncCreateInstance(
 future<StatusOr<google::longrunning::Operation>>
 CloudFilestoreManagerLogging::AsyncUpdateInstance(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::UpdateInstanceRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](
           google::cloud::CompletionQueue& cq,
-          std::unique_ptr<grpc::ClientContext> context,
+          std::shared_ptr<grpc::ClientContext> context,
           google::cloud::filestore::v1::UpdateInstanceRequest const& request) {
         return child_->AsyncUpdateInstance(cq, std::move(context), request);
       },
@@ -92,12 +92,12 @@ CloudFilestoreManagerLogging::AsyncUpdateInstance(
 future<StatusOr<google::longrunning::Operation>>
 CloudFilestoreManagerLogging::AsyncRestoreInstance(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::RestoreInstanceRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](
           google::cloud::CompletionQueue& cq,
-          std::unique_ptr<grpc::ClientContext> context,
+          std::shared_ptr<grpc::ClientContext> context,
           google::cloud::filestore::v1::RestoreInstanceRequest const& request) {
         return child_->AsyncRestoreInstance(cq, std::move(context), request);
       },
@@ -107,14 +107,84 @@ CloudFilestoreManagerLogging::AsyncRestoreInstance(
 future<StatusOr<google::longrunning::Operation>>
 CloudFilestoreManagerLogging::AsyncDeleteInstance(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::DeleteInstanceRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](
           google::cloud::CompletionQueue& cq,
-          std::unique_ptr<grpc::ClientContext> context,
+          std::shared_ptr<grpc::ClientContext> context,
           google::cloud::filestore::v1::DeleteInstanceRequest const& request) {
         return child_->AsyncDeleteInstance(cq, std::move(context), request);
+      },
+      cq, std::move(context), request, __func__, tracing_options_);
+}
+
+StatusOr<google::cloud::filestore::v1::ListSnapshotsResponse>
+CloudFilestoreManagerLogging::ListSnapshots(
+    grpc::ClientContext& context,
+    google::cloud::filestore::v1::ListSnapshotsRequest const& request) {
+  return google::cloud::internal::LogWrapper(
+      [this](
+          grpc::ClientContext& context,
+          google::cloud::filestore::v1::ListSnapshotsRequest const& request) {
+        return child_->ListSnapshots(context, request);
+      },
+      context, request, __func__, tracing_options_);
+}
+
+StatusOr<google::cloud::filestore::v1::Snapshot>
+CloudFilestoreManagerLogging::GetSnapshot(
+    grpc::ClientContext& context,
+    google::cloud::filestore::v1::GetSnapshotRequest const& request) {
+  return google::cloud::internal::LogWrapper(
+      [this](grpc::ClientContext& context,
+             google::cloud::filestore::v1::GetSnapshotRequest const& request) {
+        return child_->GetSnapshot(context, request);
+      },
+      context, request, __func__, tracing_options_);
+}
+
+future<StatusOr<google::longrunning::Operation>>
+CloudFilestoreManagerLogging::AsyncCreateSnapshot(
+    google::cloud::CompletionQueue& cq,
+    std::shared_ptr<grpc::ClientContext> context,
+    google::cloud::filestore::v1::CreateSnapshotRequest const& request) {
+  return google::cloud::internal::LogWrapper(
+      [this](
+          google::cloud::CompletionQueue& cq,
+          std::shared_ptr<grpc::ClientContext> context,
+          google::cloud::filestore::v1::CreateSnapshotRequest const& request) {
+        return child_->AsyncCreateSnapshot(cq, std::move(context), request);
+      },
+      cq, std::move(context), request, __func__, tracing_options_);
+}
+
+future<StatusOr<google::longrunning::Operation>>
+CloudFilestoreManagerLogging::AsyncDeleteSnapshot(
+    google::cloud::CompletionQueue& cq,
+    std::shared_ptr<grpc::ClientContext> context,
+    google::cloud::filestore::v1::DeleteSnapshotRequest const& request) {
+  return google::cloud::internal::LogWrapper(
+      [this](
+          google::cloud::CompletionQueue& cq,
+          std::shared_ptr<grpc::ClientContext> context,
+          google::cloud::filestore::v1::DeleteSnapshotRequest const& request) {
+        return child_->AsyncDeleteSnapshot(cq, std::move(context), request);
+      },
+      cq, std::move(context), request, __func__, tracing_options_);
+}
+
+future<StatusOr<google::longrunning::Operation>>
+CloudFilestoreManagerLogging::AsyncUpdateSnapshot(
+    google::cloud::CompletionQueue& cq,
+    std::shared_ptr<grpc::ClientContext> context,
+    google::cloud::filestore::v1::UpdateSnapshotRequest const& request) {
+  return google::cloud::internal::LogWrapper(
+      [this](
+          google::cloud::CompletionQueue& cq,
+          std::shared_ptr<grpc::ClientContext> context,
+          google::cloud::filestore::v1::UpdateSnapshotRequest const& request) {
+        return child_->AsyncUpdateSnapshot(cq, std::move(context), request);
       },
       cq, std::move(context), request, __func__, tracing_options_);
 }
@@ -146,11 +216,11 @@ CloudFilestoreManagerLogging::GetBackup(
 future<StatusOr<google::longrunning::Operation>>
 CloudFilestoreManagerLogging::AsyncCreateBackup(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::CreateBackupRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::filestore::v1::CreateBackupRequest const& request) {
         return child_->AsyncCreateBackup(cq, std::move(context), request);
       },
@@ -160,11 +230,11 @@ CloudFilestoreManagerLogging::AsyncCreateBackup(
 future<StatusOr<google::longrunning::Operation>>
 CloudFilestoreManagerLogging::AsyncDeleteBackup(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::DeleteBackupRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::filestore::v1::DeleteBackupRequest const& request) {
         return child_->AsyncDeleteBackup(cq, std::move(context), request);
       },
@@ -174,11 +244,11 @@ CloudFilestoreManagerLogging::AsyncDeleteBackup(
 future<StatusOr<google::longrunning::Operation>>
 CloudFilestoreManagerLogging::AsyncUpdateBackup(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::UpdateBackupRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::filestore::v1::UpdateBackupRequest const& request) {
         return child_->AsyncUpdateBackup(cq, std::move(context), request);
       },
@@ -188,11 +258,11 @@ CloudFilestoreManagerLogging::AsyncUpdateBackup(
 future<StatusOr<google::longrunning::Operation>>
 CloudFilestoreManagerLogging::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::GetOperationRequest const& request) {
         return child_->AsyncGetOperation(cq, std::move(context), request);
       },
@@ -201,11 +271,11 @@ CloudFilestoreManagerLogging::AsyncGetOperation(
 
 future<Status> CloudFilestoreManagerLogging::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::CancelOperationRequest const& request) {
         return child_->AsyncCancelOperation(cq, std::move(context), request);
       },

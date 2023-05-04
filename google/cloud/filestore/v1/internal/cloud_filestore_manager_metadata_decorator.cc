@@ -53,7 +53,7 @@ CloudFilestoreManagerMetadata::GetInstance(
 future<StatusOr<google::longrunning::Operation>>
 CloudFilestoreManagerMetadata::AsyncCreateInstance(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::CreateInstanceRequest const& request) {
   SetMetadata(*context, "parent=" + request.parent());
   return child_->AsyncCreateInstance(cq, std::move(context), request);
@@ -62,7 +62,7 @@ CloudFilestoreManagerMetadata::AsyncCreateInstance(
 future<StatusOr<google::longrunning::Operation>>
 CloudFilestoreManagerMetadata::AsyncUpdateInstance(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::UpdateInstanceRequest const& request) {
   SetMetadata(*context, "instance.name=" + request.instance().name());
   return child_->AsyncUpdateInstance(cq, std::move(context), request);
@@ -71,7 +71,7 @@ CloudFilestoreManagerMetadata::AsyncUpdateInstance(
 future<StatusOr<google::longrunning::Operation>>
 CloudFilestoreManagerMetadata::AsyncRestoreInstance(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::RestoreInstanceRequest const& request) {
   SetMetadata(*context, "name=" + request.name());
   return child_->AsyncRestoreInstance(cq, std::move(context), request);
@@ -80,10 +80,53 @@ CloudFilestoreManagerMetadata::AsyncRestoreInstance(
 future<StatusOr<google::longrunning::Operation>>
 CloudFilestoreManagerMetadata::AsyncDeleteInstance(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::DeleteInstanceRequest const& request) {
   SetMetadata(*context, "name=" + request.name());
   return child_->AsyncDeleteInstance(cq, std::move(context), request);
+}
+
+StatusOr<google::cloud::filestore::v1::ListSnapshotsResponse>
+CloudFilestoreManagerMetadata::ListSnapshots(
+    grpc::ClientContext& context,
+    google::cloud::filestore::v1::ListSnapshotsRequest const& request) {
+  SetMetadata(context, "parent=" + request.parent());
+  return child_->ListSnapshots(context, request);
+}
+
+StatusOr<google::cloud::filestore::v1::Snapshot>
+CloudFilestoreManagerMetadata::GetSnapshot(
+    grpc::ClientContext& context,
+    google::cloud::filestore::v1::GetSnapshotRequest const& request) {
+  SetMetadata(context, "name=" + request.name());
+  return child_->GetSnapshot(context, request);
+}
+
+future<StatusOr<google::longrunning::Operation>>
+CloudFilestoreManagerMetadata::AsyncCreateSnapshot(
+    google::cloud::CompletionQueue& cq,
+    std::shared_ptr<grpc::ClientContext> context,
+    google::cloud::filestore::v1::CreateSnapshotRequest const& request) {
+  SetMetadata(*context, "parent=" + request.parent());
+  return child_->AsyncCreateSnapshot(cq, std::move(context), request);
+}
+
+future<StatusOr<google::longrunning::Operation>>
+CloudFilestoreManagerMetadata::AsyncDeleteSnapshot(
+    google::cloud::CompletionQueue& cq,
+    std::shared_ptr<grpc::ClientContext> context,
+    google::cloud::filestore::v1::DeleteSnapshotRequest const& request) {
+  SetMetadata(*context, "name=" + request.name());
+  return child_->AsyncDeleteSnapshot(cq, std::move(context), request);
+}
+
+future<StatusOr<google::longrunning::Operation>>
+CloudFilestoreManagerMetadata::AsyncUpdateSnapshot(
+    google::cloud::CompletionQueue& cq,
+    std::shared_ptr<grpc::ClientContext> context,
+    google::cloud::filestore::v1::UpdateSnapshotRequest const& request) {
+  SetMetadata(*context, "snapshot.name=" + request.snapshot().name());
+  return child_->AsyncUpdateSnapshot(cq, std::move(context), request);
 }
 
 StatusOr<google::cloud::filestore::v1::ListBackupsResponse>
@@ -105,7 +148,7 @@ CloudFilestoreManagerMetadata::GetBackup(
 future<StatusOr<google::longrunning::Operation>>
 CloudFilestoreManagerMetadata::AsyncCreateBackup(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::CreateBackupRequest const& request) {
   SetMetadata(*context, "parent=" + request.parent());
   return child_->AsyncCreateBackup(cq, std::move(context), request);
@@ -114,7 +157,7 @@ CloudFilestoreManagerMetadata::AsyncCreateBackup(
 future<StatusOr<google::longrunning::Operation>>
 CloudFilestoreManagerMetadata::AsyncDeleteBackup(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::DeleteBackupRequest const& request) {
   SetMetadata(*context, "name=" + request.name());
   return child_->AsyncDeleteBackup(cq, std::move(context), request);
@@ -123,7 +166,7 @@ CloudFilestoreManagerMetadata::AsyncDeleteBackup(
 future<StatusOr<google::longrunning::Operation>>
 CloudFilestoreManagerMetadata::AsyncUpdateBackup(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::UpdateBackupRequest const& request) {
   SetMetadata(*context, "backup.name=" + request.backup().name());
   return child_->AsyncUpdateBackup(cq, std::move(context), request);
@@ -132,7 +175,7 @@ CloudFilestoreManagerMetadata::AsyncUpdateBackup(
 future<StatusOr<google::longrunning::Operation>>
 CloudFilestoreManagerMetadata::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
   SetMetadata(*context, "name=" + request.name());
   return child_->AsyncGetOperation(cq, std::move(context), request);
@@ -140,7 +183,7 @@ CloudFilestoreManagerMetadata::AsyncGetOperation(
 
 future<Status> CloudFilestoreManagerMetadata::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
   SetMetadata(*context, "name=" + request.name());
   return child_->AsyncCancelOperation(cq, std::move(context), request);

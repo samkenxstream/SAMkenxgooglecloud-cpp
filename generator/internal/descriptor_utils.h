@@ -94,29 +94,11 @@ std::string FormatMethodCommentsMethodSignature(
 std::string FormatMethodCommentsProtobufRequest(
     google::protobuf::MethodDescriptor const& method);
 
-struct HttpSimpleInfo {
-  std::string http_verb;
-  std::string url_path;
-  std::string body;
-};
-
-struct HttpExtensionInfo {
-  std::string http_verb;
-  std::string url_path;
-  std::string request_field_name;
-  std::string url_substitution;
-  std::string body;
-  std::string path_prefix;
-  std::string path_suffix;
-};
-
 /**
- * Parses the http extension providing resource routing info, if present,
- * for the provided method per AIP-4222. Output is also used for gRPC/HTTP
- * transcoding.
+ * If there were any parameter comment substitutions that went unused, log
+ * errors about them and return false. Otherwise do nothing and return true.
  */
-absl::variant<absl::monostate, HttpSimpleInfo, HttpExtensionInfo>
-ParseHttpExtension(google::protobuf::MethodDescriptor const& method);
+bool CheckParameterCommentSubstitutions();
 
 /// Our representation for a `google.api.RoutingParameter` message.
 struct RoutingParameter {

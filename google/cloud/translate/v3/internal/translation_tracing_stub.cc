@@ -83,26 +83,48 @@ TranslationServiceTracingStub::TranslateDocument(
 future<StatusOr<google::longrunning::Operation>>
 TranslationServiceTracingStub::AsyncBatchTranslateText(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::translation::v3::BatchTranslateTextRequest const& request) {
-  return child_->AsyncBatchTranslateText(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.translation.v3.TranslationService", "BatchTranslateText");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncBatchTranslateText(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 TranslationServiceTracingStub::AsyncBatchTranslateDocument(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::translation::v3::BatchTranslateDocumentRequest const&
         request) {
-  return child_->AsyncBatchTranslateDocument(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.cloud.translation.v3.TranslationService",
+                             "BatchTranslateDocument");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncBatchTranslateDocument(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 TranslationServiceTracingStub::AsyncCreateGlossary(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::translation::v3::CreateGlossaryRequest const& request) {
-  return child_->AsyncCreateGlossary(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.translation.v3.TranslationService", "CreateGlossary");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateGlossary(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::translation::v3::ListGlossariesResponse>
@@ -132,24 +154,45 @@ TranslationServiceTracingStub::GetGlossary(
 future<StatusOr<google::longrunning::Operation>>
 TranslationServiceTracingStub::AsyncDeleteGlossary(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::translation::v3::DeleteGlossaryRequest const& request) {
-  return child_->AsyncDeleteGlossary(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.translation.v3.TranslationService", "DeleteGlossary");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDeleteGlossary(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 TranslationServiceTracingStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return child_->AsyncGetOperation(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.longrunning.Operations", "GetOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncGetOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<Status> TranslationServiceTracingStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return child_->AsyncCancelOperation(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.longrunning.Operations",
+                                     "CancelOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCancelOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY

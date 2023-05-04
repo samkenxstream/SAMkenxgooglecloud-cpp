@@ -35,7 +35,22 @@ SecurityCenterTracingConnection::SecurityCenterTracingConnection(
 future<StatusOr<google::cloud::securitycenter::v1::BulkMuteFindingsResponse>>
 SecurityCenterTracingConnection::BulkMuteFindings(
     google::cloud::securitycenter::v1::BulkMuteFindingsRequest const& request) {
-  return child_->BulkMuteFindings(request);
+  auto span = internal::MakeSpan(
+      "securitycenter_v1::SecurityCenterConnection::BulkMuteFindings");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(std::move(span), child_->BulkMuteFindings(request));
+}
+
+StatusOr<google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+SecurityCenterTracingConnection::CreateSecurityHealthAnalyticsCustomModule(
+    google::cloud::securitycenter::v1::
+        CreateSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  auto span = internal::MakeSpan(
+      "securitycenter_v1::SecurityCenterConnection::"
+      "CreateSecurityHealthAnalyticsCustomModule");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(
+      *span, child_->CreateSecurityHealthAnalyticsCustomModule(request));
 }
 
 StatusOr<google::cloud::securitycenter::v1::Source>
@@ -92,6 +107,18 @@ Status SecurityCenterTracingConnection::DeleteNotificationConfig(
   return internal::EndSpan(*span, child_->DeleteNotificationConfig(request));
 }
 
+Status
+SecurityCenterTracingConnection::DeleteSecurityHealthAnalyticsCustomModule(
+    google::cloud::securitycenter::v1::
+        DeleteSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  auto span = internal::MakeSpan(
+      "securitycenter_v1::SecurityCenterConnection::"
+      "DeleteSecurityHealthAnalyticsCustomModule");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(
+      *span, child_->DeleteSecurityHealthAnalyticsCustomModule(request));
+}
+
 StatusOr<google::cloud::securitycenter::v1::BigQueryExport>
 SecurityCenterTracingConnection::GetBigQueryExport(
     google::cloud::securitycenter::v1::GetBigQueryExportRequest const&
@@ -137,6 +164,33 @@ SecurityCenterTracingConnection::GetOrganizationSettings(
       "securitycenter_v1::SecurityCenterConnection::GetOrganizationSettings");
   auto scope = opentelemetry::trace::Scope(span);
   return internal::EndSpan(*span, child_->GetOrganizationSettings(request));
+}
+
+StatusOr<google::cloud::securitycenter::v1::
+             EffectiveSecurityHealthAnalyticsCustomModule>
+SecurityCenterTracingConnection::
+    GetEffectiveSecurityHealthAnalyticsCustomModule(
+        google::cloud::securitycenter::v1::
+            GetEffectiveSecurityHealthAnalyticsCustomModuleRequest const&
+                request) {
+  auto span = internal::MakeSpan(
+      "securitycenter_v1::SecurityCenterConnection::"
+      "GetEffectiveSecurityHealthAnalyticsCustomModule");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(
+      *span, child_->GetEffectiveSecurityHealthAnalyticsCustomModule(request));
+}
+
+StatusOr<google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+SecurityCenterTracingConnection::GetSecurityHealthAnalyticsCustomModule(
+    google::cloud::securitycenter::v1::
+        GetSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  auto span = internal::MakeSpan(
+      "securitycenter_v1::SecurityCenterConnection::"
+      "GetSecurityHealthAnalyticsCustomModule");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(
+      *span, child_->GetSecurityHealthAnalyticsCustomModule(request));
 }
 
 StatusOr<google::cloud::securitycenter::v1::Source>
@@ -186,6 +240,23 @@ SecurityCenterTracingConnection::ListAssets(
 }
 
 StreamRange<
+    google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+SecurityCenterTracingConnection::
+    ListDescendantSecurityHealthAnalyticsCustomModules(
+        google::cloud::securitycenter::v1::
+            ListDescendantSecurityHealthAnalyticsCustomModulesRequest request) {
+  auto span = internal::MakeSpan(
+      "securitycenter_v1::SecurityCenterConnection::"
+      "ListDescendantSecurityHealthAnalyticsCustomModules");
+  auto scope = opentelemetry::trace::Scope(span);
+  auto sr = child_->ListDescendantSecurityHealthAnalyticsCustomModules(
+      std::move(request));
+  return internal::MakeTracedStreamRange<
+      google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>(
+      std::move(span), std::move(sr));
+}
+
+StreamRange<
     google::cloud::securitycenter::v1::ListFindingsResponse::ListFindingsResult>
 SecurityCenterTracingConnection::ListFindings(
     google::cloud::securitycenter::v1::ListFindingsRequest request) {
@@ -222,6 +293,40 @@ SecurityCenterTracingConnection::ListNotificationConfigs(
                                                              std::move(sr));
 }
 
+StreamRange<google::cloud::securitycenter::v1::
+                EffectiveSecurityHealthAnalyticsCustomModule>
+SecurityCenterTracingConnection::
+    ListEffectiveSecurityHealthAnalyticsCustomModules(
+        google::cloud::securitycenter::v1::
+            ListEffectiveSecurityHealthAnalyticsCustomModulesRequest request) {
+  auto span = internal::MakeSpan(
+      "securitycenter_v1::SecurityCenterConnection::"
+      "ListEffectiveSecurityHealthAnalyticsCustomModules");
+  auto scope = opentelemetry::trace::Scope(span);
+  auto sr = child_->ListEffectiveSecurityHealthAnalyticsCustomModules(
+      std::move(request));
+  return internal::MakeTracedStreamRange<
+      google::cloud::securitycenter::v1::
+          EffectiveSecurityHealthAnalyticsCustomModule>(std::move(span),
+                                                        std::move(sr));
+}
+
+StreamRange<
+    google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+SecurityCenterTracingConnection::ListSecurityHealthAnalyticsCustomModules(
+    google::cloud::securitycenter::v1::
+        ListSecurityHealthAnalyticsCustomModulesRequest request) {
+  auto span = internal::MakeSpan(
+      "securitycenter_v1::SecurityCenterConnection::"
+      "ListSecurityHealthAnalyticsCustomModules");
+  auto scope = opentelemetry::trace::Scope(span);
+  auto sr =
+      child_->ListSecurityHealthAnalyticsCustomModules(std::move(request));
+  return internal::MakeTracedStreamRange<
+      google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>(
+      std::move(span), std::move(sr));
+}
+
 StreamRange<google::cloud::securitycenter::v1::Source>
 SecurityCenterTracingConnection::ListSources(
     google::cloud::securitycenter::v1::ListSourcesRequest request) {
@@ -238,7 +343,10 @@ future<StatusOr<google::cloud::securitycenter::v1::RunAssetDiscoveryResponse>>
 SecurityCenterTracingConnection::RunAssetDiscovery(
     google::cloud::securitycenter::v1::RunAssetDiscoveryRequest const&
         request) {
-  return child_->RunAssetDiscovery(request);
+  auto span = internal::MakeSpan(
+      "securitycenter_v1::SecurityCenterConnection::RunAssetDiscovery");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(std::move(span), child_->RunAssetDiscovery(request));
 }
 
 StatusOr<google::cloud::securitycenter::v1::Finding>
@@ -323,6 +431,18 @@ SecurityCenterTracingConnection::UpdateOrganizationSettings(
       "UpdateOrganizationSettings");
   auto scope = opentelemetry::trace::Scope(span);
   return internal::EndSpan(*span, child_->UpdateOrganizationSettings(request));
+}
+
+StatusOr<google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+SecurityCenterTracingConnection::UpdateSecurityHealthAnalyticsCustomModule(
+    google::cloud::securitycenter::v1::
+        UpdateSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  auto span = internal::MakeSpan(
+      "securitycenter_v1::SecurityCenterConnection::"
+      "UpdateSecurityHealthAnalyticsCustomModule");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(
+      *span, child_->UpdateSecurityHealthAnalyticsCustomModule(request));
 }
 
 StatusOr<google::cloud::securitycenter::v1::Source>

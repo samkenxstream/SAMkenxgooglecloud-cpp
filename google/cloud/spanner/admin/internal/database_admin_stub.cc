@@ -45,10 +45,13 @@ DefaultDatabaseAdminStub::ListDatabases(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDatabaseAdminStub::AsyncCreateDatabase(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::spanner::admin::database::v1::CreateDatabaseRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::spanner::admin::database::v1::CreateDatabaseRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::spanner::admin::database::v1::CreateDatabaseRequest const&
                  request,
@@ -73,10 +76,13 @@ DefaultDatabaseAdminStub::GetDatabase(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDatabaseAdminStub::AsyncUpdateDatabaseDdl(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::spanner::admin::database::v1::UpdateDatabaseDdlRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::spanner::admin::database::v1::UpdateDatabaseDdlRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::spanner::admin::database::v1::UpdateDatabaseDdlRequest const&
@@ -149,9 +155,12 @@ DefaultDatabaseAdminStub::TestIamPermissions(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDatabaseAdminStub::AsyncCreateBackup(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::spanner::admin::database::v1::CreateBackupRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::spanner::admin::database::v1::CreateBackupRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::spanner::admin::database::v1::CreateBackupRequest const&
                  request,
@@ -164,9 +173,12 @@ DefaultDatabaseAdminStub::AsyncCreateBackup(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDatabaseAdminStub::AsyncCopyBackup(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::spanner::admin::database::v1::CopyBackupRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::spanner::admin::database::v1::CopyBackupRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::spanner::admin::database::v1::CopyBackupRequest const&
                  request,
@@ -226,10 +238,13 @@ DefaultDatabaseAdminStub::ListBackups(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDatabaseAdminStub::AsyncRestoreDatabase(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::spanner::admin::database::v1::RestoreDatabaseRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::spanner::admin::database::v1::RestoreDatabaseRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::spanner::admin::database::v1::RestoreDatabaseRequest const&
                  request,
@@ -284,9 +299,11 @@ DefaultDatabaseAdminStub::ListDatabaseRoles(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDatabaseAdminStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -297,16 +314,17 @@ DefaultDatabaseAdminStub::AsyncGetOperation(
 
 future<Status> DefaultDatabaseAdminStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

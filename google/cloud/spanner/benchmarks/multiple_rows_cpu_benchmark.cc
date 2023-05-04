@@ -16,6 +16,7 @@
 #include "google/cloud/spanner/benchmarks/benchmarks_config.h"
 #include "google/cloud/spanner/client.h"
 #include "google/cloud/spanner/internal/defaults.h"
+#include "google/cloud/spanner/internal/route_to_leader.h"
 #include "google/cloud/spanner/internal/session_pool.h"
 #include "google/cloud/spanner/internal/spanner_stub.h"
 #include "google/cloud/spanner/testing/pick_random_instance.h"
@@ -27,7 +28,6 @@
 #include "google/cloud/internal/random.h"
 #include "google/cloud/internal/unified_grpc_credentials.h"
 #include "google/cloud/testing_util/timer.h"
-#include "absl/memory/memory.h"
 #include "absl/time/civil_time.h"
 #include <google/spanner/v1/result_set.pb.h>
 #include <grpcpp/grpcpp.h>
@@ -459,6 +459,8 @@ class BasicExperiment : public Experiment {
   }
 
  protected:
+  // Note that by bypassing the Client layer we are not instantiating
+  // an `OptionsSpan`, so `CurrentOptions()` will be empty if called.
   virtual std::vector<RowCpuSample> ViaStub(
       Config const& config, int thread_count, int channel_count,
       spanner::Database const& database,
@@ -540,6 +542,7 @@ class ReadExperiment : public BasicExperiment<Traits> {
       Status last_status;
       for (int i = 0; i != 10; ++i) {
         grpc::ClientContext context;
+        spanner_internal::RouteToLeader(context);  // always for CreateSession
         google::spanner::v1::CreateSessionRequest request{};
         request.set_database(database.FullName());
         auto response = stub->CreateSession(context, request);
@@ -679,6 +682,7 @@ class SelectExperiment : public BasicExperiment<Traits> {
       Status last_status;
       for (int i = 0; i != ExperimentImpl<Traits>::kColumnCount; ++i) {
         grpc::ClientContext context;
+        spanner_internal::RouteToLeader(context);  // always for CreateSession
         google::spanner::v1::CreateSessionRequest request{};
         request.set_database(database.FullName());
         auto response = stub->CreateSession(context, request);
@@ -838,6 +842,7 @@ class UpdateExperiment : public BasicExperiment<Traits> {
       Status last_status;
       for (int i = 0; i != 10; ++i) {
         grpc::ClientContext context;
+        spanner_internal::RouteToLeader(context);  // always for CreateSession
         google::spanner::v1::CreateSessionRequest request{};
         request.set_database(database.FullName());
         auto response = stub->CreateSession(context, request);
@@ -1023,6 +1028,7 @@ class MutationExperiment : public BasicExperiment<Traits> {
       Status last_status;
       for (int i = 0; i != 10; ++i) {
         grpc::ClientContext context;
+        spanner_internal::RouteToLeader(context);  // always for CreateSession
         google::spanner::v1::CreateSessionRequest request{};
         request.set_database(database.FullName());
         auto response = stub->CreateSession(context, request);
@@ -1218,30 +1224,30 @@ class RunAllExperiment : public Experiment {
 template <typename Trait>
 ExperimentFactory MakeReadFactory() {
   using G = ::google::cloud::internal::DefaultPRNG;
-  return [](G g) { return absl::make_unique<ReadExperiment<Trait>>(g); };
+  return [](G g) { return std::make_unique<ReadExperiment<Trait>>(g); };
 }
 
 template <typename Trait>
 ExperimentFactory MakeSelectFactory() {
   using G = ::google::cloud::internal::DefaultPRNG;
-  return [](G g) { return absl::make_unique<SelectExperiment<Trait>>(g); };
+  return [](G g) { return std::make_unique<SelectExperiment<Trait>>(g); };
 }
 
 template <typename Trait>
 ExperimentFactory MakeUpdateFactory() {
   using G = ::google::cloud::internal::DefaultPRNG;
-  return [](G g) { return absl::make_unique<UpdateExperiment<Trait>>(g); };
+  return [](G g) { return std::make_unique<UpdateExperiment<Trait>>(g); };
 }
 
 template <typename Trait>
 ExperimentFactory MakeMutationFactory() {
   using G = ::google::cloud::internal::DefaultPRNG;
-  return [](G g) { return absl::make_unique<MutationExperiment<Trait>>(g); };
+  return [](G g) { return std::make_unique<MutationExperiment<Trait>>(g); };
 }
 
 std::map<std::string, ExperimentFactory> AvailableExperiments() {
   auto make_run_all = [](google::cloud::internal::DefaultPRNG g) {
-    return absl::make_unique<RunAllExperiment>(g);
+    return std::make_unique<RunAllExperiment>(g);
   };
 
   return {

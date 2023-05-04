@@ -13,7 +13,10 @@
 // limitations under the License.
 
 #include "docfx/doxygen_pages.h"
+#include "docfx/config.h"
 #include "docfx/doxygen2markdown.h"
+#include "docfx/doxygen_errors.h"
+#include "docfx/public_docs.h"
 #include <algorithm>
 #include <iostream>
 #include <sstream>
@@ -77,7 +80,7 @@ namespace docfx {
 //   <xsd:attribute name="abstract" type="DoxBool" use="optional"/>
 // </xsd:complexType>
 // clang-format on
-std::string Page2Markdown(pugi::xml_node const& node) {
+std::string Page2Markdown(pugi::xml_node node) {
   if (std::string_view{node.name()} != "compounddef" ||
       std::string_view{node.attribute("kind").as_string()} != "page") {
     std::ostringstream os;
@@ -87,11 +90,16 @@ std::string Page2Markdown(pugi::xml_node const& node) {
     throw std::runtime_error(std::move(os).str());
   }
   std::ostringstream os;
-  MarkdownContext ctx;
+  os << "---\n";
+  auto const id = std::string_view{node.attribute("id").as_string()};
+  os << "uid: " << id << "\n";
+  os << "---\n\n";
   os << "# ";
+
+  MarkdownContext ctx;
   AppendTitle(os, ctx, node);
   os << "\n";
-  for (auto const& child : node) {
+  for (auto child : node) {
     auto name = std::string_view(child.name());
     if (name == "compoundname") continue;      // no markdown output
     if (name == "briefdescription") continue;  // no markdown output
@@ -107,18 +115,6 @@ std::string Page2Markdown(pugi::xml_node const& node) {
   }
   os << "\n";
   return std::move(os).str();
-}
-
-std::vector<TocEntry> PagesToc(pugi::xml_document const& doc) {
-  auto nodes = doc.select_nodes("//*[@kind='page']");
-  std::vector<TocEntry> result(nodes.size());
-  std::transform(nodes.begin(), nodes.end(), result.begin(), [](auto const& i) {
-    auto const& page = i.node();
-    auto const id = std::string_view{page.attribute("id").as_string()};
-    if (id == "indexpage") return TocEntry{"indexpage.md", "README"};
-    return TocEntry{std::string(id) + ".md", std::string(id)};
-  });
-  return result;
 }
 
 }  // namespace docfx

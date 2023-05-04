@@ -16,7 +16,9 @@
 #define GOOGLE_CLOUD_CPP_GOOGLE_CLOUD_BIGQUERY_V2_MINIMAL_INTERNAL_JOB_H
 
 #include "google/cloud/bigquery/v2/minimal/internal/job_configuration.h"
+#include "google/cloud/tracing_options.h"
 #include "google/cloud/version.h"
+#include "absl/strings/string_view.h"
 #include "absl/types/optional.h"
 #include <nlohmann/json.hpp>
 #include <string>
@@ -40,9 +42,12 @@ struct JobReference {
   std::string project_id;
   std::string job_id;
   std::string location;
+
+  std::string DebugString(absl::string_view name,
+                          TracingOptions const& options = {},
+                          int indent = 0) const;
 };
 
-// Custom object for V2 Job proto fields.
 struct Job {
   std::string kind;
   std::string etag;
@@ -53,6 +58,28 @@ struct Job {
   JobStatus status;
   JobReference reference;
   JobConfiguration configuration;
+
+  std::string DebugString(absl::string_view name,
+                          TracingOptions const& options = {},
+                          int indent = 0) const;
+};
+
+struct ListFormatJob {
+  std::string id;
+  std::string kind;
+  std::string user_email;
+  std::string state;
+  std::string principal_subject;
+
+  JobReference reference;
+  JobConfiguration configuration;
+  JobStatus status;
+
+  ErrorProto error_result;
+
+  std::string DebugString(absl::string_view name,
+                          TracingOptions const& options = {},
+                          int indent = 0) const;
 };
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(JobStatus, error_result, errors,
@@ -62,6 +89,11 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(JobReference, project_id,
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Job, kind, etag, id, self_link,
                                                 user_email, status, reference,
                                                 configuration);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ListFormatJob, id, kind,
+                                                user_email, state,
+                                                principal_subject, reference,
+                                                configuration, status,
+                                                error_result);
 
 GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_END
 }  // namespace bigquery_v2_minimal_internal

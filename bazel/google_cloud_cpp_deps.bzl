@@ -59,11 +59,11 @@ def google_cloud_cpp_deps(name = None):
         http_archive,
         name = "com_google_absl",
         urls = [
-            "https://storage.googleapis.com/cloud-cpp-community-archive/com_google_absl/20230125.1.tar.gz",
-            "https://github.com/abseil/abseil-cpp/archive/20230125.1.tar.gz",
+            "https://storage.googleapis.com/cloud-cpp-community-archive/com_google_absl/20230125.3.tar.gz",
+            "https://github.com/abseil/abseil-cpp/archive/20230125.3.tar.gz",
         ],
-        sha256 = "81311c17599b3712069ded20cca09a62ab0bf2a89dfa16993786c8782b7ed145",
-        strip_prefix = "abseil-cpp-20230125.1",
+        sha256 = "5366d7e7fa7ba0d915014d387b66d0d002c03236448e1ba9ef98122c13b35c36",
+        strip_prefix = "abseil-cpp-20230125.3",
     )
 
     # Load a version of googletest that we know works.
@@ -95,11 +95,11 @@ def google_cloud_cpp_deps(name = None):
         http_archive,
         name = "com_google_googleapis",
         urls = [
-            "https://storage.googleapis.com/cloud-cpp-community-archive/com_google_googleapis/0ed6338d8ff91118c161dd837d002cbfc47f7d00.tar.gz",
-            "https://github.com/googleapis/googleapis/archive/0ed6338d8ff91118c161dd837d002cbfc47f7d00.tar.gz",
+            "https://storage.googleapis.com/cloud-cpp-community-archive/com_google_googleapis/2da477b6a72168c65fdb4245530cfa702cc4b029.tar.gz",
+            "https://github.com/googleapis/googleapis/archive/2da477b6a72168c65fdb4245530cfa702cc4b029.tar.gz",
         ],
-        sha256 = "2b55acf11a4656b31980177f0bb941e4cbe65471bd4439d3d0a6599fb64ad598",
-        strip_prefix = "googleapis-0ed6338d8ff91118c161dd837d002cbfc47f7d00",
+        sha256 = "3e48e5833fcd2e1fcb8b6a5b7a88e18503b670e8636b868cdb5ac32e00fbdafb",
+        strip_prefix = "googleapis-2da477b6a72168c65fdb4245530cfa702cc4b029",
         build_file = Label("//bazel:googleapis.BUILD"),
         # Scaffolding for patching googleapis after download. For example:
         #   patches = ["googleapis.patch"]
@@ -144,11 +144,11 @@ def google_cloud_cpp_deps(name = None):
         http_archive,
         name = "com_github_grpc_grpc",
         urls = [
-            "https://storage.googleapis.com/cloud-cpp-community-archive/com_github_grpc_grpc/v1.52.1.tar.gz",
-            "https://github.com/grpc/grpc/archive/v1.52.1.tar.gz",
+            "https://storage.googleapis.com/cloud-cpp-community-archive/com_github_grpc_grpc/v1.54.0.tar.gz",
+            "https://github.com/grpc/grpc/archive/v1.54.0.tar.gz",
         ],
-        sha256 = "ec125d7fdb77ecc25b01050a0d5d32616594834d3fe163b016768e2ae42a2df6",
-        strip_prefix = "grpc-1.52.1",
+        sha256 = "5e53505a6c84030a26c4fddd71b3f46feec8e0a8eccff2a903b189d349ca6ff5",
+        strip_prefix = "grpc-1.54.0",
     )
 
     # We use the cc_proto_library() rule from @com_google_protobuf, which
@@ -210,11 +210,11 @@ def google_cloud_cpp_deps(name = None):
         http_archive,
         name = "io_opentelemetry_cpp",
         urls = [
-            "https://storage.googleapis.com/cloud-cpp-community-archive/io_opentelemetry_cpp/v1.8.2.tar.gz",
-            "https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.8.2.tar.gz",
+            "https://storage.googleapis.com/cloud-cpp-community-archive/io_opentelemetry_cpp/v1.9.0.tar.gz",
+            "https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.9.0.tar.gz",
         ],
-        sha256 = "20fa97e507d067e9e2ab0c1accfc334f5a4b10d01312e55455dc3733748585f4",
-        strip_prefix = "opentelemetry-cpp-1.8.2",
+        sha256 = "0fdbefbdc2c154634728097e26de52a8210ed95cb032beb5f35da0a493cd5066",
+        strip_prefix = "opentelemetry-cpp-1.9.0",
     )
 
     # PugiXML, this is only used in the docfx internal tool.

@@ -57,25 +57,46 @@ CloudDeployTracingStub::GetDeliveryPipeline(
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployTracingStub::AsyncCreateDeliveryPipeline(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::deploy::v1::CreateDeliveryPipelineRequest const& request) {
-  return child_->AsyncCreateDeliveryPipeline(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.deploy.v1.CloudDeploy",
+                                     "CreateDeliveryPipeline");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateDeliveryPipeline(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployTracingStub::AsyncUpdateDeliveryPipeline(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::deploy::v1::UpdateDeliveryPipelineRequest const& request) {
-  return child_->AsyncUpdateDeliveryPipeline(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.deploy.v1.CloudDeploy",
+                                     "UpdateDeliveryPipeline");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateDeliveryPipeline(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployTracingStub::AsyncDeleteDeliveryPipeline(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::deploy::v1::DeleteDeliveryPipelineRequest const& request) {
-  return child_->AsyncDeleteDeliveryPipeline(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.deploy.v1.CloudDeploy",
+                                     "DeleteDeliveryPipeline");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDeleteDeliveryPipeline(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::deploy::v1::ListTargetsResponse>
@@ -103,25 +124,46 @@ StatusOr<google::cloud::deploy::v1::Target> CloudDeployTracingStub::GetTarget(
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployTracingStub::AsyncCreateTarget(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::deploy::v1::CreateTargetRequest const& request) {
-  return child_->AsyncCreateTarget(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.deploy.v1.CloudDeploy",
+                                     "CreateTarget");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateTarget(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployTracingStub::AsyncUpdateTarget(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::deploy::v1::UpdateTargetRequest const& request) {
-  return child_->AsyncUpdateTarget(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.deploy.v1.CloudDeploy",
+                                     "UpdateTarget");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateTarget(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployTracingStub::AsyncDeleteTarget(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::deploy::v1::DeleteTargetRequest const& request) {
-  return child_->AsyncDeleteTarget(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.deploy.v1.CloudDeploy",
+                                     "DeleteTarget");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDeleteTarget(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::deploy::v1::ListReleasesResponse>
@@ -150,9 +192,16 @@ StatusOr<google::cloud::deploy::v1::Release> CloudDeployTracingStub::GetRelease(
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployTracingStub::AsyncCreateRelease(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::deploy::v1::CreateReleaseRequest const& request) {
-  return child_->AsyncCreateRelease(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.deploy.v1.CloudDeploy",
+                                     "CreateRelease");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateRelease(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::deploy::v1::AbandonReleaseResponse>
@@ -177,6 +226,30 @@ CloudDeployTracingStub::ApproveRollout(
   internal::InjectTraceContext(context, internal::CurrentOptions());
   return internal::EndSpan(context, *span,
                            child_->ApproveRollout(context, request));
+}
+
+StatusOr<google::cloud::deploy::v1::AdvanceRolloutResponse>
+CloudDeployTracingStub::AdvanceRollout(
+    grpc::ClientContext& context,
+    google::cloud::deploy::v1::AdvanceRolloutRequest const& request) {
+  auto span = internal::MakeSpanGrpc("google.cloud.deploy.v1.CloudDeploy",
+                                     "AdvanceRollout");
+  auto scope = opentelemetry::trace::Scope(span);
+  internal::InjectTraceContext(context, internal::CurrentOptions());
+  return internal::EndSpan(context, *span,
+                           child_->AdvanceRollout(context, request));
+}
+
+StatusOr<google::cloud::deploy::v1::CancelRolloutResponse>
+CloudDeployTracingStub::CancelRollout(
+    grpc::ClientContext& context,
+    google::cloud::deploy::v1::CancelRolloutRequest const& request) {
+  auto span = internal::MakeSpanGrpc("google.cloud.deploy.v1.CloudDeploy",
+                                     "CancelRollout");
+  auto scope = opentelemetry::trace::Scope(span);
+  internal::InjectTraceContext(context, internal::CurrentOptions());
+  return internal::EndSpan(context, *span,
+                           child_->CancelRollout(context, request));
 }
 
 StatusOr<google::cloud::deploy::v1::ListRolloutsResponse>
@@ -205,9 +278,27 @@ StatusOr<google::cloud::deploy::v1::Rollout> CloudDeployTracingStub::GetRollout(
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployTracingStub::AsyncCreateRollout(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::deploy::v1::CreateRolloutRequest const& request) {
-  return child_->AsyncCreateRollout(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.deploy.v1.CloudDeploy",
+                                     "CreateRollout");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateRollout(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
+}
+
+StatusOr<google::cloud::deploy::v1::IgnoreJobResponse>
+CloudDeployTracingStub::IgnoreJob(
+    grpc::ClientContext& context,
+    google::cloud::deploy::v1::IgnoreJobRequest const& request) {
+  auto span =
+      internal::MakeSpanGrpc("google.cloud.deploy.v1.CloudDeploy", "IgnoreJob");
+  auto scope = opentelemetry::trace::Scope(span);
+  internal::InjectTraceContext(context, internal::CurrentOptions());
+  return internal::EndSpan(context, *span, child_->IgnoreJob(context, request));
 }
 
 StatusOr<google::cloud::deploy::v1::RetryJobResponse>
@@ -243,6 +334,18 @@ StatusOr<google::cloud::deploy::v1::JobRun> CloudDeployTracingStub::GetJobRun(
   return internal::EndSpan(context, *span, child_->GetJobRun(context, request));
 }
 
+StatusOr<google::cloud::deploy::v1::TerminateJobRunResponse>
+CloudDeployTracingStub::TerminateJobRun(
+    grpc::ClientContext& context,
+    google::cloud::deploy::v1::TerminateJobRunRequest const& request) {
+  auto span = internal::MakeSpanGrpc("google.cloud.deploy.v1.CloudDeploy",
+                                     "TerminateJobRun");
+  auto scope = opentelemetry::trace::Scope(span);
+  internal::InjectTraceContext(context, internal::CurrentOptions());
+  return internal::EndSpan(context, *span,
+                           child_->TerminateJobRun(context, request));
+}
+
 StatusOr<google::cloud::deploy::v1::Config> CloudDeployTracingStub::GetConfig(
     grpc::ClientContext& context,
     google::cloud::deploy::v1::GetConfigRequest const& request) {
@@ -256,16 +359,30 @@ StatusOr<google::cloud::deploy::v1::Config> CloudDeployTracingStub::GetConfig(
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployTracingStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return child_->AsyncGetOperation(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.longrunning.Operations", "GetOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncGetOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<Status> CloudDeployTracingStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return child_->AsyncCancelOperation(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.longrunning.Operations",
+                                     "CancelOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCancelOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY

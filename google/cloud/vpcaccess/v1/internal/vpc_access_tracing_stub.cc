@@ -33,9 +33,16 @@ VpcAccessServiceTracingStub::VpcAccessServiceTracingStub(
 future<StatusOr<google::longrunning::Operation>>
 VpcAccessServiceTracingStub::AsyncCreateConnector(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::vpcaccess::v1::CreateConnectorRequest const& request) {
-  return child_->AsyncCreateConnector(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.vpcaccess.v1.VpcAccessService", "CreateConnector");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateConnector(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::vpcaccess::v1::Connector>
@@ -65,24 +72,45 @@ VpcAccessServiceTracingStub::ListConnectors(
 future<StatusOr<google::longrunning::Operation>>
 VpcAccessServiceTracingStub::AsyncDeleteConnector(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::vpcaccess::v1::DeleteConnectorRequest const& request) {
-  return child_->AsyncDeleteConnector(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.vpcaccess.v1.VpcAccessService", "DeleteConnector");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDeleteConnector(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 VpcAccessServiceTracingStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return child_->AsyncGetOperation(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.longrunning.Operations", "GetOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncGetOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<Status> VpcAccessServiceTracingStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return child_->AsyncCancelOperation(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.longrunning.Operations",
+                                     "CancelOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCancelOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY

@@ -110,7 +110,7 @@ std::unique_ptr<::google::cloud::AsyncStreamingReadWriteRpc<
     google::pubsub::v1::StreamingPullResponse>>
 DefaultSubscriberStub::AsyncStreamingPull(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context) {
+    std::shared_ptr<grpc::ClientContext> context) {
   return google::cloud::internal::MakeStreamingReadWriteRpc<
       google::pubsub::v1::StreamingPullRequest,
       google::pubsub::v1::StreamingPullResponse>(
@@ -201,16 +201,18 @@ StatusOr<google::pubsub::v1::SeekResponse> DefaultSubscriberStub::Seek(
 
 future<Status> DefaultSubscriberStub::AsyncModifyAckDeadline(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::pubsub::v1::ModifyAckDeadlineRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::pubsub::v1::ModifyAckDeadlineRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return grpc_stub_->AsyncModifyAckDeadline(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<
+             google::pubsub::v1::ModifyAckDeadlineRequest,
+             google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::pubsub::v1::ModifyAckDeadlineRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return grpc_stub_->AsyncModifyAckDeadline(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });
@@ -218,16 +220,17 @@ future<Status> DefaultSubscriberStub::AsyncModifyAckDeadline(
 
 future<Status> DefaultSubscriberStub::AsyncAcknowledge(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::pubsub::v1::AcknowledgeRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::pubsub::v1::AcknowledgeRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return grpc_stub_->AsyncAcknowledge(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::pubsub::v1::AcknowledgeRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::pubsub::v1::AcknowledgeRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return grpc_stub_->AsyncAcknowledge(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

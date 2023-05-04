@@ -62,7 +62,7 @@ ENV PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib
 # Install Abseil, remove the downloaded files and the temporary artifacts
 # after a successful build to keep the image smaller (and with fewer layers)
 WORKDIR /var/tmp/build
-RUN curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.1.tar.gz | \
+RUN curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.3.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -DCMAKE_CXX_STANDARD=20 \
@@ -161,7 +161,7 @@ RUN curl -sSL https://github.com/google/re2/archive/2023-03-01.tar.gz | \
     ldconfig
 
 WORKDIR /var/tmp/build/grpc
-RUN curl -sSL https://github.com/grpc/grpc/archive/v1.52.1.tar.gz | \
+RUN curl -sSL https://github.com/grpc/grpc/archive/v1.54.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_CXX_STANDARD=20 \
@@ -181,7 +181,7 @@ RUN curl -sSL https://github.com/grpc/grpc/archive/v1.52.1.tar.gz | \
     cd /var/tmp && rm -fr build
 
 WORKDIR /var/tmp/build/
-RUN curl -sSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.8.2.tar.gz | \
+RUN curl -sSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.9.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_CXX_STANDARD=20 \
@@ -191,6 +191,7 @@ RUN curl -sSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.8.2
         -DWITH_EXAMPLES=OFF \
         -DWITH_ABSEIL=ON \
         -DBUILD_TESTING=OFF \
+        -DOPENTELEMETRY_INSTALL=ON \
         -H. -Bcmake-out -GNinja && \
     cmake --build cmake-out --target install && \
     ldconfig && cd /var/tmp && rm -fr build

@@ -14,7 +14,6 @@
 
 #include "google/cloud/bigtable/internal/async_bulk_apply.h"
 #include "google/cloud/bigtable/internal/async_streaming_read.h"
-#include "absl/memory/memory.h"
 
 namespace google {
 namespace cloud {
@@ -56,7 +55,7 @@ AsyncBulkApplier::AsyncBulkApplier(
 
 void AsyncBulkApplier::StartIteration() {
   internal::OptionsSpan span(options_);
-  auto context = absl::make_unique<grpc::ClientContext>();
+  auto context = std::make_shared<grpc::ClientContext>();
   internal::ConfigureContext(*context, internal::CurrentOptions());
 
   auto self = this->shared_from_this();

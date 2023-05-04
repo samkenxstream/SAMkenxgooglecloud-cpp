@@ -68,9 +68,16 @@ BigtableTableAdminTracingStub::GetTable(
 future<StatusOr<google::longrunning::Operation>>
 BigtableTableAdminTracingStub::AsyncUpdateTable(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::admin::v2::UpdateTableRequest const& request) {
-  return child_->AsyncUpdateTable(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.bigtable.admin.v2.BigtableTableAdmin", "UpdateTable");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateTable(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 Status BigtableTableAdminTracingStub::DeleteTable(
@@ -87,9 +94,16 @@ Status BigtableTableAdminTracingStub::DeleteTable(
 future<StatusOr<google::longrunning::Operation>>
 BigtableTableAdminTracingStub::AsyncUndeleteTable(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::admin::v2::UndeleteTableRequest const& request) {
-  return child_->AsyncUndeleteTable(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.bigtable.admin.v2.BigtableTableAdmin", "UndeleteTable");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUndeleteTable(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::bigtable::admin::v2::Table>
@@ -144,9 +158,16 @@ BigtableTableAdminTracingStub::CheckConsistency(
 future<StatusOr<google::longrunning::Operation>>
 BigtableTableAdminTracingStub::AsyncCreateBackup(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::admin::v2::CreateBackupRequest const& request) {
-  return child_->AsyncCreateBackup(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.bigtable.admin.v2.BigtableTableAdmin", "CreateBackup");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateBackup(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::bigtable::admin::v2::Backup>
@@ -198,9 +219,16 @@ BigtableTableAdminTracingStub::ListBackups(
 future<StatusOr<google::longrunning::Operation>>
 BigtableTableAdminTracingStub::AsyncRestoreTable(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::admin::v2::RestoreTableRequest const& request) {
-  return child_->AsyncRestoreTable(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.bigtable.admin.v2.BigtableTableAdmin", "RestoreTable");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncRestoreTable(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::iam::v1::Policy> BigtableTableAdminTracingStub::GetIamPolicy(
@@ -240,24 +268,45 @@ BigtableTableAdminTracingStub::TestIamPermissions(
 future<StatusOr<google::bigtable::admin::v2::CheckConsistencyResponse>>
 BigtableTableAdminTracingStub::AsyncCheckConsistency(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::admin::v2::CheckConsistencyRequest const& request) {
-  return child_->AsyncCheckConsistency(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.bigtable.admin.v2.BigtableTableAdmin", "CheckConsistency");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCheckConsistency(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 BigtableTableAdminTracingStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return child_->AsyncGetOperation(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.longrunning.Operations", "GetOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncGetOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<Status> BigtableTableAdminTracingStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return child_->AsyncCancelOperation(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.longrunning.Operations",
+                                     "CancelOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCancelOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY

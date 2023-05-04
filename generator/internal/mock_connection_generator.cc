@@ -15,9 +15,9 @@
 #include "generator/internal/mock_connection_generator.h"
 #include "generator/internal/codegen_utils.h"
 #include "generator/internal/descriptor_utils.h"
+#include "generator/internal/pagination.h"
 #include "generator/internal/predicate_utils.h"
 #include "generator/internal/printer.h"
-#include "absl/memory/memory.h"
 #include <google/protobuf/descriptor.h>
 
 namespace google {

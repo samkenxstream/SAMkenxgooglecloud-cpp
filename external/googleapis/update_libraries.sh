@@ -57,8 +57,7 @@ declare -A -r LIBRARIES=(
       "@com_google_googleapis//google/cloud/bigquery/logging/v1:logging_cc_grpc" \
       "@com_google_googleapis//google/cloud/bigquery/migration/v2:migration_cc_grpc" \
       "@com_google_googleapis//google/cloud/bigquery/reservation/v1:reservation_cc_grpc" \
-      "@com_google_googleapis//google/cloud/bigquery/storage/v1:storage_cc_grpc" \
-      "@com_google_googleapis//google/cloud/bigquery/v2:bigquery_cc_grpc"
+      "@com_google_googleapis//google/cloud/bigquery/storage/v1:storage_cc_grpc"
   )"
   ["bigtable"]="$(
     printf ",%s" \
@@ -77,9 +76,14 @@ declare -A -r LIBRARIES=(
       "@com_google_googleapis//google/cloud/certificatemanager/v1:certificatemanager_cc_grpc"
   )"
   ["channel"]="@com_google_googleapis//google/cloud/channel/v1:channel_cc_grpc"
-  ["cloudbuild"]="@com_google_googleapis//google/devtools/cloudbuild/v1:cloudbuild_cc_grpc"
+  ["cloudbuild"]="$(
+    printf ",%s" \
+      "@com_google_googleapis//google/devtools/cloudbuild/v1:cloudbuild_cc_grpc" \
+      "@com_google_googleapis//google/devtools/cloudbuild/v2:cloudbuild_cc_grpc"
+  )"
   ["common"]="@com_google_googleapis//google/cloud/common:common_cc_grpc"
   ["composer"]="@com_google_googleapis//google/cloud/orchestration/airflow/service/v1:service_cc_grpc"
+  ["confidentialcomputing"]="@com_google_googleapis//google/cloud/confidentialcomputing/v1:confidentialcomputing_cc_grpc"
   ["connectors"]="@com_google_googleapis//google/cloud/connectors/v1:connectors_cc_grpc"
   ["contactcenterinsights"]="@com_google_googleapis//google/cloud/contactcenterinsights/v1:contactcenterinsights_cc_grpc"
   ["container"]="@com_google_googleapis//google/container/v1:container_cc_grpc"
@@ -191,7 +195,11 @@ declare -A -r LIBRARIES=(
       "@com_google_googleapis//google/cloud/secretmanager/logging/v1:logging_cc_grpc"
   )"
   ["securitycenter"]="@com_google_googleapis//google/cloud/securitycenter/v1:securitycenter_cc_grpc"
-  ["servicecontrol"]="@com_google_googleapis//google/api/servicecontrol/v1:servicecontrol_cc_grpc"
+  ["servicecontrol"]="$(
+    printf ",%s" \
+      "@com_google_googleapis//google/api/servicecontrol/v1:servicecontrol_cc_grpc" \
+      "@com_google_googleapis//google/api/servicecontrol/v2:servicecontrol_cc_grpc"
+  )"
   ["servicedirectory"]="@com_google_googleapis//google/cloud/servicedirectory/v1:servicedirectory_cc_grpc"
   ["servicemanagement"]="@com_google_googleapis//google/api/servicemanagement/v1:servicemanagement_cc_grpc"
   ["serviceusage"]="@com_google_googleapis//google/api/serviceusage/v1:serviceusage_cc_grpc"
@@ -207,7 +215,9 @@ declare -A -r LIBRARIES=(
       "@com_google_googleapis//google/cloud/speech/v1:speech_cc_grpc" \
       "@com_google_googleapis//google/cloud/speech/v2:speech_cc_grpc"
   )"
+  ["sql"]="@com_google_googleapis//google/cloud/sql/v1:sql_cc_grpc"
   ["storage"]="@com_google_googleapis//google/storage/v2:storage_cc_grpc"
+  ["storageinsights"]="@com_google_googleapis//google/cloud/storageinsights/v1:storageinsights_cc_grpc"
   ["storagetransfer"]="@com_google_googleapis//google/storagetransfer/v1:storagetransfer_cc_grpc"
   ["talent"]="@com_google_googleapis//google/cloud/talent/v4:talent_cc_grpc"
   ["tasks"]="@com_google_googleapis//google/cloud/tasks/v2:tasks_cc_grpc"
@@ -217,7 +227,11 @@ declare -A -r LIBRARIES=(
       "@com_google_googleapis//google/cloud/tpu/v1:tpu_cc_grpc" \
       "@com_google_googleapis//google/cloud/tpu/v2:tpu_cc_grpc"
   )"
-  ["trace"]="@com_google_googleapis//google/devtools/cloudtrace/v2:cloudtrace_cc_grpc"
+  ["trace"]="$(
+    printf ",%s" \
+      "@com_google_googleapis//google/devtools/cloudtrace/v1:cloudtrace_cc_grpc" \
+      "@com_google_googleapis//google/devtools/cloudtrace/v2:cloudtrace_cc_grpc"
+  )"
   ["translate"]="@com_google_googleapis//google/cloud/translate/v3:translation_cc_grpc"
   ["video"]="$(
     printf ",%s" \
@@ -237,6 +251,11 @@ declare -A -r LIBRARIES=(
       "@com_google_googleapis//google/cloud/workflows/v1:workflows_cc_grpc" \
       "@com_google_googleapis//google/cloud/workflows/type:type_cc_grpc" \
       "@com_google_googleapis//google/cloud/workflows/executions/v1:executions_cc_grpc"
+  )"
+  ["workstations"]="$(
+    printf ",%s" \
+      "@com_google_googleapis//google/cloud/workstations/logging/v1:logging_cc_grpc" \
+      "@com_google_googleapis//google/cloud/workstations/v1:workstations_cc_grpc"
   )"
 )
 

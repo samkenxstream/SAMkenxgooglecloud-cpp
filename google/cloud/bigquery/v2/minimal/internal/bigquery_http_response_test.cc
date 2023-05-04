@@ -20,6 +20,7 @@
 #include "google/cloud/testing_util/mock_rest_response.h"
 #include "google/cloud/testing_util/status_matchers.h"
 #include <gmock/gmock.h>
+#include <sstream>
 
 namespace google {
 namespace cloud {
@@ -39,7 +40,7 @@ using ::testing::Return;
 TEST(BigQueryHttpResponseTest, Success) {
   std::string job_response_payload = "My code my code my kingdom for code!";
 
-  auto mock_response = absl::make_unique<MockRestResponse>();
+  auto mock_response = std::make_unique<MockRestResponse>();
   EXPECT_CALL(*mock_response, StatusCode)
       .WillRepeatedly(Return(HttpStatusCode::kOk));
   EXPECT_CALL(*mock_response, Headers)
@@ -56,8 +57,8 @@ TEST(BigQueryHttpResponseTest, Success) {
 }
 
 TEST(BigQueryHttpResponseTest, HttpError) {
-  auto mock_payload = absl::make_unique<MockHttpPayload>();
-  auto mock_response = absl::make_unique<MockRestResponse>();
+  auto mock_payload = std::make_unique<MockHttpPayload>();
+  auto mock_response = std::make_unique<MockRestResponse>();
   EXPECT_CALL(*mock_response, StatusCode)
       .WillRepeatedly(Return(HttpStatusCode::kBadRequest));
   EXPECT_CALL(std::move(*mock_response), ExtractPayload)
@@ -69,12 +70,12 @@ TEST(BigQueryHttpResponseTest, HttpError) {
 }
 
 TEST(BigQueryHttpResponseTest, PayloadError) {
-  auto mock_payload = absl::make_unique<MockHttpPayload>();
+  auto mock_payload = std::make_unique<MockHttpPayload>();
   EXPECT_CALL(*mock_payload, Read).WillRepeatedly([](absl::Span<char> const&) {
     return internal::AbortedError("invalid payload", GCP_ERROR_INFO());
   });
 
-  auto mock_response = absl::make_unique<MockRestResponse>();
+  auto mock_response = std::make_unique<MockRestResponse>();
   EXPECT_CALL(*mock_response, StatusCode)
       .WillRepeatedly(Return(HttpStatusCode::kOk));
   EXPECT_CALL(std::move(*mock_response), ExtractPayload)
@@ -91,6 +92,24 @@ TEST(BigQueryHttpResponseTest, NullPtr) {
   EXPECT_THAT(http_response,
               StatusIs(StatusCode::kInvalidArgument,
                        HasSubstr("RestResponse argument passed in is null")));
+}
+
+TEST(BigQueryHttpResponseTest, DebugString) {
+  std::string payload = "some-payload";
+  BigQueryHttpResponse response;
+  response.http_status_code = HttpStatusCode::kOk;
+  response.http_headers.insert({{"header1", "value1"}});
+  response.payload = payload;
+
+  EXPECT_EQ(response.DebugString("BigQueryHttpResponse", TracingOptions{}),
+            R"(BigQueryHttpResponse {)"
+            R"( status_code: 200)"
+            R"( http_headers {)"
+            R"( key: "header1")"
+            R"( value: "value1")"
+            R"( })"
+            R"( payload: REDACTED)"
+            R"( })");
 }
 
 GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_END

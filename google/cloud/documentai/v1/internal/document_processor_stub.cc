@@ -46,9 +46,12 @@ DefaultDocumentProcessorServiceStub::ProcessDocument(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentProcessorServiceStub::AsyncBatchProcessDocuments(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::documentai::v1::BatchProcessRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::documentai::v1::BatchProcessRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::documentai::v1::BatchProcessRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -123,10 +126,13 @@ DefaultDocumentProcessorServiceStub::GetProcessor(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentProcessorServiceStub::AsyncTrainProcessorVersion(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::documentai::v1::TrainProcessorVersionRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::documentai::v1::TrainProcessorVersionRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::documentai::v1::TrainProcessorVersionRequest const&
                  request,
@@ -166,10 +172,13 @@ DefaultDocumentProcessorServiceStub::ListProcessorVersions(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentProcessorServiceStub::AsyncDeleteProcessorVersion(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::documentai::v1::DeleteProcessorVersionRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::documentai::v1::DeleteProcessorVersionRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::documentai::v1::DeleteProcessorVersionRequest const&
                  request,
@@ -182,10 +191,13 @@ DefaultDocumentProcessorServiceStub::AsyncDeleteProcessorVersion(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentProcessorServiceStub::AsyncDeployProcessorVersion(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::documentai::v1::DeployProcessorVersionRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::documentai::v1::DeployProcessorVersionRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::documentai::v1::DeployProcessorVersionRequest const&
                  request,
@@ -198,10 +210,13 @@ DefaultDocumentProcessorServiceStub::AsyncDeployProcessorVersion(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentProcessorServiceStub::AsyncUndeployProcessorVersion(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::documentai::v1::UndeployProcessorVersionRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::documentai::v1::UndeployProcessorVersionRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::documentai::v1::UndeployProcessorVersionRequest const&
@@ -228,9 +243,12 @@ DefaultDocumentProcessorServiceStub::CreateProcessor(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentProcessorServiceStub::AsyncDeleteProcessor(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::documentai::v1::DeleteProcessorRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::documentai::v1::DeleteProcessorRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::documentai::v1::DeleteProcessorRequest const& request,
@@ -243,9 +261,12 @@ DefaultDocumentProcessorServiceStub::AsyncDeleteProcessor(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentProcessorServiceStub::AsyncEnableProcessor(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::documentai::v1::EnableProcessorRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::documentai::v1::EnableProcessorRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::documentai::v1::EnableProcessorRequest const& request,
@@ -258,9 +279,12 @@ DefaultDocumentProcessorServiceStub::AsyncEnableProcessor(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentProcessorServiceStub::AsyncDisableProcessor(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::documentai::v1::DisableProcessorRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::documentai::v1::DisableProcessorRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::documentai::v1::DisableProcessorRequest const& request,
@@ -273,10 +297,13 @@ DefaultDocumentProcessorServiceStub::AsyncDisableProcessor(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentProcessorServiceStub::AsyncSetDefaultProcessorVersion(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::documentai::v1::SetDefaultProcessorVersionRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::documentai::v1::SetDefaultProcessorVersionRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::documentai::v1::
                  SetDefaultProcessorVersionRequest const& request,
@@ -290,9 +317,12 @@ DefaultDocumentProcessorServiceStub::AsyncSetDefaultProcessorVersion(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentProcessorServiceStub::AsyncReviewDocument(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::documentai::v1::ReviewDocumentRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::documentai::v1::ReviewDocumentRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::documentai::v1::ReviewDocumentRequest const& request,
@@ -305,10 +335,13 @@ DefaultDocumentProcessorServiceStub::AsyncReviewDocument(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentProcessorServiceStub::AsyncEvaluateProcessorVersion(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::documentai::v1::EvaluateProcessorVersionRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::documentai::v1::EvaluateProcessorVersionRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::documentai::v1::EvaluateProcessorVersionRequest const&
@@ -347,9 +380,11 @@ DefaultDocumentProcessorServiceStub::ListEvaluations(
 future<StatusOr<google::longrunning::Operation>>
 DefaultDocumentProcessorServiceStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -360,16 +395,17 @@ DefaultDocumentProcessorServiceStub::AsyncGetOperation(
 
 future<Status> DefaultDocumentProcessorServiceStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

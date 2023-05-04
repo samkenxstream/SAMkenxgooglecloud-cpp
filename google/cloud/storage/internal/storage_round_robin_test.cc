@@ -18,7 +18,6 @@
 #include "google/cloud/internal/async_streaming_write_rpc_impl.h"
 #include "google/cloud/internal/streaming_write_rpc_impl.h"
 #include "google/cloud/testing_util/status_matchers.h"
-#include "absl/memory/memory.h"
 #include <gmock/gmock.h>
 
 namespace google {
@@ -32,6 +31,7 @@ using ::google::cloud::testing_util::StatusIs;
 using ::testing::ByMove;
 using ::testing::InSequence;
 using ::testing::Return;
+using ::testing::Unused;
 
 // All the tests have nearly identical structure. They create 3 mocks, setup
 // each mock to receive 2 calls of some function, then call the
@@ -56,45 +56,42 @@ std::vector<std::shared_ptr<StorageStub>> AsPlainStubs(
 
 std::unique_ptr<google::cloud::internal::StreamingReadRpc<
     google::storage::v2::ReadObjectResponse>>
-MakeReadObjectStream(std::unique_ptr<grpc::ClientContext>,
-                     google::storage::v2::ReadObjectRequest const&) {
+MakeReadObjectStream(Unused, google::storage::v2::ReadObjectRequest const&) {
   using ErrorStream = ::google::cloud::internal::StreamingReadRpcError<
       google::storage::v2::ReadObjectResponse>;
-  return absl::make_unique<ErrorStream>(
+  return std::make_unique<ErrorStream>(
       Status(StatusCode::kPermissionDenied, "uh-oh"));
 }
 
 std::unique_ptr<google::cloud::internal::AsyncStreamingReadRpc<
     google::storage::v2::ReadObjectResponse>>
-MakeAsyncReadObjectStream(google::cloud::CompletionQueue const&,
-                          std::unique_ptr<grpc::ClientContext>,
+MakeAsyncReadObjectStream(google::cloud::CompletionQueue const&, Unused,
                           google::storage::v2::ReadObjectRequest const&) {
   using ErrorStream = ::google::cloud::internal::AsyncStreamingReadRpcError<
       google::storage::v2::ReadObjectResponse>;
-  return absl::make_unique<ErrorStream>(
+  return std::make_unique<ErrorStream>(
       Status(StatusCode::kPermissionDenied, "uh-oh"));
 }
 
 std::unique_ptr<google::cloud::internal::AsyncStreamingWriteRpc<
     google::storage::v2::WriteObjectRequest,
     google::storage::v2::WriteObjectResponse>>
-MakeAsyncWriteObjectStream(google::cloud::CompletionQueue const&,
-                           std::unique_ptr<grpc::ClientContext>) {
+MakeAsyncWriteObjectStream(google::cloud::CompletionQueue const&, Unused) {
   using ErrorStream = ::google::cloud::internal::AsyncStreamingWriteRpcError<
       google::storage::v2::WriteObjectRequest,
       google::storage::v2::WriteObjectResponse>;
-  return absl::make_unique<ErrorStream>(
+  return std::make_unique<ErrorStream>(
       Status(StatusCode::kPermissionDenied, "uh-oh"));
 }
 
 std::unique_ptr<google::cloud::internal::StreamingWriteRpc<
     google::storage::v2::WriteObjectRequest,
     google::storage::v2::WriteObjectResponse>>
-MakeInsertStream(std::unique_ptr<grpc::ClientContext>) {
+MakeInsertStream(Unused) {
   using ErrorStream = ::google::cloud::internal::StreamingWriteRpcError<
       google::storage::v2::WriteObjectRequest,
       google::storage::v2::WriteObjectResponse>;
-  return absl::make_unique<ErrorStream>(
+  return std::make_unique<ErrorStream>(
       Status(StatusCode::kPermissionDenied, "uh-oh"));
 }
 
@@ -433,8 +430,8 @@ TEST(StorageRoundRobinTest, ReadObject) {
   StorageRoundRobin under_test(AsPlainStubs(mocks));
   for (size_t i = 0; i != kRepeats * mocks.size(); ++i) {
     google::storage::v2::ReadObjectRequest request;
-    auto response = under_test.ReadObject(
-        absl::make_unique<grpc::ClientContext>(), request);
+    auto response =
+        under_test.ReadObject(std::make_shared<grpc::ClientContext>(), request);
     auto v = response->Read();
     ASSERT_TRUE(absl::holds_alternative<Status>(v));
     EXPECT_THAT(absl::get<Status>(v), StatusIs(StatusCode::kPermissionDenied));
@@ -472,7 +469,7 @@ TEST(StorageRoundRobinTest, WriteObject) {
   StorageRoundRobin under_test(AsPlainStubs(mocks));
   for (size_t i = 0; i != kRepeats * mocks.size(); ++i) {
     auto response =
-        under_test.WriteObject(absl::make_unique<grpc::ClientContext>());
+        under_test.WriteObject(std::make_shared<grpc::ClientContext>());
     EXPECT_THAT(response->Close(), StatusIs(StatusCode::kPermissionDenied));
   }
 }
@@ -684,7 +681,7 @@ TEST(StorageRoundRobinTest, AsyncDeleteObject) {
     google::storage::v2::DeleteObjectRequest request;
     auto response =
         under_test
-            .AsyncDeleteObject(cq, absl::make_unique<grpc::ClientContext>(),
+            .AsyncDeleteObject(cq, std::make_shared<grpc::ClientContext>(),
                                request)
             .get();
     EXPECT_THAT(response, StatusIs(StatusCode::kPermissionDenied));
@@ -705,7 +702,7 @@ TEST(StorageRoundRobinTest, AsyncReadObject) {
   for (size_t i = 0; i != kRepeats * mocks.size(); ++i) {
     google::storage::v2::ReadObjectRequest request;
     auto response = under_test.AsyncReadObject(
-        cq, absl::make_unique<grpc::ClientContext>(), request);
+        cq, std::make_shared<grpc::ClientContext>(), request);
     EXPECT_FALSE(response->Read().get());
     auto status = response->Finish().get();
     EXPECT_THAT(status, StatusIs(StatusCode::kPermissionDenied));
@@ -725,7 +722,7 @@ TEST(StorageRoundRobinTest, AsyncWriteObject) {
   google::cloud::CompletionQueue cq;
   for (size_t i = 0; i != kRepeats * mocks.size(); ++i) {
     auto stream = under_test.AsyncWriteObject(
-        cq, absl::make_unique<grpc::ClientContext>());
+        cq, std::make_shared<grpc::ClientContext>());
     EXPECT_FALSE(stream->WritesDone().get());
     auto response = stream->Finish().get();
     EXPECT_THAT(response, StatusIs(StatusCode::kPermissionDenied));
@@ -753,7 +750,7 @@ TEST(StorageRoundRobinTest, AsyncStartResumableWrite) {
     auto response =
         under_test
             .AsyncStartResumableWrite(
-                cq, absl::make_unique<grpc::ClientContext>(), request)
+                cq, std::make_shared<grpc::ClientContext>(), request)
             .get();
     EXPECT_THAT(response, StatusIs(StatusCode::kPermissionDenied));
   }
@@ -778,7 +775,7 @@ TEST(StorageRoundRobinTest, AsyncQueryWriteStatus) {
     google::storage::v2::QueryWriteStatusRequest request;
     auto response =
         under_test
-            .AsyncQueryWriteStatus(cq, absl::make_unique<grpc::ClientContext>(),
+            .AsyncQueryWriteStatus(cq, std::make_shared<grpc::ClientContext>(),
                                    request)
             .get();
     EXPECT_THAT(response, StatusIs(StatusCode::kPermissionDenied));

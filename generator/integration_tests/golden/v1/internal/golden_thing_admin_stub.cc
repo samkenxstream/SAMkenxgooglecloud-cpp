@@ -46,9 +46,11 @@ DefaultGoldenThingAdminStub::ListDatabases(
 future<StatusOr<google::longrunning::Operation>>
 DefaultGoldenThingAdminStub::AsyncCreateDatabase(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::test::admin::database::v1::CreateDatabaseRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::test::admin::database::v1::CreateDatabaseRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::test::admin::database::v1::CreateDatabaseRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -73,9 +75,11 @@ DefaultGoldenThingAdminStub::GetDatabase(
 future<StatusOr<google::longrunning::Operation>>
 DefaultGoldenThingAdminStub::AsyncUpdateDatabaseDdl(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::test::admin::database::v1::UpdateDatabaseDdlRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::test::admin::database::v1::UpdateDatabaseDdlRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::test::admin::database::v1::UpdateDatabaseDdlRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -152,9 +156,11 @@ DefaultGoldenThingAdminStub::TestIamPermissions(
 future<StatusOr<google::longrunning::Operation>>
 DefaultGoldenThingAdminStub::AsyncCreateBackup(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::test::admin::database::v1::CreateBackupRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::test::admin::database::v1::CreateBackupRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::test::admin::database::v1::CreateBackupRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -218,9 +224,11 @@ DefaultGoldenThingAdminStub::ListBackups(
 future<StatusOr<google::longrunning::Operation>>
 DefaultGoldenThingAdminStub::AsyncRestoreDatabase(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::test::admin::database::v1::RestoreDatabaseRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::test::admin::database::v1::RestoreDatabaseRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::test::admin::database::v1::RestoreDatabaseRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -258,9 +266,11 @@ DefaultGoldenThingAdminStub::ListBackupOperations(
 future<StatusOr<google::longrunning::Operation>>
 DefaultGoldenThingAdminStub::AsyncLongRunningWithoutRouting(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::test::admin::database::v1::RestoreDatabaseRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::test::admin::database::v1::RestoreDatabaseRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::test::admin::database::v1::RestoreDatabaseRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -272,9 +282,11 @@ DefaultGoldenThingAdminStub::AsyncLongRunningWithoutRouting(
 future<StatusOr<google::test::admin::database::v1::Database>>
 DefaultGoldenThingAdminStub::AsyncGetDatabase(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::test::admin::database::v1::GetDatabaseRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::test::admin::database::v1::GetDatabaseRequest,
+                                    google::test::admin::database::v1::Database>(
+      cq,
       [this](grpc::ClientContext* context,
              google::test::admin::database::v1::GetDatabaseRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -286,9 +298,11 @@ DefaultGoldenThingAdminStub::AsyncGetDatabase(
 future<Status>
 DefaultGoldenThingAdminStub::AsyncDropDatabase(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::test::admin::database::v1::DropDatabaseRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::test::admin::database::v1::DropDatabaseRequest,
+                                    google::protobuf::Empty>(
+      cq,
       [this](grpc::ClientContext* context,
              google::test::admin::database::v1::DropDatabaseRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -303,9 +317,11 @@ DefaultGoldenThingAdminStub::AsyncDropDatabase(
 future<StatusOr<google::longrunning::Operation>>
 DefaultGoldenThingAdminStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -316,9 +332,11 @@ DefaultGoldenThingAdminStub::AsyncGetOperation(
 
 future<Status> DefaultGoldenThingAdminStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::CancelOperationRequest const& request,
              grpc::CompletionQueue* cq) {

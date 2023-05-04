@@ -138,9 +138,11 @@ DefaultPublisherStub::DetachSubscription(
 future<StatusOr<google::pubsub::v1::PublishResponse>>
 DefaultPublisherStub::AsyncPublish(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::pubsub::v1::PublishRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::pubsub::v1::PublishRequest,
+                                    google::pubsub::v1::PublishResponse>(
+      cq,
       [this](grpc::ClientContext* context,
              google::pubsub::v1::PublishRequest const& request,
              grpc::CompletionQueue* cq) {

@@ -1,0 +1,51 @@
+/*!
+
+@mainpage Cloud Workstations API C++ Client Library
+
+An idiomatic C++ client library for the
+[Cloud Workstations API][cloud-service-docs], a service that provides
+preconfigured, customizable, and secure managed development environments
+on Google Cloud.
+
+While this library is **GA**, please note that the Google Cloud C++ client libraries do **not** follow
+[Semantic Versioning](https://semver.org/).
+
+@tableofcontents{HTML:2}
+
+## Quickstart
+
+The following shows the code that you'll run in the
+`google/cloud/workstations/quickstart/` directory,
+which should give you a taste of the Cloud Workstations API C++ client library.
+
+@snippet quickstart.cc all
+
+## Main classes
+
+<!-- inject-client-list-start -->
+The main class in this library is
+[\c workstations_v1::WorkstationsClient](@ref google::cloud::workstations_v1::WorkstationsClient).
+All RPCs are exposed as member functions of this class. Other classes provide
+helpers, retry policies, configuration parameters, and infrastructure to mock
+[\c workstations_v1::WorkstationsClient](@ref google::cloud::workstations_v1::WorkstationsClient) when testing your
+application.
+<!-- inject-client-list-end -->
+
+## Retry, Backoff, and Idempotency Policies.
+
+The library automatically retries requests that fail with transient errors, and
+uses [exponential backoff] to backoff between retries. Application developers
+can override the default policies.
+
+## More Information
+
+- @ref common-error-handling - describes how the library reports errors.
+- @ref workstations-override-endpoint - describes how to override the default
+  endpoint.
+- @ref workstations-override-authentication - describes how to change the
+  authentication credentials used by the library.
+
+[cloud-service-docs]: https://cloud.google.com/workstations
+[exponential backoff]: https://en.wikipedia.org/wiki/Exponential_backoff
+
+*/

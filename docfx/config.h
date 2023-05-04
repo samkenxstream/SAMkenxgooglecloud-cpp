@@ -22,6 +22,7 @@ namespace docfx {
 struct Config {
   std::string input_filename;
   std::string library;
+  std::string version;
 };
 
 }  // namespace docfx

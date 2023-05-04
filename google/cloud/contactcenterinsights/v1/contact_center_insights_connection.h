@@ -21,7 +21,6 @@
 
 #include "google/cloud/contactcenterinsights/v1/contact_center_insights_connection_idempotency_policy.h"
 #include "google/cloud/contactcenterinsights/v1/internal/contact_center_insights_retry_traits.h"
-#include "google/cloud/contactcenterinsights/v1/internal/contact_center_insights_stub.h"
 #include "google/cloud/backoff_policy.h"
 #include "google/cloud/future.h"
 #include "google/cloud/options.h"
@@ -29,6 +28,7 @@
 #include "google/cloud/status_or.h"
 #include "google/cloud/stream_range.h"
 #include "google/cloud/version.h"
+#include <google/cloud/contactcenterinsights/v1/contact_center_insights.pb.h>
 #include <google/longrunning/operations.grpc.pb.h>
 #include <memory>
 
@@ -72,6 +72,12 @@ class ContactCenterInsightsConnection {
   virtual StatusOr<google::cloud::contactcenterinsights::v1::Conversation>
   CreateConversation(
       google::cloud::contactcenterinsights::v1::CreateConversationRequest const&
+          request);
+
+  virtual future<
+      StatusOr<google::cloud::contactcenterinsights::v1::Conversation>>
+  UploadConversation(
+      google::cloud::contactcenterinsights::v1::UploadConversationRequest const&
           request);
 
   virtual StatusOr<google::cloud::contactcenterinsights::v1::Conversation>

@@ -33,17 +33,31 @@ AwsClustersTracingStub::AwsClustersTracingStub(
 future<StatusOr<google::longrunning::Operation>>
 AwsClustersTracingStub::AsyncCreateAwsCluster(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::gkemulticloud::v1::CreateAwsClusterRequest const& request) {
-  return child_->AsyncCreateAwsCluster(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.gkemulticloud.v1.AwsClusters", "CreateAwsCluster");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateAwsCluster(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 AwsClustersTracingStub::AsyncUpdateAwsCluster(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::gkemulticloud::v1::UpdateAwsClusterRequest const& request) {
-  return child_->AsyncUpdateAwsCluster(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.gkemulticloud.v1.AwsClusters", "UpdateAwsCluster");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateAwsCluster(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::gkemulticloud::v1::AwsCluster>
@@ -73,9 +87,16 @@ AwsClustersTracingStub::ListAwsClusters(
 future<StatusOr<google::longrunning::Operation>>
 AwsClustersTracingStub::AsyncDeleteAwsCluster(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::gkemulticloud::v1::DeleteAwsClusterRequest const& request) {
-  return child_->AsyncDeleteAwsCluster(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.gkemulticloud.v1.AwsClusters", "DeleteAwsCluster");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDeleteAwsCluster(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::gkemulticloud::v1::GenerateAwsAccessTokenResponse>
@@ -94,17 +115,31 @@ AwsClustersTracingStub::GenerateAwsAccessToken(
 future<StatusOr<google::longrunning::Operation>>
 AwsClustersTracingStub::AsyncCreateAwsNodePool(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::gkemulticloud::v1::CreateAwsNodePoolRequest const& request) {
-  return child_->AsyncCreateAwsNodePool(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.gkemulticloud.v1.AwsClusters", "CreateAwsNodePool");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateAwsNodePool(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 AwsClustersTracingStub::AsyncUpdateAwsNodePool(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::gkemulticloud::v1::UpdateAwsNodePoolRequest const& request) {
-  return child_->AsyncUpdateAwsNodePool(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.gkemulticloud.v1.AwsClusters", "UpdateAwsNodePool");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateAwsNodePool(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::gkemulticloud::v1::AwsNodePool>
@@ -134,9 +169,16 @@ AwsClustersTracingStub::ListAwsNodePools(
 future<StatusOr<google::longrunning::Operation>>
 AwsClustersTracingStub::AsyncDeleteAwsNodePool(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::gkemulticloud::v1::DeleteAwsNodePoolRequest const& request) {
-  return child_->AsyncDeleteAwsNodePool(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.gkemulticloud.v1.AwsClusters", "DeleteAwsNodePool");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDeleteAwsNodePool(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::gkemulticloud::v1::AwsServerConfig>
@@ -155,16 +197,30 @@ AwsClustersTracingStub::GetAwsServerConfig(
 future<StatusOr<google::longrunning::Operation>>
 AwsClustersTracingStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return child_->AsyncGetOperation(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.longrunning.Operations", "GetOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncGetOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<Status> AwsClustersTracingStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return child_->AsyncCancelOperation(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.longrunning.Operations",
+                                     "CancelOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCancelOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY

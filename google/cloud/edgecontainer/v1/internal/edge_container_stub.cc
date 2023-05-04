@@ -57,9 +57,12 @@ DefaultEdgeContainerStub::GetCluster(
 future<StatusOr<google::longrunning::Operation>>
 DefaultEdgeContainerStub::AsyncCreateCluster(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::edgecontainer::v1::CreateClusterRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::edgecontainer::v1::CreateClusterRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::edgecontainer::v1::CreateClusterRequest const& request,
@@ -72,9 +75,12 @@ DefaultEdgeContainerStub::AsyncCreateCluster(
 future<StatusOr<google::longrunning::Operation>>
 DefaultEdgeContainerStub::AsyncUpdateCluster(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::edgecontainer::v1::UpdateClusterRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::edgecontainer::v1::UpdateClusterRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::edgecontainer::v1::UpdateClusterRequest const& request,
@@ -87,9 +93,12 @@ DefaultEdgeContainerStub::AsyncUpdateCluster(
 future<StatusOr<google::longrunning::Operation>>
 DefaultEdgeContainerStub::AsyncDeleteCluster(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::edgecontainer::v1::DeleteClusterRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::edgecontainer::v1::DeleteClusterRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::edgecontainer::v1::DeleteClusterRequest const& request,
@@ -140,9 +149,12 @@ DefaultEdgeContainerStub::GetNodePool(
 future<StatusOr<google::longrunning::Operation>>
 DefaultEdgeContainerStub::AsyncCreateNodePool(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::edgecontainer::v1::CreateNodePoolRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::edgecontainer::v1::CreateNodePoolRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::edgecontainer::v1::CreateNodePoolRequest const&
                  request,
@@ -155,9 +167,12 @@ DefaultEdgeContainerStub::AsyncCreateNodePool(
 future<StatusOr<google::longrunning::Operation>>
 DefaultEdgeContainerStub::AsyncUpdateNodePool(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::edgecontainer::v1::UpdateNodePoolRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::edgecontainer::v1::UpdateNodePoolRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::edgecontainer::v1::UpdateNodePoolRequest const&
                  request,
@@ -170,9 +185,12 @@ DefaultEdgeContainerStub::AsyncUpdateNodePool(
 future<StatusOr<google::longrunning::Operation>>
 DefaultEdgeContainerStub::AsyncDeleteNodePool(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::edgecontainer::v1::DeleteNodePoolRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::edgecontainer::v1::DeleteNodePoolRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::edgecontainer::v1::DeleteNodePoolRequest const&
                  request,
@@ -236,10 +254,13 @@ DefaultEdgeContainerStub::GetVpnConnection(
 future<StatusOr<google::longrunning::Operation>>
 DefaultEdgeContainerStub::AsyncCreateVpnConnection(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::edgecontainer::v1::CreateVpnConnectionRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::edgecontainer::v1::CreateVpnConnectionRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::edgecontainer::v1::CreateVpnConnectionRequest const&
                  request,
@@ -252,10 +273,13 @@ DefaultEdgeContainerStub::AsyncCreateVpnConnection(
 future<StatusOr<google::longrunning::Operation>>
 DefaultEdgeContainerStub::AsyncDeleteVpnConnection(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::edgecontainer::v1::DeleteVpnConnectionRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::edgecontainer::v1::DeleteVpnConnectionRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::edgecontainer::v1::DeleteVpnConnectionRequest const&
                  request,
@@ -268,9 +292,11 @@ DefaultEdgeContainerStub::AsyncDeleteVpnConnection(
 future<StatusOr<google::longrunning::Operation>>
 DefaultEdgeContainerStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -281,16 +307,17 @@ DefaultEdgeContainerStub::AsyncGetOperation(
 
 future<Status> DefaultEdgeContainerStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

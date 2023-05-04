@@ -9,9 +9,8 @@ contributions to the project.
   fixed directory (such as `/usr/local` or `/opt`) should consult the
   [packaging guide](/doc/packaging.md).
 - Developers who prefer using a package manager such as
-  [vcpkg](https://vcpkg.io), [Conda](https://conda.io),
-  or [Conan](https://conan.io) should follow the instructions for their package
-  manager.
+  [vcpkg](https://vcpkg.io), or [Conda](https://conda.io), should follow the
+  instructions for their package manager.
 - Developers wanting to use the libraries as part of a larger CMake or Bazel
   project should consult the [quickstart guides](/README.md#quickstart) for the
   library or libraries they want to use.
@@ -246,14 +245,14 @@ You can use the CI driver scripts to compile the code. You need to load the
 MSVC environment variables:
 
 ```console
-> set MSVC_VERSION=2019
+> set MSVC_VERSION=2022
 > call "c:\Program Files (x86)\Microsoft Visual Studio\%MSVC_VERSION%\Community\VC\Auxiliary\Build\vcvars64.bat"
 ```
 
 Or to setup for 32-bit builds:
 
 ```console
-> set MSVC_VERSION=2019
+> set MSVC_VERSION=2022
 > call "c:\Program Files (x86)\Microsoft Visual Studio\%MSVC_VERSION%\Community\VC\Auxiliary\Build\vcvars32.bat"
 ```
 

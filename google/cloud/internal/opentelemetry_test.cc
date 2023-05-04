@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "google/cloud/internal/opentelemetry.h"
+#include "google/cloud/internal/make_status.h"
 #include "google/cloud/internal/opentelemetry_options.h"
 #include "google/cloud/testing_util/opentelemetry_matchers.h"
 #include <gmock/gmock.h>
@@ -33,7 +34,8 @@ using ms = std::chrono::milliseconds;
 using ::testing::MockFunction;
 
 #ifdef GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY
-
+using ::google::cloud::testing_util::DisableTracing;
+using ::google::cloud::testing_util::EnableTracing;
 using ::google::cloud::testing_util::InstallSpanCatcher;
 using ::google::cloud::testing_util::SpanAttribute;
 using ::google::cloud::testing_util::SpanHasAttributes;
@@ -221,6 +223,58 @@ TEST(OpenTelemetry, EndSpanStatusOr) {
                   SpanWithStatus(opentelemetry::trace::StatusCode::kError)));
 }
 
+TEST(OpenTelemetry, EndSpanFutureStatus) {
+  auto span_catcher = InstallSpanCatcher();
+
+  promise<Status> p1;
+  auto v1 = Status();
+  auto r1 = EndSpan(MakeSpan("s1"), p1.get_future());
+  EXPECT_FALSE(r1.is_ready());
+  p1.set_value(v1);
+  EXPECT_TRUE(r1.is_ready());
+  EXPECT_EQ(r1.get(), v1);
+
+  promise<Status> p2;
+  auto v2 = Status(StatusCode::kAborted, "fail");
+  auto r2 = EndSpan(MakeSpan("s2"), p2.get_future());
+  EXPECT_FALSE(r2.is_ready());
+  p2.set_value(v2);
+  EXPECT_TRUE(r2.is_ready());
+  EXPECT_EQ(r2.get(), v2);
+
+  auto spans = span_catcher->GetSpans();
+  EXPECT_THAT(
+      spans,
+      ElementsAre(SpanWithStatus(opentelemetry::trace::StatusCode::kOk),
+                  SpanWithStatus(opentelemetry::trace::StatusCode::kError)));
+}
+
+TEST(OpenTelemetry, EndSpanFutureStatusOr) {
+  auto span_catcher = InstallSpanCatcher();
+
+  promise<StatusOr<int>> p1;
+  auto v1 = StatusOr<int>(5);
+  auto r1 = EndSpan(MakeSpan("s1"), p1.get_future());
+  EXPECT_FALSE(r1.is_ready());
+  p1.set_value(v1);
+  EXPECT_TRUE(r1.is_ready());
+  EXPECT_EQ(r1.get(), v1);
+
+  promise<StatusOr<int>> p2;
+  auto v2 = StatusOr<int>(Status(StatusCode::kAborted, "fail"));
+  auto r2 = EndSpan(MakeSpan("s2"), p2.get_future());
+  EXPECT_FALSE(r2.is_ready());
+  p2.set_value(v2);
+  EXPECT_TRUE(r2.is_ready());
+  EXPECT_EQ(r2.get(), v2);
+
+  auto spans = span_catcher->GetSpans();
+  EXPECT_THAT(
+      spans,
+      ElementsAre(SpanWithStatus(opentelemetry::trace::StatusCode::kOk),
+                  SpanWithStatus(opentelemetry::trace::StatusCode::kError)));
+}
+
 TEST(OpenTelemetry, TracingEnabled) {
   auto options = Options{};
   EXPECT_FALSE(TracingEnabled(options));
@@ -238,7 +292,7 @@ TEST(OpenTelemetry, MakeTracedSleeperEnabled) {
   MockFunction<void(ms)> mock_sleeper;
   EXPECT_CALL(mock_sleeper, Call(ms(42)));
 
-  OptionsSpan span(Options{}.set<OpenTelemetryTracingOption>(true));
+  OptionsSpan o(EnableTracing(Options{}));
   auto sleeper = mock_sleeper.AsStdFunction();
   auto result = MakeTracedSleeper(sleeper);
   result(ms(42));
@@ -254,7 +308,7 @@ TEST(OpenTelemetry, MakeTracedSleeperDisabled) {
   MockFunction<void(ms)> mock_sleeper;
   EXPECT_CALL(mock_sleeper, Call(ms(42)));
 
-  OptionsSpan span(Options{}.set<OpenTelemetryTracingOption>(false));
+  OptionsSpan o(DisableTracing(Options{}));
   auto sleeper = mock_sleeper.AsStdFunction();
   auto result = MakeTracedSleeper(sleeper);
   result(ms(42));
@@ -262,6 +316,39 @@ TEST(OpenTelemetry, MakeTracedSleeperDisabled) {
   // Verify that no spans were made.
   auto spans = span_catcher->GetSpans();
   EXPECT_THAT(spans, IsEmpty());
+}
+
+TEST(OpenTelemetry, AddSpanAttributeEnabled) {
+  auto span_catcher = InstallSpanCatcher();
+
+  auto span = MakeSpan("span");
+  auto scope = opentelemetry::trace::Scope(span);
+  OptionsSpan o(EnableTracing(Options{}));
+  AddSpanAttribute("key", "value");
+  span->End();
+
+  auto spans = span_catcher->GetSpans();
+  EXPECT_THAT(spans,
+              ElementsAre(AllOf(SpanNamed("span"),
+                                SpanHasAttributes(SpanAttribute<std::string>(
+                                    "key", "value")))));
+}
+
+TEST(OpenTelemetry, AddSpanAttributeDisabled) {
+  auto span_catcher = InstallSpanCatcher();
+
+  auto span = MakeSpan("span");
+  auto scope = opentelemetry::trace::Scope(span);
+  OptionsSpan o(DisableTracing(Options{}));
+  AddSpanAttribute("key", "value");
+  span->End();
+
+  auto spans = span_catcher->GetSpans();
+  EXPECT_THAT(
+      spans,
+      ElementsAre(AllOf(
+          SpanNamed("span"),
+          Not(SpanHasAttributes(SpanAttribute<std::string>("key", "value"))))));
 }
 
 #else

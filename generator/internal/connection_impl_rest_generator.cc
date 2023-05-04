@@ -14,6 +14,8 @@
 
 #include "generator/internal/connection_impl_rest_generator.h"
 #include "generator/internal/codegen_utils.h"
+#include "generator/internal/http_option_utils.h"
+#include "generator/internal/pagination.h"
 #include "generator/internal/predicate_utils.h"
 #include "generator/internal/printer.h"
 #include "google/cloud/internal/absl_str_cat_quiet.h"
@@ -165,7 +167,7 @@ Status ConnectionImplRestGenerator::GenerateCc() {
            : "",
        needs_async_retry_loop ? "google/cloud/internal/async_rest_retry_loop.h"
                               : "",
-       "google/cloud/internal/rest_retry_loop.h", "absl/memory/memory.h"});
+       "google/cloud/internal/rest_retry_loop.h"});
   CcSystemIncludes({"memory"});
 
   auto result = CcOpenNamespaces(NamespaceType::kInternal);

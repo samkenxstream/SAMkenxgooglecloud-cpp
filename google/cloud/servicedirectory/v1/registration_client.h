@@ -74,11 +74,11 @@ GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_BEGIN
 /// such a copy when using this class from multiple threads.
 ///
 /// [google.cloud.servicedirectory.v1.Endpoint]:
-/// @googleapis_link_reference{google/cloud/servicedirectory/v1/endpoint.proto#L33}
+/// @googleapis_reference_link{google/cloud/servicedirectory/v1/endpoint.proto#L33}
 /// [google.cloud.servicedirectory.v1.Namespace]:
-/// @googleapis_link_reference{google/cloud/servicedirectory/v1/namespace.proto#L34}
+/// @googleapis_reference_link{google/cloud/servicedirectory/v1/namespace.proto#L34}
 /// [google.cloud.servicedirectory.v1.Service]:
-/// @googleapis_link_reference{google/cloud/servicedirectory/v1/service.proto#L36}
+/// @googleapis_reference_link{google/cloud/servicedirectory/v1/service.proto#L36}
 ///
 class RegistrationServiceClient {
  public:
@@ -691,12 +691,12 @@ class RegistrationServiceClient {
   /// @param opts Optional. Override the class-level options, such as retry and
   ///     backoff policies.
   /// @return
-  /// @googleapis_link{google::iam::v1::Policy,google/iam/v1/policy.proto#L96}
+  /// @googleapis_link{google::iam::v1::Policy,google/iam/v1/policy.proto#L98}
   ///
   /// [google.iam.v1.GetIamPolicyRequest]:
   /// @googleapis_reference_link{google/iam/v1/iam_policy.proto#L123}
   /// [google.iam.v1.Policy]:
-  /// @googleapis_reference_link{google/iam/v1/policy.proto#L96}
+  /// @googleapis_reference_link{google/iam/v1/policy.proto#L98}
   ///
   StatusOr<google::iam::v1::Policy> GetIamPolicy(
       google::iam::v1::GetIamPolicyRequest const& request, Options opts = {});
@@ -709,10 +709,10 @@ class RegistrationServiceClient {
   /// @param opts Optional. Override the class-level options, such as retry and
   ///     backoff policies.
   /// @return
-  /// @googleapis_link{google::iam::v1::Policy,google/iam/v1/policy.proto#L96}
+  /// @googleapis_link{google::iam::v1::Policy,google/iam/v1/policy.proto#L98}
   ///
   /// [google.iam.v1.Policy]:
-  /// @googleapis_reference_link{google/iam/v1/policy.proto#L96}
+  /// @googleapis_reference_link{google/iam/v1/policy.proto#L98}
   /// [google.iam.v1.SetIamPolicyRequest]:
   /// @googleapis_reference_link{google/iam/v1/iam_policy.proto#L101}
   ///

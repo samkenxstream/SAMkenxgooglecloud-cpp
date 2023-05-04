@@ -19,7 +19,6 @@
 #include "google/cloud/osconfig/agentendpoint/v1/internal/agent_endpoint_stub.h"
 #include "google/cloud/grpc_error_delegate.h"
 #include "google/cloud/status_or.h"
-#include "absl/memory/memory.h"
 #include <google/cloud/osconfig/agentendpoint/v1/agentendpoint.grpc.pb.h>
 #include <memory>
 
@@ -34,12 +33,12 @@ std::unique_ptr<google::cloud::internal::StreamingReadRpc<
     google::cloud::osconfig::agentendpoint::v1::
         ReceiveTaskNotificationResponse>>
 DefaultAgentEndpointServiceStub::ReceiveTaskNotification(
-    std::unique_ptr<grpc::ClientContext> client_context,
+    std::shared_ptr<grpc::ClientContext> client_context,
     google::cloud::osconfig::agentendpoint::v1::
         ReceiveTaskNotificationRequest const& request) {
   auto stream =
       grpc_stub_->ReceiveTaskNotification(client_context.get(), request);
-  return absl::make_unique<google::cloud::internal::StreamingReadRpcImpl<
+  return std::make_unique<google::cloud::internal::StreamingReadRpcImpl<
       google::cloud::osconfig::agentendpoint::v1::
           ReceiveTaskNotificationResponse>>(std::move(client_context),
                                             std::move(stream));

@@ -39,9 +39,16 @@ class SecurityCenterStub {
   virtual future<StatusOr<google::longrunning::Operation>>
   AsyncBulkMuteFindings(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::cloud::securitycenter::v1::BulkMuteFindingsRequest const&
           request) = 0;
+
+  virtual StatusOr<
+      google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+  CreateSecurityHealthAnalyticsCustomModule(
+      grpc::ClientContext& context,
+      google::cloud::securitycenter::v1::
+          CreateSecurityHealthAnalyticsCustomModuleRequest const& request) = 0;
 
   virtual StatusOr<google::cloud::securitycenter::v1::Source> CreateSource(
       grpc::ClientContext& context,
@@ -75,6 +82,11 @@ class SecurityCenterStub {
       google::cloud::securitycenter::v1::DeleteNotificationConfigRequest const&
           request) = 0;
 
+  virtual Status DeleteSecurityHealthAnalyticsCustomModule(
+      grpc::ClientContext& context,
+      google::cloud::securitycenter::v1::
+          DeleteSecurityHealthAnalyticsCustomModuleRequest const& request) = 0;
+
   virtual StatusOr<google::cloud::securitycenter::v1::BigQueryExport>
   GetBigQueryExport(
       grpc::ClientContext& context,
@@ -102,6 +114,21 @@ class SecurityCenterStub {
       google::cloud::securitycenter::v1::GetOrganizationSettingsRequest const&
           request) = 0;
 
+  virtual StatusOr<google::cloud::securitycenter::v1::
+                       EffectiveSecurityHealthAnalyticsCustomModule>
+  GetEffectiveSecurityHealthAnalyticsCustomModule(
+      grpc::ClientContext& context,
+      google::cloud::securitycenter::v1::
+          GetEffectiveSecurityHealthAnalyticsCustomModuleRequest const&
+              request) = 0;
+
+  virtual StatusOr<
+      google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+  GetSecurityHealthAnalyticsCustomModule(
+      grpc::ClientContext& context,
+      google::cloud::securitycenter::v1::
+          GetSecurityHealthAnalyticsCustomModuleRequest const& request) = 0;
+
   virtual StatusOr<google::cloud::securitycenter::v1::Source> GetSource(
       grpc::ClientContext& context,
       google::cloud::securitycenter::v1::GetSourceRequest const& request) = 0;
@@ -121,6 +148,15 @@ class SecurityCenterStub {
       grpc::ClientContext& context,
       google::cloud::securitycenter::v1::ListAssetsRequest const& request) = 0;
 
+  virtual StatusOr<
+      google::cloud::securitycenter::v1::
+          ListDescendantSecurityHealthAnalyticsCustomModulesResponse>
+  ListDescendantSecurityHealthAnalyticsCustomModules(
+      grpc::ClientContext& context,
+      google::cloud::securitycenter::v1::
+          ListDescendantSecurityHealthAnalyticsCustomModulesRequest const&
+              request) = 0;
+
   virtual StatusOr<google::cloud::securitycenter::v1::ListFindingsResponse>
   ListFindings(grpc::ClientContext& context,
                google::cloud::securitycenter::v1::ListFindingsRequest const&
@@ -139,6 +175,22 @@ class SecurityCenterStub {
       google::cloud::securitycenter::v1::ListNotificationConfigsRequest const&
           request) = 0;
 
+  virtual StatusOr<
+      google::cloud::securitycenter::v1::
+          ListEffectiveSecurityHealthAnalyticsCustomModulesResponse>
+  ListEffectiveSecurityHealthAnalyticsCustomModules(
+      grpc::ClientContext& context,
+      google::cloud::securitycenter::v1::
+          ListEffectiveSecurityHealthAnalyticsCustomModulesRequest const&
+              request) = 0;
+
+  virtual StatusOr<google::cloud::securitycenter::v1::
+                       ListSecurityHealthAnalyticsCustomModulesResponse>
+  ListSecurityHealthAnalyticsCustomModules(
+      grpc::ClientContext& context,
+      google::cloud::securitycenter::v1::
+          ListSecurityHealthAnalyticsCustomModulesRequest const& request) = 0;
+
   virtual StatusOr<google::cloud::securitycenter::v1::ListSourcesResponse>
   ListSources(
       grpc::ClientContext& context,
@@ -147,7 +199,7 @@ class SecurityCenterStub {
   virtual future<StatusOr<google::longrunning::Operation>>
   AsyncRunAssetDiscovery(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::cloud::securitycenter::v1::RunAssetDiscoveryRequest const&
           request) = 0;
 
@@ -198,6 +250,13 @@ class SecurityCenterStub {
       google::cloud::securitycenter::v1::
           UpdateOrganizationSettingsRequest const& request) = 0;
 
+  virtual StatusOr<
+      google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+  UpdateSecurityHealthAnalyticsCustomModule(
+      grpc::ClientContext& context,
+      google::cloud::securitycenter::v1::
+          UpdateSecurityHealthAnalyticsCustomModuleRequest const& request) = 0;
+
   virtual StatusOr<google::cloud::securitycenter::v1::Source> UpdateSource(
       grpc::ClientContext& context,
       google::cloud::securitycenter::v1::UpdateSourceRequest const&
@@ -235,12 +294,12 @@ class SecurityCenterStub {
 
   virtual future<StatusOr<google::longrunning::Operation>> AsyncGetOperation(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::longrunning::GetOperationRequest const& request) = 0;
 
   virtual future<Status> AsyncCancelOperation(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::longrunning::CancelOperationRequest const& request) = 0;
 };
 
@@ -256,8 +315,16 @@ class DefaultSecurityCenterStub : public SecurityCenterStub {
 
   future<StatusOr<google::longrunning::Operation>> AsyncBulkMuteFindings(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::cloud::securitycenter::v1::BulkMuteFindingsRequest const& request)
+      override;
+
+  StatusOr<
+      google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+  CreateSecurityHealthAnalyticsCustomModule(
+      grpc::ClientContext& client_context,
+      google::cloud::securitycenter::v1::
+          CreateSecurityHealthAnalyticsCustomModuleRequest const& request)
       override;
 
   StatusOr<google::cloud::securitycenter::v1::Source> CreateSource(
@@ -291,6 +358,12 @@ class DefaultSecurityCenterStub : public SecurityCenterStub {
       google::cloud::securitycenter::v1::DeleteNotificationConfigRequest const&
           request) override;
 
+  Status DeleteSecurityHealthAnalyticsCustomModule(
+      grpc::ClientContext& client_context,
+      google::cloud::securitycenter::v1::
+          DeleteSecurityHealthAnalyticsCustomModuleRequest const& request)
+      override;
+
   StatusOr<google::cloud::securitycenter::v1::BigQueryExport> GetBigQueryExport(
       grpc::ClientContext& client_context,
       google::cloud::securitycenter::v1::GetBigQueryExportRequest const&
@@ -317,6 +390,22 @@ class DefaultSecurityCenterStub : public SecurityCenterStub {
       google::cloud::securitycenter::v1::GetOrganizationSettingsRequest const&
           request) override;
 
+  StatusOr<google::cloud::securitycenter::v1::
+               EffectiveSecurityHealthAnalyticsCustomModule>
+  GetEffectiveSecurityHealthAnalyticsCustomModule(
+      grpc::ClientContext& client_context,
+      google::cloud::securitycenter::v1::
+          GetEffectiveSecurityHealthAnalyticsCustomModuleRequest const& request)
+      override;
+
+  StatusOr<
+      google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+  GetSecurityHealthAnalyticsCustomModule(
+      grpc::ClientContext& client_context,
+      google::cloud::securitycenter::v1::
+          GetSecurityHealthAnalyticsCustomModuleRequest const& request)
+      override;
+
   StatusOr<google::cloud::securitycenter::v1::Source> GetSource(
       grpc::ClientContext& client_context,
       google::cloud::securitycenter::v1::GetSourceRequest const& request)
@@ -337,6 +426,14 @@ class DefaultSecurityCenterStub : public SecurityCenterStub {
       google::cloud::securitycenter::v1::ListAssetsRequest const& request)
       override;
 
+  StatusOr<google::cloud::securitycenter::v1::
+               ListDescendantSecurityHealthAnalyticsCustomModulesResponse>
+  ListDescendantSecurityHealthAnalyticsCustomModules(
+      grpc::ClientContext& client_context,
+      google::cloud::securitycenter::v1::
+          ListDescendantSecurityHealthAnalyticsCustomModulesRequest const&
+              request) override;
+
   StatusOr<google::cloud::securitycenter::v1::ListFindingsResponse>
   ListFindings(grpc::ClientContext& client_context,
                google::cloud::securitycenter::v1::ListFindingsRequest const&
@@ -354,6 +451,22 @@ class DefaultSecurityCenterStub : public SecurityCenterStub {
       google::cloud::securitycenter::v1::ListNotificationConfigsRequest const&
           request) override;
 
+  StatusOr<google::cloud::securitycenter::v1::
+               ListEffectiveSecurityHealthAnalyticsCustomModulesResponse>
+  ListEffectiveSecurityHealthAnalyticsCustomModules(
+      grpc::ClientContext& client_context,
+      google::cloud::securitycenter::v1::
+          ListEffectiveSecurityHealthAnalyticsCustomModulesRequest const&
+              request) override;
+
+  StatusOr<google::cloud::securitycenter::v1::
+               ListSecurityHealthAnalyticsCustomModulesResponse>
+  ListSecurityHealthAnalyticsCustomModules(
+      grpc::ClientContext& client_context,
+      google::cloud::securitycenter::v1::
+          ListSecurityHealthAnalyticsCustomModulesRequest const& request)
+      override;
+
   StatusOr<google::cloud::securitycenter::v1::ListSourcesResponse> ListSources(
       grpc::ClientContext& client_context,
       google::cloud::securitycenter::v1::ListSourcesRequest const& request)
@@ -361,7 +474,7 @@ class DefaultSecurityCenterStub : public SecurityCenterStub {
 
   future<StatusOr<google::longrunning::Operation>> AsyncRunAssetDiscovery(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::cloud::securitycenter::v1::RunAssetDiscoveryRequest const&
           request) override;
 
@@ -411,6 +524,14 @@ class DefaultSecurityCenterStub : public SecurityCenterStub {
       google::cloud::securitycenter::v1::
           UpdateOrganizationSettingsRequest const& request) override;
 
+  StatusOr<
+      google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+  UpdateSecurityHealthAnalyticsCustomModule(
+      grpc::ClientContext& client_context,
+      google::cloud::securitycenter::v1::
+          UpdateSecurityHealthAnalyticsCustomModuleRequest const& request)
+      override;
+
   StatusOr<google::cloud::securitycenter::v1::Source> UpdateSource(
       grpc::ClientContext& client_context,
       google::cloud::securitycenter::v1::UpdateSourceRequest const& request)
@@ -447,12 +568,12 @@ class DefaultSecurityCenterStub : public SecurityCenterStub {
 
   future<StatusOr<google::longrunning::Operation>> AsyncGetOperation(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::longrunning::GetOperationRequest const& request) override;
 
   future<Status> AsyncCancelOperation(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::longrunning::CancelOperationRequest const& request) override;
 
  private:

@@ -84,9 +84,12 @@ DefaultTranslationServiceStub::TranslateDocument(
 future<StatusOr<google::longrunning::Operation>>
 DefaultTranslationServiceStub::AsyncBatchTranslateText(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::translation::v3::BatchTranslateTextRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::translation::v3::BatchTranslateTextRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::translation::v3::BatchTranslateTextRequest const&
                  request,
@@ -99,10 +102,13 @@ DefaultTranslationServiceStub::AsyncBatchTranslateText(
 future<StatusOr<google::longrunning::Operation>>
 DefaultTranslationServiceStub::AsyncBatchTranslateDocument(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::translation::v3::BatchTranslateDocumentRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::translation::v3::BatchTranslateDocumentRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::translation::v3::BatchTranslateDocumentRequest const&
@@ -116,9 +122,12 @@ DefaultTranslationServiceStub::AsyncBatchTranslateDocument(
 future<StatusOr<google::longrunning::Operation>>
 DefaultTranslationServiceStub::AsyncCreateGlossary(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::translation::v3::CreateGlossaryRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::translation::v3::CreateGlossaryRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::translation::v3::CreateGlossaryRequest const& request,
@@ -155,9 +164,12 @@ DefaultTranslationServiceStub::GetGlossary(
 future<StatusOr<google::longrunning::Operation>>
 DefaultTranslationServiceStub::AsyncDeleteGlossary(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::translation::v3::DeleteGlossaryRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::translation::v3::DeleteGlossaryRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::translation::v3::DeleteGlossaryRequest const& request,
@@ -170,9 +182,11 @@ DefaultTranslationServiceStub::AsyncDeleteGlossary(
 future<StatusOr<google::longrunning::Operation>>
 DefaultTranslationServiceStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -183,16 +197,17 @@ DefaultTranslationServiceStub::AsyncGetOperation(
 
 future<Status> DefaultTranslationServiceStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

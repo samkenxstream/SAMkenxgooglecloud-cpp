@@ -76,7 +76,8 @@ class ServiceCodeGenerator : public GeneratorInterface {
 
   Status HeaderOpenNamespaces(NamespaceType ns_type = NamespaceType::kNormal);
   Status HeaderOpenForwardingNamespaces(
-      NamespaceType ns_type = NamespaceType::kNormal);
+      NamespaceType ns_type = NamespaceType::kNormal,
+      std::string const& ns_documentation = "");
   void HeaderCloseNamespaces();
   Status CcOpenNamespaces(NamespaceType ns_type = NamespaceType::kNormal);
   Status CcOpenForwardingNamespaces(
@@ -174,6 +175,11 @@ class ServiceCodeGenerator : public GeneratorInterface {
   bool HasGenerateRestTransport() const;
 
   /**
+   * Determines if gRPC transport is enabled for the service.
+   */
+  bool HasGenerateGrpcTransport() const;
+
+  /**
    * Determines if any of the method signatures has any Protocol Buffer
    * Well-Known Types per
    * https://developers.google.com/protocol-buffers/docs/reference/google.protobuf
@@ -204,14 +210,15 @@ class ServiceCodeGenerator : public GeneratorInterface {
                                      std::vector<std::string> system_includes);
 
   Status OpenNamespaces(Printer& p, NamespaceType ns_type,
-                        std::string const& product_path_var);
+                        std::string const& product_path_var,
+                        std::string const& ns_documentation = "");
   void CloseNamespaces(Printer& p,
                        bool define_backwards_compatibility_namespace_alias);
 
   google::protobuf::ServiceDescriptor const* service_descriptor_;
   VarsDictionary service_vars_;
   std::map<std::string, VarsDictionary> service_method_vars_;
-  std::vector<std::string> namespaces_;
+  std::string namespace_;
   bool define_backwards_compatibility_namespace_alias_ = false;
   MethodDescriptorList methods_;
   MethodDescriptorList async_methods_;

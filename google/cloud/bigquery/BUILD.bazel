@@ -25,7 +25,6 @@ service_dirs = [
     "migration/v2/",
     "reservation/v1/",
     "storage/v1/",
-    "v2/",
 ]
 
 src_dirs = service_dirs + [d + "internal/" for d in service_dirs]
@@ -61,7 +60,6 @@ cc_library(
         "@com_google_googleapis//google/cloud/bigquery/migration/v2:migration_cc_grpc",
         "@com_google_googleapis//google/cloud/bigquery/reservation/v1:reservation_cc_grpc",
         "@com_google_googleapis//google/cloud/bigquery/storage/v1:storage_cc_grpc",
-        "@com_google_googleapis//google/cloud/bigquery/v2:bigquery_cc_grpc",
     ],
 )
 
@@ -109,7 +107,39 @@ cc_library(
     visibility = ["//:__pkg__"],
     deps = [
         "//:common",
+        "//:grpc_utils",
         "//google/cloud:google_cloud_cpp_rest_internal",
+    ],
+)
+
+load(":google_cloud_cpp_bigquery_rest_mocks.bzl", "google_cloud_cpp_bigquery_rest_mocks_hdrs", "google_cloud_cpp_bigquery_rest_mocks_srcs")
+
+cc_library(
+    name = "google_cloud_cpp_bigquery_rest_mocks",
+    testonly = True,
+    srcs = google_cloud_cpp_bigquery_rest_mocks_srcs,
+    hdrs = google_cloud_cpp_bigquery_rest_mocks_hdrs,
+    visibility = ["//:__pkg__"],
+    deps = [
+        ":google_cloud_cpp_bigquery_rest",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+load(":bigquery_rest_testing.bzl", "bigquery_rest_testing_hdrs", "bigquery_rest_testing_srcs")
+
+cc_library(
+    name = "bigquery_rest_testing",
+    testonly = True,
+    srcs = bigquery_rest_testing_srcs,
+    hdrs = bigquery_rest_testing_hdrs,
+    visibility = [":__subpackages__"],
+    deps = [
+        ":google_cloud_cpp_bigquery_rest",
+        ":google_cloud_cpp_bigquery_rest_mocks",
+        "//:common",
+        "//google/cloud/testing_util:google_cloud_cpp_testing_private",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -119,7 +149,10 @@ load(":bigquery_rest_unit_tests.bzl", "bigquery_rest_unit_tests")
     name = test.replace("/", "_").replace(".cc", ""),
     srcs = [test],
     deps = [
+        ":bigquery_rest_testing",
         ":google_cloud_cpp_bigquery_rest",
+        ":google_cloud_cpp_bigquery_rest_mocks",
+        "//google/cloud:google_cloud_cpp_mocks",
         "//google/cloud/testing_util:google_cloud_cpp_testing_private",
         "//google/cloud/testing_util:google_cloud_cpp_testing_rest_private",
         "@com_google_googletest//:gtest",

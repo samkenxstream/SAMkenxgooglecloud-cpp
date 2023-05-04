@@ -20,8 +20,38 @@ add_library(
     v2/minimal/internal/bigquery_http_response.h
     v2/minimal/internal/common_v2_resources.cc
     v2/minimal/internal/common_v2_resources.h
+    v2/minimal/internal/dataset.cc
+    v2/minimal/internal/dataset.h
+    v2/minimal/internal/dataset_client.cc
+    v2/minimal/internal/dataset_client.h
+    v2/minimal/internal/dataset_connection.cc
+    v2/minimal/internal/dataset_connection.h
+    v2/minimal/internal/dataset_idempotency_policy.cc
+    v2/minimal/internal/dataset_idempotency_policy.h
+    v2/minimal/internal/dataset_logging.cc
+    v2/minimal/internal/dataset_logging.h
+    v2/minimal/internal/dataset_metadata.cc
+    v2/minimal/internal/dataset_metadata.h
+    v2/minimal/internal/dataset_options.cc
+    v2/minimal/internal/dataset_options.h
+    v2/minimal/internal/dataset_request.cc
+    v2/minimal/internal/dataset_request.h
+    v2/minimal/internal/dataset_response.cc
+    v2/minimal/internal/dataset_response.h
+    v2/minimal/internal/dataset_rest_connection_impl.cc
+    v2/minimal/internal/dataset_rest_connection_impl.h
+    v2/minimal/internal/dataset_rest_stub.cc
+    v2/minimal/internal/dataset_rest_stub.h
+    v2/minimal/internal/dataset_rest_stub_factory.cc
+    v2/minimal/internal/dataset_rest_stub_factory.h
+    v2/minimal/internal/dataset_retry_policy.h
+    v2/minimal/internal/job.cc
     v2/minimal/internal/job.h
+    v2/minimal/internal/job_client.cc
+    v2/minimal/internal/job_client.h
     v2/minimal/internal/job_configuration.h
+    v2/minimal/internal/job_connection.cc
+    v2/minimal/internal/job_connection.h
     v2/minimal/internal/job_idempotency_policy.cc
     v2/minimal/internal/job_idempotency_policy.h
     v2/minimal/internal/job_logging.cc
@@ -40,15 +70,32 @@ add_library(
     v2/minimal/internal/job_rest_stub.h
     v2/minimal/internal/job_rest_stub_factory.cc
     v2/minimal/internal/job_rest_stub_factory.h
-    v2/minimal/internal/job_retry_policy.h)
+    v2/minimal/internal/job_retry_policy.h
+    v2/minimal/internal/log_wrapper.h
+    v2/minimal/internal/rest_stub_utils.h
+    v2/minimal/internal/table.cc
+    v2/minimal/internal/table.h
+    v2/minimal/internal/table_constraints.cc
+    v2/minimal/internal/table_constraints.h
+    v2/minimal/internal/table_partition.cc
+    v2/minimal/internal/table_partition.h
+    v2/minimal/internal/table_request.cc
+    v2/minimal/internal/table_request.h
+    v2/minimal/internal/table_response.cc
+    v2/minimal/internal/table_response.h
+    v2/minimal/internal/table_schema.cc
+    v2/minimal/internal/table_schema.h
+    v2/minimal/internal/table_view.cc
+    v2/minimal/internal/table_view.h)
 target_include_directories(
     google_cloud_cpp_bigquery_rest
     PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
            $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
            $<INSTALL_INTERFACE:include>)
 target_link_libraries(
-    google_cloud_cpp_bigquery_rest PUBLIC google-cloud-cpp::rest_internal
-                                          google-cloud-cpp::common)
+    google_cloud_cpp_bigquery_rest
+    PUBLIC google-cloud-cpp::rest_internal google-cloud-cpp::grpc_utils
+           google-cloud-cpp::common)
 google_cloud_cpp_add_common_options(google_cloud_cpp_bigquery_rest)
 set_target_properties(
     google_cloud_cpp_bigquery_rest
@@ -61,10 +108,35 @@ target_compile_options(google_cloud_cpp_bigquery_rest
 add_library(google-cloud-cpp::experimental-bigquery_rest ALIAS
             google_cloud_cpp_bigquery_rest)
 
+# Create a header-only library for the mocks.
+add_library(google_cloud_cpp_bigquery_rest_mocks INTERFACE)
+target_sources(
+    google_cloud_cpp_bigquery_rest_mocks
+    INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/v2/minimal/mocks/mock_dataset_connection.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/v2/minimal/mocks/mock_job_connection.h)
+target_link_libraries(
+    google_cloud_cpp_bigquery_rest_mocks
+    INTERFACE google-cloud-cpp::experimental-bigquery_rest GTest::gmock_main
+              GTest::gmock GTest::gtest)
+set_target_properties(
+    google_cloud_cpp_bigquery_rest_mocks
+    PROPERTIES EXPORT_NAME google-cloud-cpp::experimental-bigquery_rest_mocks)
+target_include_directories(
+    google_cloud_cpp_bigquery_rest_mocks
+    INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+              $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+              $<INSTALL_INTERFACE:include>)
+target_compile_options(google_cloud_cpp_bigquery_rest_mocks
+                       INTERFACE ${GOOGLE_CLOUD_CPP_EXCEPTIONS_FLAG})
+add_library(google-cloud-cpp::experimental-bigquery_rest_mocks ALIAS
+            google_cloud_cpp_bigquery_rest_mocks)
+
 # To avoid maintaining the list of files for the library, export them to a .bzl
 # file.
 include(CreateBazelConfig)
 create_bazel_config(google_cloud_cpp_bigquery_rest YEAR "2023")
+create_bazel_config(google_cloud_cpp_bigquery_rest_mocks YEAR "2023")
 
 # Define the tests in a function so we have a new scope for variable names.
 function (bigquery_rest_define_tests)
@@ -74,13 +146,59 @@ function (bigquery_rest_define_tests)
     # the GTest::gmock target, and the target names are also weird.
     find_package(GTest CONFIG REQUIRED)
 
+    add_library(bigquery_rest_testing INTERFACE)
+    target_sources(
+        bigquery_rest_testing
+        INTERFACE
+            ${CMAKE_CURRENT_SOURCE_DIR}/v2/minimal/testing/mock_log_backend.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/v2/minimal/testing/mock_dataset_rest_stub.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/v2/minimal/testing/mock_job_rest_stub.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/v2/minimal/testing/table_test_utils.cc
+            ${CMAKE_CURRENT_SOURCE_DIR}/v2/minimal/testing/table_test_utils.h)
+    target_link_libraries(
+        bigquery_rest_testing
+        INTERFACE google_cloud_cpp_testing
+                  google-cloud-cpp::experimental-bigquery_rest_mocks
+                  google-cloud-cpp::experimental-bigquery_rest
+                  GTest::gmock_main
+                  GTest::gmock
+                  GTest::gtest)
+    target_include_directories(
+        bigquery_rest_testing
+        INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+                  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+                  $<INSTALL_INTERFACE:include>)
+    target_compile_options(bigquery_rest_testing
+                           INTERFACE ${GOOGLE_CLOUD_CPP_EXCEPTIONS_FLAG})
+    create_bazel_config(bigquery_rest_testing YEAR "2023")
+
     set(bigquery_rest_unit_tests
         # cmake-format: sort
         v2/minimal/internal/bigquery_http_response_test.cc
         v2/minimal/internal/common_v2_resources_test.cc
+        v2/minimal/internal/dataset_client_test.cc
+        v2/minimal/internal/dataset_connection_test.cc
+        v2/minimal/internal/dataset_idempotency_policy_test.cc
+        v2/minimal/internal/dataset_logging_test.cc
+        v2/minimal/internal/dataset_metadata_test.cc
+        v2/minimal/internal/dataset_options_test.cc
+        v2/minimal/internal/dataset_request_test.cc
+        v2/minimal/internal/dataset_response_test.cc
+        v2/minimal/internal/dataset_rest_stub_test.cc
+        v2/minimal/internal/dataset_test.cc
+        v2/minimal/internal/job_client_test.cc
+        v2/minimal/internal/job_connection_test.cc
+        v2/minimal/internal/job_idempotency_policy_test.cc
+        v2/minimal/internal/job_logging_test.cc
+        v2/minimal/internal/job_metadata_test.cc
+        v2/minimal/internal/job_options_test.cc
         v2/minimal/internal/job_request_test.cc
         v2/minimal/internal/job_response_test.cc
-        v2/minimal/internal/job_rest_stub_test.cc)
+        v2/minimal/internal/job_rest_stub_test.cc
+        v2/minimal/internal/job_test.cc
+        v2/minimal/internal/table_request_test.cc
+        v2/minimal/internal/table_response_test.cc
+        v2/minimal/internal/table_test.cc)
 
     # Export the list of unit tests to a .bzl file so we do not need to maintain
     # the list in two places.
@@ -95,9 +213,13 @@ function (bigquery_rest_define_tests)
         google_cloud_cpp_add_executable(target "bigquery" "${fname}")
         target_link_libraries(
             ${target}
-            PRIVATE google_cloud_cpp_testing
+            PRIVATE bigquery_rest_testing
+                    google_cloud_cpp_testing
                     google-cloud-cpp::experimental-bigquery_rest
-                    GTest::gmock_main GTest::gmock GTest::gtest)
+                    google-cloud-cpp::experimental-bigquery_rest_mocks
+                    GTest::gmock_main
+                    GTest::gmock
+                    GTest::gtest)
         google_cloud_cpp_add_common_options(${target})
 
         # With googletest it is relatively easy to exceed the default number of
@@ -143,6 +265,8 @@ install(
             COMPONENT google_cloud_cpp_development)
 
 google_cloud_cpp_install_headers("google_cloud_cpp_bigquery_rest"
+                                 "include/google/cloud/bigquery")
+google_cloud_cpp_install_headers("google_cloud_cpp_bigquery_rest_mocks"
                                  "include/google/cloud/bigquery")
 
 google_cloud_cpp_add_pkgconfig(

@@ -33,13 +33,13 @@ SecurityCenterAuth::SecurityCenterAuth(
 future<StatusOr<google::longrunning::Operation>>
 SecurityCenterAuth::AsyncBulkMuteFindings(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::securitycenter::v1::BulkMuteFindingsRequest const& request) {
   using ReturnType = StatusOr<google::longrunning::Operation>;
   auto& child = child_;
   return auth_->AsyncConfigureContext(std::move(context))
       .then([cq, child,
-             request](future<StatusOr<std::unique_ptr<grpc::ClientContext>>>
+             request](future<StatusOr<std::shared_ptr<grpc::ClientContext>>>
                           f) mutable {
         auto context = f.get();
         if (!context) {
@@ -47,6 +47,16 @@ SecurityCenterAuth::AsyncBulkMuteFindings(
         }
         return child->AsyncBulkMuteFindings(cq, *std::move(context), request);
       });
+}
+
+StatusOr<google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+SecurityCenterAuth::CreateSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        CreateSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  auto status = auth_->ConfigureContext(context);
+  if (!status.ok()) return status;
+  return child_->CreateSecurityHealthAnalyticsCustomModule(context, request);
 }
 
 StatusOr<google::cloud::securitycenter::v1::Source>
@@ -103,6 +113,15 @@ Status SecurityCenterAuth::DeleteNotificationConfig(
   return child_->DeleteNotificationConfig(context, request);
 }
 
+Status SecurityCenterAuth::DeleteSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        DeleteSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  auto status = auth_->ConfigureContext(context);
+  if (!status.ok()) return status;
+  return child_->DeleteSecurityHealthAnalyticsCustomModule(context, request);
+}
+
 StatusOr<google::cloud::securitycenter::v1::BigQueryExport>
 SecurityCenterAuth::GetBigQueryExport(
     grpc::ClientContext& context,
@@ -150,6 +169,28 @@ SecurityCenterAuth::GetOrganizationSettings(
   return child_->GetOrganizationSettings(context, request);
 }
 
+StatusOr<google::cloud::securitycenter::v1::
+             EffectiveSecurityHealthAnalyticsCustomModule>
+SecurityCenterAuth::GetEffectiveSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        GetEffectiveSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  auto status = auth_->ConfigureContext(context);
+  if (!status.ok()) return status;
+  return child_->GetEffectiveSecurityHealthAnalyticsCustomModule(context,
+                                                                 request);
+}
+
+StatusOr<google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+SecurityCenterAuth::GetSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        GetSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  auto status = auth_->ConfigureContext(context);
+  if (!status.ok()) return status;
+  return child_->GetSecurityHealthAnalyticsCustomModule(context, request);
+}
+
 StatusOr<google::cloud::securitycenter::v1::Source>
 SecurityCenterAuth::GetSource(
     grpc::ClientContext& context,
@@ -186,6 +227,19 @@ SecurityCenterAuth::ListAssets(
   return child_->ListAssets(context, request);
 }
 
+StatusOr<google::cloud::securitycenter::v1::
+             ListDescendantSecurityHealthAnalyticsCustomModulesResponse>
+SecurityCenterAuth::ListDescendantSecurityHealthAnalyticsCustomModules(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        ListDescendantSecurityHealthAnalyticsCustomModulesRequest const&
+            request) {
+  auto status = auth_->ConfigureContext(context);
+  if (!status.ok()) return status;
+  return child_->ListDescendantSecurityHealthAnalyticsCustomModules(context,
+                                                                    request);
+}
+
 StatusOr<google::cloud::securitycenter::v1::ListFindingsResponse>
 SecurityCenterAuth::ListFindings(
     grpc::ClientContext& context,
@@ -214,6 +268,30 @@ SecurityCenterAuth::ListNotificationConfigs(
   return child_->ListNotificationConfigs(context, request);
 }
 
+StatusOr<google::cloud::securitycenter::v1::
+             ListEffectiveSecurityHealthAnalyticsCustomModulesResponse>
+SecurityCenterAuth::ListEffectiveSecurityHealthAnalyticsCustomModules(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        ListEffectiveSecurityHealthAnalyticsCustomModulesRequest const&
+            request) {
+  auto status = auth_->ConfigureContext(context);
+  if (!status.ok()) return status;
+  return child_->ListEffectiveSecurityHealthAnalyticsCustomModules(context,
+                                                                   request);
+}
+
+StatusOr<google::cloud::securitycenter::v1::
+             ListSecurityHealthAnalyticsCustomModulesResponse>
+SecurityCenterAuth::ListSecurityHealthAnalyticsCustomModules(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        ListSecurityHealthAnalyticsCustomModulesRequest const& request) {
+  auto status = auth_->ConfigureContext(context);
+  if (!status.ok()) return status;
+  return child_->ListSecurityHealthAnalyticsCustomModules(context, request);
+}
+
 StatusOr<google::cloud::securitycenter::v1::ListSourcesResponse>
 SecurityCenterAuth::ListSources(
     grpc::ClientContext& context,
@@ -226,14 +304,14 @@ SecurityCenterAuth::ListSources(
 future<StatusOr<google::longrunning::Operation>>
 SecurityCenterAuth::AsyncRunAssetDiscovery(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::securitycenter::v1::RunAssetDiscoveryRequest const&
         request) {
   using ReturnType = StatusOr<google::longrunning::Operation>;
   auto& child = child_;
   return auth_->AsyncConfigureContext(std::move(context))
       .then([cq, child,
-             request](future<StatusOr<std::unique_ptr<grpc::ClientContext>>>
+             request](future<StatusOr<std::shared_ptr<grpc::ClientContext>>>
                           f) mutable {
         auto context = f.get();
         if (!context) {
@@ -326,6 +404,16 @@ SecurityCenterAuth::UpdateOrganizationSettings(
   return child_->UpdateOrganizationSettings(context, request);
 }
 
+StatusOr<google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+SecurityCenterAuth::UpdateSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        UpdateSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  auto status = auth_->ConfigureContext(context);
+  if (!status.ok()) return status;
+  return child_->UpdateSecurityHealthAnalyticsCustomModule(context, request);
+}
+
 StatusOr<google::cloud::securitycenter::v1::Source>
 SecurityCenterAuth::UpdateSource(
     grpc::ClientContext& context,
@@ -387,13 +475,13 @@ SecurityCenterAuth::ListBigQueryExports(
 future<StatusOr<google::longrunning::Operation>>
 SecurityCenterAuth::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
   using ReturnType = StatusOr<google::longrunning::Operation>;
   auto& child = child_;
   return auth_->AsyncConfigureContext(std::move(context))
       .then([cq, child,
-             request](future<StatusOr<std::unique_ptr<grpc::ClientContext>>>
+             request](future<StatusOr<std::shared_ptr<grpc::ClientContext>>>
                           f) mutable {
         auto context = f.get();
         if (!context) {
@@ -405,12 +493,12 @@ SecurityCenterAuth::AsyncGetOperation(
 
 future<Status> SecurityCenterAuth::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
   auto& child = child_;
   return auth_->AsyncConfigureContext(std::move(context))
       .then([cq, child,
-             request](future<StatusOr<std::unique_ptr<grpc::ClientContext>>>
+             request](future<StatusOr<std::shared_ptr<grpc::ClientContext>>>
                           f) mutable {
         auto context = f.get();
         if (!context) return make_ready_future(std::move(context).status());

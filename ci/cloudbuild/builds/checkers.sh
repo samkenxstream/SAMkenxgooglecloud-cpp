@@ -132,7 +132,7 @@ time {
   expressions+=("-e" "':x;/^\n*$/{\$d;N;bx;}'")
   # Adds a trailing newline if one doesn't already exist
   expressions+=("-e" "'\$a\'")
-  git_files -z | grep -zv '\.gz$' | grep -zv 'googleapis.patch$' |
+  git_files -z | grep -zv '\.gz$' | grep -zv 'googleapis.patch$' | grep -zv '\.png$' |
     (xargs -r -P "$(nproc)" -n 50 -0 grep -ZPL "\b[D]O NOT EDIT\b" || true) |
     xargs -r -P "$(nproc)" -n 50 -0 bash -c "sed_edit ${expressions[*]} \"\$0\" \"\$@\""
 }
@@ -174,7 +174,7 @@ time {
 # different formatting output (sigh).
 printf "%-50s" "Running clang-format:" >&2
 time {
-  git_files -z -- '*.h' '*.cc' |
+  git_files -z -- '*.h' '*.cc' '*.proto' |
     xargs -r -P "$(nproc)" -n 1 -0 clang-format -i
 }
 
@@ -182,7 +182,7 @@ time {
 #     https://github.com/cheshirekow/cmake_format
 printf "%-50s" "Running cmake-format:" >&2
 time {
-  git_files -z -- '**/CMakeLists.txt' '*.cmake' |
+  git_files -z -- 'CMakeLists.txt' '**/CMakeLists.txt' '*.cmake' |
     xargs -r -P "$(nproc)" -n 1 -0 cmake-format -i
 }
 
@@ -200,7 +200,7 @@ time {
   done
 
   mapfile -t libraries < <(features::libraries)
-  for library in "${libraries[@]}"; do
+  for library in "${libraries[@]}" opentelemetry; do
     ci/generate-markdown/update-library-readme.sh "${library}"
   done
 }
@@ -223,5 +223,7 @@ time {
   done
 }
 
-# Report the differences, which should break the build.
-git diff --exit-code .
+# If there are any diffs, report them and exit with a non-zero status so
+# as to break the build. Use a distinctive status so that callers have a
+# chance to distinguish formatting updates from other check failures.
+git diff --exit-code . || exit 111

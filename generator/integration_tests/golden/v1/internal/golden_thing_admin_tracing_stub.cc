@@ -43,9 +43,15 @@ StatusOr<google::test::admin::database::v1::ListDatabasesResponse> GoldenThingAd
 future<StatusOr<google::longrunning::Operation>>
 GoldenThingAdminTracingStub::AsyncCreateDatabase(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::test::admin::database::v1::CreateDatabaseRequest const& request) {
-  return child_->AsyncCreateDatabase(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.test.admin.database.v1.GoldenThingAdmin", "CreateDatabase");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateDatabase(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::test::admin::database::v1::Database> GoldenThingAdminTracingStub::GetDatabase(
@@ -61,9 +67,15 @@ StatusOr<google::test::admin::database::v1::Database> GoldenThingAdminTracingStu
 future<StatusOr<google::longrunning::Operation>>
 GoldenThingAdminTracingStub::AsyncUpdateDatabaseDdl(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::test::admin::database::v1::UpdateDatabaseDdlRequest const& request) {
-  return child_->AsyncUpdateDatabaseDdl(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.test.admin.database.v1.GoldenThingAdmin", "UpdateDatabaseDdl");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateDatabaseDdl(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 Status GoldenThingAdminTracingStub::DropDatabase(
@@ -119,9 +131,15 @@ StatusOr<google::iam::v1::TestIamPermissionsResponse> GoldenThingAdminTracingStu
 future<StatusOr<google::longrunning::Operation>>
 GoldenThingAdminTracingStub::AsyncCreateBackup(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::test::admin::database::v1::CreateBackupRequest const& request) {
-  return child_->AsyncCreateBackup(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.test.admin.database.v1.GoldenThingAdmin", "CreateBackup");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateBackup(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::test::admin::database::v1::Backup> GoldenThingAdminTracingStub::GetBackup(
@@ -167,9 +185,15 @@ StatusOr<google::test::admin::database::v1::ListBackupsResponse> GoldenThingAdmi
 future<StatusOr<google::longrunning::Operation>>
 GoldenThingAdminTracingStub::AsyncRestoreDatabase(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::test::admin::database::v1::RestoreDatabaseRequest const& request) {
-  return child_->AsyncRestoreDatabase(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.test.admin.database.v1.GoldenThingAdmin", "RestoreDatabase");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncRestoreDatabase(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::test::admin::database::v1::ListDatabaseOperationsResponse> GoldenThingAdminTracingStub::ListDatabaseOperations(
@@ -195,38 +219,70 @@ StatusOr<google::test::admin::database::v1::ListBackupOperationsResponse> Golden
 future<StatusOr<google::longrunning::Operation>>
 GoldenThingAdminTracingStub::AsyncLongRunningWithoutRouting(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::test::admin::database::v1::RestoreDatabaseRequest const& request) {
-  return child_->AsyncLongRunningWithoutRouting(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.test.admin.database.v1.GoldenThingAdmin", "LongRunningWithoutRouting");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncLongRunningWithoutRouting(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::test::admin::database::v1::Database>> GoldenThingAdminTracingStub::AsyncGetDatabase(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::test::admin::database::v1::GetDatabaseRequest const& request) {
-  return child_->AsyncGetDatabase(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.test.admin.database.v1.GoldenThingAdmin", "GetDatabase");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncGetDatabase(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<Status> GoldenThingAdminTracingStub::AsyncDropDatabase(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::test::admin::database::v1::DropDatabaseRequest const& request) {
-  return child_->AsyncDropDatabase(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.test.admin.database.v1.GoldenThingAdmin", "DropDatabase");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDropDatabase(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 GoldenThingAdminTracingStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return child_->AsyncGetOperation(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.longrunning.Operations", "GetOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncGetOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<Status> GoldenThingAdminTracingStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return child_->AsyncCancelOperation(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.longrunning.Operations",
+                                     "CancelOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCancelOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY

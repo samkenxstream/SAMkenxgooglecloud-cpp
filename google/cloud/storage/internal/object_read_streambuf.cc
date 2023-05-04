@@ -15,7 +15,6 @@
 #include "google/cloud/storage/internal/object_read_streambuf.h"
 #include "google/cloud/storage/hash_mismatch_error.h"
 #include "google/cloud/storage/internal/hash_function.h"
-#include "absl/memory/memory.h"
 #include <cstring>
 
 namespace google {
@@ -196,7 +195,7 @@ std::streamsize ObjectReadStreambuf::xsgetn(char* s, std::streamsize count) {
   // number of bytes.
   if (!read) return run_validator_if_closed(std::move(read).status());
 
-  hash_function_->Update(s + offset, read->bytes_received);
+  hash_function_->Update(absl::string_view{s + offset, read->bytes_received});
   hash_validator_->ProcessHashValues(read->hashes);
   offset += static_cast<std::streamsize>(read->bytes_received);
   source_pos_ += static_cast<std::streamoff>(read->bytes_received);

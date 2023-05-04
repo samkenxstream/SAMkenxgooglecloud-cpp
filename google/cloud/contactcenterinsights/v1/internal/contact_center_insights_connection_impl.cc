@@ -57,6 +57,37 @@ ContactCenterInsightsConnectionImpl::CreateConversation(
       request, __func__);
 }
 
+future<StatusOr<google::cloud::contactcenterinsights::v1::Conversation>>
+ContactCenterInsightsConnectionImpl::UploadConversation(
+    google::cloud::contactcenterinsights::v1::UploadConversationRequest const&
+        request) {
+  auto& stub = stub_;
+  return google::cloud::internal::AsyncLongRunningOperation<
+      google::cloud::contactcenterinsights::v1::Conversation>(
+      background_->cq(), request,
+      [stub](google::cloud::CompletionQueue& cq,
+             std::shared_ptr<grpc::ClientContext> context,
+             google::cloud::contactcenterinsights::v1::
+                 UploadConversationRequest const& request) {
+        return stub->AsyncUploadConversation(cq, std::move(context), request);
+      },
+      [stub](google::cloud::CompletionQueue& cq,
+             std::shared_ptr<grpc::ClientContext> context,
+             google::longrunning::GetOperationRequest const& request) {
+        return stub->AsyncGetOperation(cq, std::move(context), request);
+      },
+      [stub](google::cloud::CompletionQueue& cq,
+             std::shared_ptr<grpc::ClientContext> context,
+             google::longrunning::CancelOperationRequest const& request) {
+        return stub->AsyncCancelOperation(cq, std::move(context), request);
+      },
+      &google::cloud::internal::ExtractLongRunningResultResponse<
+          google::cloud::contactcenterinsights::v1::Conversation>,
+      retry_policy(), backoff_policy(),
+      idempotency_policy()->UploadConversation(request), polling_policy(),
+      __func__);
+}
+
 StatusOr<google::cloud::contactcenterinsights::v1::Conversation>
 ContactCenterInsightsConnectionImpl::UpdateConversation(
     google::cloud::contactcenterinsights::v1::UpdateConversationRequest const&
@@ -148,18 +179,18 @@ ContactCenterInsightsConnectionImpl::CreateAnalysis(
       background_->cq(), request,
       [stub](
           google::cloud::CompletionQueue& cq,
-          std::unique_ptr<grpc::ClientContext> context,
+          std::shared_ptr<grpc::ClientContext> context,
           google::cloud::contactcenterinsights::v1::CreateAnalysisRequest const&
               request) {
         return stub->AsyncCreateAnalysis(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::GetOperationRequest const& request) {
         return stub->AsyncGetOperation(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::CancelOperationRequest const& request) {
         return stub->AsyncCancelOperation(cq, std::move(context), request);
       },
@@ -242,19 +273,19 @@ ContactCenterInsightsConnectionImpl::BulkAnalyzeConversations(
           BulkAnalyzeConversationsResponse>(
       background_->cq(), request,
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::contactcenterinsights::v1::
                  BulkAnalyzeConversationsRequest const& request) {
         return stub->AsyncBulkAnalyzeConversations(cq, std::move(context),
                                                    request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::GetOperationRequest const& request) {
         return stub->AsyncGetOperation(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::CancelOperationRequest const& request) {
         return stub->AsyncCancelOperation(cq, std::move(context), request);
       },
@@ -276,18 +307,18 @@ ContactCenterInsightsConnectionImpl::IngestConversations(
       google::cloud::contactcenterinsights::v1::IngestConversationsResponse>(
       background_->cq(), request,
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::contactcenterinsights::v1::
                  IngestConversationsRequest const& request) {
         return stub->AsyncIngestConversations(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::GetOperationRequest const& request) {
         return stub->AsyncGetOperation(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::CancelOperationRequest const& request) {
         return stub->AsyncCancelOperation(cq, std::move(context), request);
       },
@@ -309,18 +340,18 @@ ContactCenterInsightsConnectionImpl::ExportInsightsData(
       google::cloud::contactcenterinsights::v1::ExportInsightsDataResponse>(
       background_->cq(), request,
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::contactcenterinsights::v1::
                  ExportInsightsDataRequest const& request) {
         return stub->AsyncExportInsightsData(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::GetOperationRequest const& request) {
         return stub->AsyncGetOperation(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::CancelOperationRequest const& request) {
         return stub->AsyncCancelOperation(cq, std::move(context), request);
       },
@@ -340,18 +371,18 @@ ContactCenterInsightsConnectionImpl::CreateIssueModel(
       google::cloud::contactcenterinsights::v1::IssueModel>(
       background_->cq(), request,
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::contactcenterinsights::v1::
                  CreateIssueModelRequest const& request) {
         return stub->AsyncCreateIssueModel(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::GetOperationRequest const& request) {
         return stub->AsyncGetOperation(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::CancelOperationRequest const& request) {
         return stub->AsyncCancelOperation(cq, std::move(context), request);
       },
@@ -416,18 +447,18 @@ ContactCenterInsightsConnectionImpl::DeleteIssueModel(
       google::cloud::contactcenterinsights::v1::DeleteIssueModelMetadata>(
       background_->cq(), request,
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::contactcenterinsights::v1::
                  DeleteIssueModelRequest const& request) {
         return stub->AsyncDeleteIssueModel(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::GetOperationRequest const& request) {
         return stub->AsyncGetOperation(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::CancelOperationRequest const& request) {
         return stub->AsyncCancelOperation(cq, std::move(context), request);
       },
@@ -448,18 +479,18 @@ ContactCenterInsightsConnectionImpl::DeployIssueModel(
       google::cloud::contactcenterinsights::v1::DeployIssueModelResponse>(
       background_->cq(), request,
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::contactcenterinsights::v1::
                  DeployIssueModelRequest const& request) {
         return stub->AsyncDeployIssueModel(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::GetOperationRequest const& request) {
         return stub->AsyncGetOperation(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::CancelOperationRequest const& request) {
         return stub->AsyncCancelOperation(cq, std::move(context), request);
       },
@@ -480,18 +511,18 @@ ContactCenterInsightsConnectionImpl::UndeployIssueModel(
       google::cloud::contactcenterinsights::v1::UndeployIssueModelResponse>(
       background_->cq(), request,
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::contactcenterinsights::v1::
                  UndeployIssueModelRequest const& request) {
         return stub->AsyncUndeployIssueModel(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::GetOperationRequest const& request) {
         return stub->AsyncGetOperation(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::CancelOperationRequest const& request) {
         return stub->AsyncCancelOperation(cq, std::move(context), request);
       },

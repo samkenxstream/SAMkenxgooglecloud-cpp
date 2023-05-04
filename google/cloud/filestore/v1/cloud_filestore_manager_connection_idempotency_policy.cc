@@ -17,7 +17,6 @@
 // source: google/cloud/filestore/v1/cloud_filestore_service.proto
 
 #include "google/cloud/filestore/v1/cloud_filestore_manager_connection_idempotency_policy.h"
-#include "absl/memory/memory.h"
 #include <memory>
 
 namespace google {
@@ -32,7 +31,7 @@ CloudFilestoreManagerConnectionIdempotencyPolicy::
 
 std::unique_ptr<CloudFilestoreManagerConnectionIdempotencyPolicy>
 CloudFilestoreManagerConnectionIdempotencyPolicy::clone() const {
-  return absl::make_unique<CloudFilestoreManagerConnectionIdempotencyPolicy>(
+  return std::make_unique<CloudFilestoreManagerConnectionIdempotencyPolicy>(
       *this);
 }
 
@@ -66,6 +65,31 @@ Idempotency CloudFilestoreManagerConnectionIdempotencyPolicy::DeleteInstance(
   return Idempotency::kNonIdempotent;
 }
 
+Idempotency CloudFilestoreManagerConnectionIdempotencyPolicy::ListSnapshots(
+    google::cloud::filestore::v1::ListSnapshotsRequest) {  // NOLINT
+  return Idempotency::kIdempotent;
+}
+
+Idempotency CloudFilestoreManagerConnectionIdempotencyPolicy::GetSnapshot(
+    google::cloud::filestore::v1::GetSnapshotRequest const&) {
+  return Idempotency::kIdempotent;
+}
+
+Idempotency CloudFilestoreManagerConnectionIdempotencyPolicy::CreateSnapshot(
+    google::cloud::filestore::v1::CreateSnapshotRequest const&) {
+  return Idempotency::kNonIdempotent;
+}
+
+Idempotency CloudFilestoreManagerConnectionIdempotencyPolicy::DeleteSnapshot(
+    google::cloud::filestore::v1::DeleteSnapshotRequest const&) {
+  return Idempotency::kNonIdempotent;
+}
+
+Idempotency CloudFilestoreManagerConnectionIdempotencyPolicy::UpdateSnapshot(
+    google::cloud::filestore::v1::UpdateSnapshotRequest const&) {
+  return Idempotency::kNonIdempotent;
+}
+
 Idempotency CloudFilestoreManagerConnectionIdempotencyPolicy::ListBackups(
     google::cloud::filestore::v1::ListBackupsRequest) {  // NOLINT
   return Idempotency::kIdempotent;
@@ -93,7 +117,7 @@ Idempotency CloudFilestoreManagerConnectionIdempotencyPolicy::UpdateBackup(
 
 std::unique_ptr<CloudFilestoreManagerConnectionIdempotencyPolicy>
 MakeDefaultCloudFilestoreManagerConnectionIdempotencyPolicy() {
-  return absl::make_unique<CloudFilestoreManagerConnectionIdempotencyPolicy>();
+  return std::make_unique<CloudFilestoreManagerConnectionIdempotencyPolicy>();
 }
 
 GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_END

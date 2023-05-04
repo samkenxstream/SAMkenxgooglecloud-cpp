@@ -16,7 +16,6 @@
 #include "generator/internal/codegen_utils.h"
 #include "generator/internal/predicate_utils.h"
 #include "generator/internal/printer.h"
-#include "absl/memory/memory.h"
 #include "absl/strings/str_split.h"
 #include <google/protobuf/descriptor.h>
 
@@ -113,7 +112,7 @@ $round_robin_class_name$::$round_robin_class_name$(
       CcPrintMethod(method, __FILE__, __LINE__, R"""(
 std::unique_ptr<google::cloud::internal::StreamingReadRpc<$response_type$>>
 $round_robin_class_name$::$method_name$(
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     $request_type$ const& request) {
   return Child()->$method_name$(std::move(context), request);
 }
@@ -125,7 +124,7 @@ $round_robin_class_name$::$method_name$(
 std::unique_ptr<google::cloud::internal::StreamingWriteRpc<
     $request_type$, $response_type$>>
 $round_robin_class_name$::$method_name$(
-    std::unique_ptr<grpc::ClientContext> context) {
+    std::shared_ptr<grpc::ClientContext> context) {
   return Child()->$method_name$(std::move(context));
 }
 )""");
@@ -138,7 +137,7 @@ std::unique_ptr<google::cloud::AsyncStreamingReadWriteRpc<
     $response_type$>>
 $round_robin_class_name$::Async$method_name$(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context) {
+    std::shared_ptr<grpc::ClientContext> context) {
   return Child()->Async$method_name$(cq, std::move(context));
 }
 )""");
@@ -149,7 +148,7 @@ $round_robin_class_name$::Async$method_name$(
 future<StatusOr<google::longrunning::Operation>>
 $round_robin_class_name$::Async$method_name$(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     $request_type$ const& request) {
   return Child()->Async$method_name$(cq, std::move(context), request);
 }
@@ -182,7 +181,7 @@ std::unique_ptr<google::cloud::internal::AsyncStreamingReadRpc<
     $response_type$>>
 $round_robin_class_name$::Async$method_name$(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     $request_type$ const& request) {
   return Child()->Async$method_name$(cq, std::move(context), request);
 }
@@ -196,7 +195,7 @@ std::unique_ptr<google::cloud::internal::AsyncStreamingWriteRpc<
     $response_type$>>
 $round_robin_class_name$::Async$method_name$(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context) {
+    std::shared_ptr<grpc::ClientContext> context) {
   return Child()->Async$method_name$(cq, std::move(context));
 }
 )""");
@@ -215,7 +214,7 @@ $round_robin_class_name$::Async$method_name$(
 future<Status>
 $round_robin_class_name$::Async$method_name$(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     $request_type$ const& request) {
   return Child()->Async$method_name$(cq, std::move(context), request);
 }
@@ -226,7 +225,7 @@ $round_robin_class_name$::Async$method_name$(
 future<StatusOr<$response_type$>>
 $round_robin_class_name$::Async$method_name$(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     $request_type$ const& request) {
   return Child()->Async$method_name$(cq, std::move(context), request);
 }
@@ -239,7 +238,7 @@ $round_robin_class_name$::Async$method_name$(
 future<StatusOr<google::longrunning::Operation>>
 $round_robin_class_name$::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
   return Child()->AsyncGetOperation(cq, std::move(context), request);
 }
@@ -247,7 +246,7 @@ $round_robin_class_name$::AsyncGetOperation(
 future<Status>
 $round_robin_class_name$::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
   return Child()->AsyncCancelOperation(cq, std::move(context), request);
 }

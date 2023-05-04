@@ -16,6 +16,8 @@
 #define GOOGLE_CLOUD_CPP_GOOGLE_CLOUD_TESTING_UTIL_OPENTELEMETRY_MATCHERS_H
 
 #ifdef GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY
+#include "google/cloud/internal/opentelemetry_options.h"
+#include "google/cloud/options.h"
 #include "google/cloud/version.h"
 #include <gmock/gmock.h>
 #include <opentelemetry/context/propagation/text_map_propagator.h>
@@ -25,8 +27,26 @@
 #include <opentelemetry/trace/span.h>
 #include <opentelemetry/trace/span_metadata.h>
 #include <opentelemetry/trace/tracer.h>
+#include <iosfwd>
 #include <memory>
 #include <string>
+
+/**
+ * Provide `opentelemetry::sdk::trace::SpanData` output streaming.
+ *
+ * Generally not a good idea to open a namespace outside our control, but it
+ * works, and -- in this test-only case -- is well worth it.
+ */
+OPENTELEMETRY_BEGIN_NAMESPACE
+namespace sdk {
+namespace trace {
+
+// Make the output from googletest human readable.
+std::ostream& operator<<(std::ostream&, SpanData const&);
+
+}  // namespace trace
+}  // namespace sdk
+OPENTELEMETRY_END_NAMESPACE
 
 namespace google {
 namespace cloud {
@@ -39,6 +59,12 @@ using SpanAttributeMap =
 MATCHER_P(SpanAttributesImpl, matcher,
           ::testing::DescribeMatcher<SpanAttributeMap>(matcher)) {
   return ::testing::ExplainMatchResult(matcher, arg->GetAttributes(),
+                                       result_listener);
+}
+
+MATCHER_P(EventAttributesImpl, matcher,
+          ::testing::DescribeMatcher<SpanAttributeMap>(matcher)) {
+  return ::testing::ExplainMatchResult(matcher, arg.GetAttributes(),
                                        result_listener);
 }
 
@@ -80,6 +106,20 @@ MATCHER(SpanKindIsClient,
   return kind == opentelemetry::trace::SpanKind::kClient;
 }
 
+MATCHER(SpanKindIsConsumer,
+        "has kind: " + ToString(opentelemetry::trace::SpanKind::kConsumer)) {
+  auto const& kind = arg->GetSpanKind();
+  *result_listener << "has kind: " << ToString(kind);
+  return kind == opentelemetry::trace::SpanKind::kConsumer;
+}
+
+MATCHER(SpanKindIsProducer,
+        "has kind: " + ToString(opentelemetry::trace::SpanKind::kProducer)) {
+  auto const& kind = arg->GetSpanKind();
+  *result_listener << "has kind: " << ToString(kind);
+  return kind == opentelemetry::trace::SpanKind::kProducer;
+}
+
 MATCHER_P(SpanNamed, name, "has name: " + std::string{name}) {
   auto const& actual = arg->GetName();
   *result_listener << "has name: " << actual;
@@ -113,6 +153,36 @@ template <typename T>
     std::pair<std::string, opentelemetry::sdk::common::OwnedAttributeValue>>
 SpanAttribute(std::string const& key, ::testing::Matcher<T const&> matcher) {
   return ::testing::Pair(key, ::testing::VariantWith<T>(matcher));
+}
+
+MATCHER_P(EventNamed, name, "has name: " + std::string{name}) {
+  auto const& actual = arg.GetName();
+  *result_listener << "has name: " << actual;
+  return actual == name;
+}
+
+template <typename... Args>
+::testing::Matcher<opentelemetry::sdk::trace::SpanDataEvent>
+SpanEventAttributesAre(Args const&... matchers) {
+  return testing_util_internal::EventAttributesImpl(
+      ::testing::UnorderedElementsAre(matchers...));
+}
+
+MATCHER_P(SpanEventsAreImpl, matcher,
+          ::testing::DescribeMatcher<
+              std::vector<opentelemetry::sdk::trace::SpanDataEvent>>(matcher)) {
+  return ::testing::ExplainMatchResult(matcher, arg->GetEvents(),
+                                       result_listener);
+}
+
+template <typename... Args>
+::testing::Matcher<SpanDataPtr> SpanHasEvents(Args const&... matchers) {
+  return SpanEventsAreImpl(::testing::IsSupersetOf({matchers...}));
+}
+
+template <typename... Args>
+::testing::Matcher<SpanDataPtr> SpanEventsAre(Args const&... matchers) {
+  return SpanEventsAreImpl(::testing::ElementsAre(matchers...));
 }
 
 /**
@@ -164,6 +234,13 @@ class MockTextMapPropagator
  * 2. the tests within a fixture do not execute in parallel
  */
 std::shared_ptr<MockTextMapPropagator> InstallMockPropagator();
+
+// Returns options with OpenTelemetry tracing enabled. Uses the global tracer
+// provider.
+Options EnableTracing(Options options);
+
+// Returns options with OpenTelemetry tracing disabled.
+Options DisableTracing(Options options);
 
 }  // namespace testing_util
 GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_END

@@ -13,6 +13,8 @@
 // limitations under the License.
 
 #include "google/cloud/bigquery/v2/minimal/internal/job_rest_stub.h"
+#include "google/cloud/bigquery/v2/minimal/internal/rest_stub_utils.h"
+#include "google/cloud/internal/absl_str_join_quiet.h"
 #include "google/cloud/internal/make_status.h"
 #include "google/cloud/status_or.h"
 
@@ -24,30 +26,26 @@ GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_BEGIN
 BigQueryJobRestStub::~BigQueryJobRestStub() = default;
 
 StatusOr<GetJobResponse> DefaultBigQueryJobRestStub::GetJob(
-    GetJobRequest const& request, Options const& opts) {
-  if (request.project_id().empty()) {
-    return internal::InvalidArgumentError(
-        "Invalid GetJobRequest: Project Id is empty", GCP_ERROR_INFO());
-  }
-  if (request.job_id().empty()) {
-    return internal::InvalidArgumentError(
-        "Invalid GetJobRequest: Job Id is empty", GCP_ERROR_INFO());
-  }
-  // Prepare the RestRequest
-  auto rest_request = BuildRestRequest(request, opts);
-  if (!rest_request) return std::move(rest_request).status();
+    rest_internal::RestContext& rest_context, GetJobRequest const& request) {
+  // Prepare the RestRequest from GetJobRequest.
+  auto rest_request = PrepareRestRequest<GetJobRequest>(rest_context, request);
 
-  // Call the rest client to get job details from the server as a RestResponse.
-  auto rest_response = rest_stub_->Get(std::move(*rest_request));
-  if (!rest_response) return std::move(rest_response).status();
+  // Call the rest stub and parse the RestResponse.
+  rest_internal::RestContext context;
+  return ParseFromRestResponse<GetJobResponse>(
+      rest_stub_->Get(context, std::move(*rest_request)));
+}
 
-  // Convert RestResponse to HttpResponse.
-  auto http_response =
-      BigQueryHttpResponse::BuildFromRestResponse(std::move(*rest_response));
-  if (!http_response) return std::move(http_response).status();
+StatusOr<ListJobsResponse> DefaultBigQueryJobRestStub::ListJobs(
+    rest_internal::RestContext& rest_context, ListJobsRequest const& request) {
+  // Prepare the RestRequest from ListJobsRequest.
+  auto rest_request =
+      PrepareRestRequest<ListJobsRequest>(rest_context, request);
 
-  // Convert HttpResponse to GetJobResponse.
-  return GetJobResponse::BuildFromHttpResponse(*http_response);
+  // Call the rest stub and parse the RestResponse.
+  rest_internal::RestContext context;
+  return ParseFromRestResponse<ListJobsResponse>(
+      rest_stub_->Get(context, std::move(*rest_request)));
 }
 
 GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_END

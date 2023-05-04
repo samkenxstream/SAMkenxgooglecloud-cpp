@@ -43,12 +43,12 @@ BigQueryReadAuth::CreateReadSession(
 std::unique_ptr<google::cloud::internal::StreamingReadRpc<
     google::cloud::bigquery::storage::v1::ReadRowsResponse>>
 BigQueryReadAuth::ReadRows(
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::bigquery::storage::v1::ReadRowsRequest const& request) {
   using ErrorStream = ::google::cloud::internal::StreamingReadRpcError<
       google::cloud::bigquery::storage::v1::ReadRowsResponse>;
   auto status = auth_->ConfigureContext(*context);
-  if (!status.ok()) return absl::make_unique<ErrorStream>(std::move(status));
+  if (!status.ok()) return std::make_unique<ErrorStream>(std::move(status));
   return child_->ReadRows(std::move(context), request);
 }
 

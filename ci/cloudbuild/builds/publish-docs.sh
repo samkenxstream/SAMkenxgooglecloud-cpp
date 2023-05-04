@@ -27,11 +27,12 @@ version=""
 doc_args=(
   "-DCMAKE_BUILD_TYPE=Debug"
   "-DGOOGLE_CLOUD_CPP_GENERATE_DOXYGEN=ON"
+  "-DGOOGLE_CLOUD_CPP_INTERNAL_DOCFX=ON"
   "-DGOOGLE_CLOUD_CPP_GEN_DOCS_FOR_GOOGLEAPIS_DEV=ON"
   "-DGOOGLE_CLOUD_CPP_ENABLE=${ENABLED_FEATURES}"
   "-DGOOGLE_CLOUD_CPP_ENABLE_CCACHE=ON"
   "-DGOOGLE_CLOUD_CPP_ENABLE_WERROR=ON"
-  "-DDOXYGEN_CLANG_OPTIONS=-resource-dir=$(clang -print-resource-dir) -Wno-deprecated-declarations"
+  "-DGOOGLE_CLOUD_CPP_DOXYGEN_CLANG_OPTIONS=-resource-dir=$(clang -print-resource-dir)"
 )
 
 # Extract the version number if we're on a release branch.
@@ -55,8 +56,10 @@ fi
 # For PR and manual builds, publish to the staging site. For CI builds (release
 # and otherwise), publish to the public URL.
 bucket="test-docs-staging"
+docfx_bucket="docs-staging-v2-dev"
 if [[ "${TRIGGER_TYPE}" == "ci" ]]; then
   bucket="docs-staging"
+  docfx_bucket="docs-staging-v2"
 fi
 
 export CC=clang
@@ -67,7 +70,7 @@ cmake -GNinja "${doc_args[@]}" -S . -B cmake-out
 # fix this by avoiding parallelism with `-j 1`, or as we do here, we'll
 # pre-generate all the proto headers, then call doxygen.
 cmake --build cmake-out --target google-cloud-cpp-protos
-cmake --build cmake-out --target doxygen-docs
+cmake --build cmake-out --target doxygen-docs all-docfx
 
 if [[ "${PROJECT_ID:-}" != "cloud-cpp-testing-resources" ]]; then
   io::log_h2 "Skipping upload of docs," \
@@ -125,6 +128,39 @@ function upload_docs() {
     python3 -m docuploader upload . --staging-bucket "${bucket}"
 }
 
+function stage_docfx() {
+  local package="$1"
+  local docfx_dir="$2"
+
+  if [[ ! -d "${docfx_dir}" ]]; then
+    io::log_red "Directory not found: ${docfx_dir}, skipping"
+    return 0
+  fi
+
+  io::log_h2 "Uploading docs: ${package}"
+  io::log "docfx_dir=${docfx_dir}"
+
+  env -C "${docfx_dir}" "${PROJECT_ROOT}/ci/retry-command.sh" 3 120 \
+    python3 -m docuploader upload \
+    --staging-bucket "${docfx_bucket}" \
+    --destination-prefix docfx .
+}
+
+io::log_h2 "Publishing DocFX"
+io::log "branch:  ${BRANCH_NAME}"
+io::log "bucket:  gs://${docfx_bucket}"
+
+stage_docfx "google-cloud-common" "cmake-out/google/cloud/docfx"
+stage_docfx "google-cloud-kms" "cmake-out/google/cloud/kms/docfx"
+stage_docfx "google-cloud-secretmanager" "cmake-out/google/cloud/secretmanager/docfx"
+for feature in "${FEATURE_LIST[@]}"; do
+  if [[ "${feature}" == "experimental-storage-grpc" ]]; then continue; fi
+  if [[ "${feature}" == "grafeas" ]]; then continue; fi
+  # TODO(#11430) - slowly change this limit until all libraries are published
+  if [[ "${feature}" < "z" ]]; then continue; fi
+  upload_docfx "google-cloud-${feature}" "cmake-out/google/cloud/${feature}/docfx"
+done
+
 io::log_h2 "Publishing docs"
 io::log "version: ${version}"
 io::log "branch:  ${BRANCH_NAME}"
@@ -134,5 +170,6 @@ upload_docs "google-cloud-common" "cmake-out/google/cloud/html"
 for feature in "${FEATURE_LIST[@]}"; do
   if [[ "${feature}" == "experimental-storage-grpc" ]]; then continue; fi
   if [[ "${feature}" == "grafeas" ]]; then continue; fi
+  if [[ "${feature}" == "experimental-opentelemetry" ]]; then feature="opentelemetry"; fi
   upload_docs "google-cloud-${feature}" "cmake-out/google/cloud/${feature}/html"
 done

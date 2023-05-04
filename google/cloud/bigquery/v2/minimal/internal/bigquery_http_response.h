@@ -17,7 +17,9 @@
 
 #include "google/cloud/internal/rest_response.h"
 #include "google/cloud/status_or.h"
+#include "google/cloud/tracing_options.h"
 #include "google/cloud/version.h"
+#include "absl/strings/string_view.h"
 
 namespace google {
 namespace cloud {
@@ -27,11 +29,17 @@ GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_BEGIN
 class BigQueryHttpResponse {
  public:
   BigQueryHttpResponse() = default;
+
   // Parses the RestResponse and builds an BigQueryHttpResponse.
   static StatusOr<BigQueryHttpResponse> BuildFromRestResponse(
       std::unique_ptr<rest_internal::RestResponse> rest_response);
 
-  rest_internal::HttpStatusCode http_status_code;
+  std::string DebugString(absl::string_view name,
+                          TracingOptions const& options = {},
+                          int indent = 0) const;
+
+  rest_internal::HttpStatusCode http_status_code{
+      rest_internal::HttpStatusCode::kOk};
   std::multimap<std::string, std::string> http_headers;
   std::string payload;
 };

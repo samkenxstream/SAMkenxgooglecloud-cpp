@@ -17,7 +17,6 @@
 #include "google/cloud/grpc_error_delegate.h"
 #include "google/cloud/testing_util/mock_grpc_authentication_strategy.h"
 #include "google/cloud/testing_util/status_matchers.h"
-#include "absl/memory/memory.h"
 #include <gmock/gmock.h>
 
 namespace google {
@@ -111,7 +110,7 @@ TEST(SpannerAuthTest, ExecuteStreamingSql) {
   EXPECT_CALL(*mock, ExecuteStreamingSql)
       .WillOnce([](grpc::ClientContext&,
                    google::spanner::v1::ExecuteSqlRequest const&) {
-        return absl::make_unique<ClientReaderInterfaceError>(
+        return std::make_unique<ClientReaderInterfaceError>(
             Status(StatusCode::kPermissionDenied, "uh-oh"));
       });
 
@@ -152,7 +151,7 @@ TEST(SpannerAuthTest, StreamingRead) {
   EXPECT_CALL(*mock, StreamingRead)
       .WillOnce(
           [](grpc::ClientContext&, google::spanner::v1::ReadRequest const&) {
-            return absl::make_unique<ClientReaderInterfaceError>(
+            return std::make_unique<ClientReaderInterfaceError>(
                 Status(StatusCode::kPermissionDenied, "uh-oh"));
           });
 
@@ -259,7 +258,7 @@ TEST(SpannerAuthTest, PartitionRead) {
 TEST(SpannerAuthTest, AsyncBatchCreateSessions) {
   auto mock = std::make_shared<MockSpannerStub>();
   EXPECT_CALL(*mock, AsyncBatchCreateSessions)
-      .WillOnce([](CompletionQueue&, std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](CompletionQueue&, auto,
                    google::spanner::v1::BatchCreateSessionsRequest const&) {
         return make_ready_future(
             StatusOr<google::spanner::v1::BatchCreateSessionsResponse>(
@@ -270,18 +269,18 @@ TEST(SpannerAuthTest, AsyncBatchCreateSessions) {
   google::spanner::v1::BatchCreateSessionsRequest request;
   CompletionQueue cq;
   auto auth_failure = under_test.AsyncBatchCreateSessions(
-      cq, absl::make_unique<grpc::ClientContext>(), request);
+      cq, std::make_shared<grpc::ClientContext>(), request);
   EXPECT_THAT(auth_failure.get(), StatusIs(StatusCode::kInvalidArgument));
 
   auto auth_success = under_test.AsyncBatchCreateSessions(
-      cq, absl::make_unique<grpc::ClientContext>(), request);
+      cq, std::make_shared<grpc::ClientContext>(), request);
   EXPECT_THAT(auth_success.get(), StatusIs(StatusCode::kPermissionDenied));
 }
 
 TEST(SpannerAuthTest, AsyncDeleteSession) {
   auto mock = std::make_shared<MockSpannerStub>();
   EXPECT_CALL(*mock, AsyncDeleteSession)
-      .WillOnce([](CompletionQueue&, std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](CompletionQueue&, auto,
                    google::spanner::v1::DeleteSessionRequest const&) {
         return make_ready_future(
             Status(StatusCode::kPermissionDenied, "uh-oh"));
@@ -291,18 +290,18 @@ TEST(SpannerAuthTest, AsyncDeleteSession) {
   google::spanner::v1::DeleteSessionRequest request;
   CompletionQueue cq;
   auto auth_failure = under_test.AsyncDeleteSession(
-      cq, absl::make_unique<grpc::ClientContext>(), request);
+      cq, std::make_shared<grpc::ClientContext>(), request);
   EXPECT_THAT(auth_failure.get(), StatusIs(StatusCode::kInvalidArgument));
 
   auto auth_success = under_test.AsyncDeleteSession(
-      cq, absl::make_unique<grpc::ClientContext>(), request);
+      cq, std::make_shared<grpc::ClientContext>(), request);
   EXPECT_THAT(auth_success.get(), StatusIs(StatusCode::kPermissionDenied));
 }
 
 TEST(SpannerAuthTest, AsyncExecuteSql) {
   auto mock = std::make_shared<MockSpannerStub>();
   EXPECT_CALL(*mock, AsyncExecuteSql)
-      .WillOnce([](CompletionQueue&, std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](CompletionQueue&, auto,
                    google::spanner::v1::ExecuteSqlRequest const&) {
         return make_ready_future(StatusOr<google::spanner::v1::ResultSet>(
             Status(StatusCode::kPermissionDenied, "uh-oh")));
@@ -312,11 +311,11 @@ TEST(SpannerAuthTest, AsyncExecuteSql) {
   google::spanner::v1::ExecuteSqlRequest request;
   CompletionQueue cq;
   auto auth_failure = under_test.AsyncExecuteSql(
-      cq, absl::make_unique<grpc::ClientContext>(), request);
+      cq, std::make_shared<grpc::ClientContext>(), request);
   EXPECT_THAT(auth_failure.get(), StatusIs(StatusCode::kInvalidArgument));
 
   auto auth_success = under_test.AsyncExecuteSql(
-      cq, absl::make_unique<grpc::ClientContext>(), request);
+      cq, std::make_shared<grpc::ClientContext>(), request);
   EXPECT_THAT(auth_success.get(), StatusIs(StatusCode::kPermissionDenied));
 }
 

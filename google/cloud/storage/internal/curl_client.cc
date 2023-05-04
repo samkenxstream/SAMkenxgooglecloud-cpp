@@ -28,7 +28,6 @@
 #include "google/cloud/internal/absl_str_cat_quiet.h"
 #include "google/cloud/internal/auth_header_error.h"
 #include "google/cloud/internal/getenv.h"
-#include "absl/memory/memory.h"
 #include "absl/strings/match.h"
 #include <sstream>
 
@@ -628,6 +627,12 @@ StatusOr<QueryResumableUploadResponse> CurlClient::UploadChunk(
   // default (at least in this case), and that wastes bandwidth as the content
   // length is known.
   builder.AddHeader("Transfer-Encoding:");
+  auto offset = request.offset();
+  for (auto const& b : request.payload()) {
+    request.hash_function().Update(offset,
+                                   absl::string_view{b.data(), b.size()});
+    offset += b.size();
+  }
   auto response =
       std::move(builder).BuildRequest().MakeUploadRequest(request.payload());
   if (!response.ok()) return std::move(response).status();
@@ -1119,17 +1124,10 @@ StatusOr<ObjectMetadata> CurlClient::InsertObjectMediaMultipart(
     metadata = ObjectMetadataJsonForInsert(
         request.GetOption<WithObjectMetadata>().value());
   }
-  if (request.HasOption<MD5HashValue>()) {
-    metadata["md5Hash"] = request.GetOption<MD5HashValue>().value();
-  } else if (!request.GetOption<DisableMD5Hash>().value_or(false)) {
-    metadata["md5Hash"] = ComputeMD5Hash(request.contents());
-  }
-
-  if (request.HasOption<Crc32cChecksumValue>()) {
-    metadata["crc32c"] = request.GetOption<Crc32cChecksumValue>().value();
-  } else if (!request.GetOption<DisableCrc32cChecksum>().value_or(false)) {
-    metadata["crc32c"] = ComputeCrc32cChecksum(request.contents());
-  }
+  request.hash_function().Update(/*offset=*/0, request.payload());
+  auto hashes = storage::internal::FinishHashes(request);
+  if (!hashes.crc32c.empty()) metadata["crc32c"] = hashes.crc32c;
+  if (!hashes.md5.empty()) metadata["md5Hash"] = hashes.md5;
 
   std::string crlf = "\r\n";
   std::string marker = "--" + boundary;
@@ -1149,7 +1147,7 @@ StatusOr<ObjectMetadata> CurlClient::InsertObjectMediaMultipart(
   } else {
     writer << "content-type: application/octet-stream" << crlf;
   }
-  writer << crlf << request.contents() << crlf << marker << "--" << crlf;
+  writer << crlf << request.payload() << crlf << marker << "--" << crlf;
 
   // 6. Return the results as usual.
   auto contents = std::move(writer).str();
@@ -1179,9 +1177,9 @@ StatusOr<ObjectMetadata> CurlClient::InsertObjectMediaSimple(
   builder.AddQueryParameter("uploadType", "media");
   builder.AddQueryParameter("name", request.object_name());
   builder.AddHeader("Content-Length: " +
-                    std::to_string(request.contents().size()));
+                    std::to_string(request.payload().size()));
   return CheckedFromString<ObjectMetadataParser>(
-      std::move(builder).BuildRequest().MakeRequest(request.contents()));
+      std::move(builder).BuildRequest().MakeRequest(request.payload()));
 }
 
 }  // namespace internal

@@ -16,10 +16,10 @@
 #include "generator/internal/codegen_utils.h"
 #include "generator/internal/descriptor_utils.h"
 #include "generator/internal/format_method_comments.h"
+#include "generator/internal/pagination.h"
 #include "generator/internal/predicate_utils.h"
 #include "generator/internal/printer.h"
 #include "google/cloud/internal/absl_str_cat_quiet.h"
-#include "absl/memory/memory.h"
 #include <google/api/client.pb.h>
 #include <google/protobuf/descriptor.h>
 
@@ -73,7 +73,8 @@ Status ClientGenerator::GenerateHeader() {
   // includes
   HeaderPrint("\n");
   HeaderLocalIncludes(
-      {vars("connection_header_path"),
+      {HasGenerateGrpcTransport() ? vars("connection_header_path")
+                                  : vars("connection_rest_header_path"),
        IsExperimental() ? "google/cloud/experimental_tag.h" : "",
        "google/cloud/future.h", "google/cloud/options.h",
        "google/cloud/polling_policy.h", "google/cloud/status_or.h",

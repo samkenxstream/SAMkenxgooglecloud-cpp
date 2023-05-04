@@ -49,19 +49,19 @@ class CloudDeployTracingStub : public CloudDeployStub {
 
   future<StatusOr<google::longrunning::Operation>> AsyncCreateDeliveryPipeline(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::cloud::deploy::v1::CreateDeliveryPipelineRequest const& request)
       override;
 
   future<StatusOr<google::longrunning::Operation>> AsyncUpdateDeliveryPipeline(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::cloud::deploy::v1::UpdateDeliveryPipelineRequest const& request)
       override;
 
   future<StatusOr<google::longrunning::Operation>> AsyncDeleteDeliveryPipeline(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::cloud::deploy::v1::DeleteDeliveryPipelineRequest const& request)
       override;
 
@@ -75,17 +75,17 @@ class CloudDeployTracingStub : public CloudDeployStub {
 
   future<StatusOr<google::longrunning::Operation>> AsyncCreateTarget(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::cloud::deploy::v1::CreateTargetRequest const& request) override;
 
   future<StatusOr<google::longrunning::Operation>> AsyncUpdateTarget(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::cloud::deploy::v1::UpdateTargetRequest const& request) override;
 
   future<StatusOr<google::longrunning::Operation>> AsyncDeleteTarget(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::cloud::deploy::v1::DeleteTargetRequest const& request) override;
 
   StatusOr<google::cloud::deploy::v1::ListReleasesResponse> ListReleases(
@@ -98,7 +98,7 @@ class CloudDeployTracingStub : public CloudDeployStub {
 
   future<StatusOr<google::longrunning::Operation>> AsyncCreateRelease(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::cloud::deploy::v1::CreateReleaseRequest const& request) override;
 
   StatusOr<google::cloud::deploy::v1::AbandonReleaseResponse> AbandonRelease(
@@ -108,6 +108,14 @@ class CloudDeployTracingStub : public CloudDeployStub {
   StatusOr<google::cloud::deploy::v1::ApproveRolloutResponse> ApproveRollout(
       grpc::ClientContext& context,
       google::cloud::deploy::v1::ApproveRolloutRequest const& request) override;
+
+  StatusOr<google::cloud::deploy::v1::AdvanceRolloutResponse> AdvanceRollout(
+      grpc::ClientContext& context,
+      google::cloud::deploy::v1::AdvanceRolloutRequest const& request) override;
+
+  StatusOr<google::cloud::deploy::v1::CancelRolloutResponse> CancelRollout(
+      grpc::ClientContext& context,
+      google::cloud::deploy::v1::CancelRolloutRequest const& request) override;
 
   StatusOr<google::cloud::deploy::v1::ListRolloutsResponse> ListRollouts(
       grpc::ClientContext& context,
@@ -119,8 +127,12 @@ class CloudDeployTracingStub : public CloudDeployStub {
 
   future<StatusOr<google::longrunning::Operation>> AsyncCreateRollout(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::cloud::deploy::v1::CreateRolloutRequest const& request) override;
+
+  StatusOr<google::cloud::deploy::v1::IgnoreJobResponse> IgnoreJob(
+      grpc::ClientContext& context,
+      google::cloud::deploy::v1::IgnoreJobRequest const& request) override;
 
   StatusOr<google::cloud::deploy::v1::RetryJobResponse> RetryJob(
       grpc::ClientContext& context,
@@ -134,18 +146,23 @@ class CloudDeployTracingStub : public CloudDeployStub {
       grpc::ClientContext& context,
       google::cloud::deploy::v1::GetJobRunRequest const& request) override;
 
+  StatusOr<google::cloud::deploy::v1::TerminateJobRunResponse> TerminateJobRun(
+      grpc::ClientContext& context,
+      google::cloud::deploy::v1::TerminateJobRunRequest const& request)
+      override;
+
   StatusOr<google::cloud::deploy::v1::Config> GetConfig(
       grpc::ClientContext& context,
       google::cloud::deploy::v1::GetConfigRequest const& request) override;
 
   future<StatusOr<google::longrunning::Operation>> AsyncGetOperation(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::longrunning::GetOperationRequest const& request) override;
 
   future<Status> AsyncCancelOperation(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::longrunning::CancelOperationRequest const& request) override;
 
  private:

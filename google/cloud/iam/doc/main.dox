@@ -50,127 +50,24 @@ the Cloud IAM C++ client library API.
 @snippet quickstart.cc all
 @endparblock
 
-## Environment Variables
+## Main classes
 
-There are several environment variables that can be set to configure certain
-behaviors in the library.
+<!-- inject-client-list-start -->
+This library offers multiple `*Client` classes, which are listed below. Each
+one of these classes exposes all the RPCs for a gRPC `service` as member
+functions of the class. This library groups multiple gRPC services because they
+are part of the same product or are often used together. A typical example may
+be the administrative and data plane operations for a single product.
 
-<!-- inject-endpoint-env-vars-start -->
+The library also has other classes that provide helpers, retry policies,
+configuration parameters, and infrastructure to mock the `*Client` classes
+when testing your application.
 
-- `GOOGLE_CLOUD_CPP_IAM_CREDENTIALS_ENDPOINT=...` overrides the
-  `EndpointOption` (which defaults to "iamcredentials.googleapis.com")
-  used by `MakeIAMCredentialsConnection()`.
-
-- `GOOGLE_CLOUD_CPP_IAM_ENDPOINT=...` overrides the
-  `EndpointOption` (which defaults to "iam.googleapis.com")
-  used by `MakeIAMConnection()`.
-
-- `GOOGLE_CLOUD_CPP_IAM_POLICY_ENDPOINT=...` overrides the
-  `EndpointOption` (which defaults to "iam-meta-api.googleapis.com")
-  used by `MakeIAMPolicyConnection()`.
-
-- `GOOGLE_CLOUD_CPP_POLICIES_ENDPOINT=...` overrides the
-  `EndpointOption` (which defaults to "iam.googleapis.com")
-  used by `MakePoliciesConnection()`.
-
-<!-- inject-endpoint-env-vars-end -->
-
-- `GOOGLE_CLOUD_CPP_ENABLE_TRACING=rpc` turns on tracing for most gRPC
-  calls. The library injects an additional Stub decorator that prints each gRPC
-  request and response.  Unless you have configured you own logging backend,
-  you should also set `GOOGLE_CLOUD_CPP_ENABLE_CLOG` to produce any output on
-  the program's console.
-
-- `GOOGLE_CLOUD_CPP_TRACING_OPTIONS=...` modifies the behavior of gRPC tracing,
-  including whether messages will be output on multiple lines, or whether
-  string/bytes fields will be truncated.
-
-- `GOOGLE_CLOUD_PROJECT=...` is used in examples and integration tests to
-  configure the GCP project.
-
-- `GOOGLE_CLOUD_CPP_ENABLE_CLOG=yes` turns on logging in the library, basically
-  the library always "logs" but the logging infrastructure has no backend to
-  actually print anything until the application sets a backend or they set this
-  environment variable.
-
-## Error Handling
-
-This library never throws exceptions to signal errors. In general, the library
-returns a [`StatusOr<T>`][status-or-header] if an error is possible. Some
-functions return objects that are not wrapped in a `StatusOr<>` but will
-themselves return a `StatusOr<T>` to signal an error. For example, wrappers for
-asynchronous operations return `future<StatusOr<T>>`.
-
-Applications should check if the `StatusOr<T>` contains a value before using
-it, much like how you might check that a pointer is not null before
-dereferencing it. Indeed, a `StatusOr<T>` object can be used like a
-smart-pointer to `T`, with the main difference being that when it does not hold
-a `T` it will instead hold a `Status` object with extra information about the
-error.
-
-You can check that a `StatusOr<T>` contains a value by calling the `.ok()`
-method, or by using `operator bool()` (like with other smart pointers). If
-there is no value, you can access the contained `Status` object using the
-`.status()` member. If there is a value, you may access it by dereferencing
-with `operator*()` or `operator->()`. As with all smart pointers, callers must
-first check that the `StatusOr<T>` contains a value before dereferencing and
-accessing the contained value. Alternatively, callers may instead use the
-`.value()` member function which is defined to throw a `RuntimeStatusError` if
-there is no value.
-
-@note If you're compiling with exceptions disabled, calling `.value()` on a
-    `StatusOr<T>` that does not contain a value will terminate the program
-    instead of throwing.
-
-@par Example
-@snippet iam_samples.cc example-status-or
-
-## Override the default endpoint
-
-In some cases, you may need to override the default endpoint used by the client
-library. Use the `google::cloud::EndpointOption` when initializing the client
-library to change this default.
-
-<!-- inject-endpoint-snippet-start -->
-For example, this will override the default endpoint for `iam_admin_v1::IAMClient`:
-
-@snippet iam_client_samples.cc set-client-endpoint
-
-Follow these links to find examples for other \c *Client classes:
- [iam_admin_v1::IAMClient](@ref iam_admin_v1::IAMClient-endpoint-snippet)
- [iam_credentials_v1::IAMCredentialsClient](@ref iam_credentials_v1::IAMCredentialsClient-endpoint-snippet)
- [iam_v1::IAMPolicyClient](@ref iam_v1::IAMPolicyClient-endpoint-snippet)
- [iam_v2::PoliciesClient](@ref iam_v2::PoliciesClient-endpoint-snippet)
-
-<!-- inject-endpoint-snippet-end -->
-
-## Override the authentication configuration
-
-Some applications cannot use the default authentication mechanism (known as
-[Application Default Credentials]). You can override this default using
-`google::cloud::UnifiedCredentialsOption`. The following example shows how
-to explicitly load a service account key file.
-
-<!-- inject-service-account-snippet-start -->
-@snippet iam_client_samples.cc with-service-account
-
-Follow these links to find examples for other \c *Client classes:
- [iam_admin_v1::IAMClient](@ref iam_admin_v1::IAMClient-service-account-snippet)
- [iam_credentials_v1::IAMCredentialsClient](@ref iam_credentials_v1::IAMCredentialsClient-service-account-snippet)
- [iam_v1::IAMPolicyClient](@ref iam_v1::IAMPolicyClient-service-account-snippet)
- [iam_v2::PoliciesClient](@ref iam_v2::PoliciesClient-service-account-snippet)
-
-<!-- inject-service-account-snippet-end -->
-
-Keep in mind that we chose this as an example because it is relatively easy to
-understand. Consult the [Best practices for managing service account keys]
-guide for more details.
-
-@see @ref guac - for more information on the factory functions to create
-`google::cloud::Credentials` objects.
-
-[Best practices for managing service account keys]: https://cloud.google.com/iam/docs/best-practices-for-managing-service-account-keys
-[Application Default Credentials]: https://cloud.google.com/docs/authentication#adc
+- [\c iam_admin_v1::IAMClient](@ref google::cloud::iam_admin_v1::IAMClient)
+- [\c iam_credentials_v1::IAMCredentialsClient](@ref google::cloud::iam_credentials_v1::IAMCredentialsClient)
+- [\c iam_v1::IAMPolicyClient](@ref google::cloud::iam_v1::IAMPolicyClient)
+- [\c iam_v2::PoliciesClient](@ref google::cloud::iam_v2::PoliciesClient)
+<!-- inject-client-list-end -->
 
 ## Next Steps
 
@@ -187,57 +84,3 @@ guide for more details.
 [status-or-header]: https://github.com/googleapis/google-cloud-cpp/blob/main/google/cloud/status_or.h
 
 */
-
-// <!-- inject-endpoint-pages-start -->
-
-/*! @page iam_admin_v1::IAMClient-endpoint-snippet Override iam_admin_v1::IAMClient Endpoint Configuration
-
-@snippet google/cloud/iam/admin/v1/samples/iam_client_samples.cc set-client-endpoint
-
-*/
-
-/*! @page iam_admin_v1::IAMClient-service-account-snippet Override iam_admin_v1::IAMClient Authentication Defaults
-
-@snippet google/cloud/iam/admin/v1/samples/iam_client_samples.cc with-service-account
-
-*/
-
-/*! @page iam_credentials_v1::IAMCredentialsClient-endpoint-snippet Override iam_credentials_v1::IAMCredentialsClient Endpoint Configuration
-
-@snippet google/cloud/iam/credentials/v1/samples/iam_credentials_client_samples.cc set-client-endpoint
-
-*/
-
-/*! @page iam_credentials_v1::IAMCredentialsClient-service-account-snippet Override iam_credentials_v1::IAMCredentialsClient Authentication Defaults
-
-@snippet google/cloud/iam/credentials/v1/samples/iam_credentials_client_samples.cc with-service-account
-
-*/
-
-/*! @page iam_v1::IAMPolicyClient-endpoint-snippet Override iam_v1::IAMPolicyClient Endpoint Configuration
-
-@snippet google/cloud/iam/v1/samples/iam_policy_client_samples.cc set-client-endpoint
-
-*/
-
-/*! @page iam_v1::IAMPolicyClient-service-account-snippet Override iam_v1::IAMPolicyClient Authentication Defaults
-
-@snippet google/cloud/iam/v1/samples/iam_policy_client_samples.cc with-service-account
-
-*/
-
-/*! @page iam_v2::PoliciesClient-endpoint-snippet Override iam_v2::PoliciesClient Endpoint Configuration
-
-@snippet google/cloud/iam/v2/samples/policies_client_samples.cc set-client-endpoint
-
-*/
-
-/*! @page iam_v2::PoliciesClient-service-account-snippet Override iam_v2::PoliciesClient Authentication Defaults
-
-@snippet google/cloud/iam/v2/samples/policies_client_samples.cc with-service-account
-
-*/
-// <!-- inject-endpoint-pages-end -->
-
-// <!-- inject-endpoint-pages-start -->
-// <!-- inject-endpoint-pages-end -->

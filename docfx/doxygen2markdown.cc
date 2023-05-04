@@ -13,26 +13,26 @@
 // limitations under the License.
 
 #include "docfx/doxygen2markdown.h"
+#include "docfx/doxygen_errors.h"
+#include <algorithm>
 #include <sstream>
 #include <unordered_set>
 
 namespace docfx {
+namespace {
 
-[[noreturn]] void UnknownChildType(std::string_view where,
-                                   pugi::xml_node const& child) {
-  std::ostringstream os;
-  os << "Unknown child in " << where << "(): node=";
-  child.print(os, /*indent=*/"", /*flags=*/pugi::format_raw);
-  throw std::runtime_error(std::move(os).str());
+std::string EscapeCodeLink(std::string link) {
+  // C++ names that are fully qualified often contain markdown emoji's (e.g.
+  // `:cloud:`). We need to escape them as "computer output", but only if they
+  // are not escaped already.
+  if (link.find("::") != std::string::npos &&
+      link.find('`') == std::string::npos) {
+    link = "`" + link + "`";
+  }
+  return link;
 }
 
-[[noreturn]] void MissingElement(std::string_view where, std::string_view name,
-                                 pugi::xml_node const& node) {
-  std::ostringstream os;
-  os << "Missing element <" << name << " in " << where << "(): node=";
-  node.print(os, /*indent=*/"", /*flags=*/pugi::format_raw);
-  throw std::runtime_error(std::move(os).str());
-}
+}  // namespace
 
 // A "sect4" node type is defined as (note the lack of sect5):
 //
@@ -49,13 +49,13 @@ namespace docfx {
 //    </xsd:complexType>
 // clang-format on
 bool AppendIfSect4(std::ostream& os, MarkdownContext const& ctx,
-                   pugi::xml_node const& node) {
+                   pugi::xml_node node) {
   if (std::string_view{node.name()} != "sect4") return false;
   // A single '#' title is reserved for the document title. The sect4 title uses
   // '#####':
   os << "\n\n##### ";
   AppendTitle(os, ctx, node);
-  for (auto const& child : node) {
+  for (auto const child : node) {
     // Unexpected: internal -> we do not use this.
     if (std::string_view(child.name()) == "title") continue;  // already handled
     if (AppendIfParagraph(os, ctx, child)) continue;
@@ -80,13 +80,13 @@ bool AppendIfSect4(std::ostream& os, MarkdownContext const& ctx,
 //   </xsd:complexType>
 // clang-format on
 bool AppendIfSect3(std::ostream& os, MarkdownContext const& ctx,
-                   pugi::xml_node const& node) {
+                   pugi::xml_node node) {
   if (std::string_view{node.name()} != "sect3") return false;
   // A single '#' title is reserved for the document title. The sect3 title
   // uses '####'.
   os << "\n\n#### ";
   AppendTitle(os, ctx, node);
-  for (auto const& child : node) {
+  for (auto const child : node) {
     // Unexpected: internal -> we do not use this.
     if (std::string_view(child.name()) == "title") continue;  // already handled
     if (AppendIfParagraph(os, ctx, child)) continue;
@@ -113,13 +113,13 @@ bool AppendIfSect3(std::ostream& os, MarkdownContext const& ctx,
 //   </xsd:complexType>
 // clang-format on
 bool AppendIfSect2(std::ostream& os, MarkdownContext const& ctx,
-                   pugi::xml_node const& node) {
+                   pugi::xml_node node) {
   if (std::string_view{node.name()} != "sect2") return false;
   // A single '#' title is reserved for the document title. The sect2 title
   // uses '###':
   os << "\n\n### ";
   AppendTitle(os, ctx, node);
-  for (auto const& child : node) {
+  for (auto const child : node) {
     // Unexpected: internal -> we do not use this.
     if (std::string_view(child.name()) == "title") continue;  // already handled
     if (AppendIfParagraph(os, ctx, child)) continue;
@@ -145,13 +145,13 @@ bool AppendIfSect2(std::ostream& os, MarkdownContext const& ctx,
 //   </xsd:complexType>
 // clang-format on
 bool AppendIfSect1(std::ostream& os, MarkdownContext const& ctx,
-                   pugi::xml_node const& node) {
+                   pugi::xml_node node) {
   if (std::string_view{node.name()} != "sect1") return false;
   // A single '#' title is reserved for the document title. The sect1 title
   // uses '##':
   os << "\n\n## ";
   AppendTitle(os, ctx, node);
-  for (auto const& child : node) {
+  for (auto const child : node) {
     // Unexpected: internal -> we do not use this.
     if (std::string_view(child.name()) == "title") continue;  // already handled
     if (AppendIfParagraph(os, ctx, child)) continue;
@@ -162,7 +162,27 @@ bool AppendIfSect1(std::ostream& os, MarkdownContext const& ctx,
   return true;
 }
 
-// A "detaileddescription" node type is defined as:
+// A "xrefsect" node type is defined as:
+//
+// clang-format off
+//   <xsd:complexType name="docXRefSectType">
+//     <xsd:sequence>
+//       <xsd:element name="xreftitle" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+//       <xsd:element name="xrefdescription" type="descriptionType" />
+//     </xsd:sequence>
+//     <xsd:attribute name="id" type="xsd:string" />
+//   </xsd:complexType>
+// clang-format on
+bool AppendIfXRefSect(std::ostream& os, MarkdownContext const& ctx,
+                      pugi::xml_node node) {
+  if (std::string_view{node.name()} != "xrefsect") return false;
+  // Add the title in bold, then some
+  os << "**" << node.child_value("xreftitle") << "**";
+  AppendDescriptionType(os, ctx, node.child("xrefdescription"));
+  return true;
+}
+
+// All "*description" nodes have this type:
 //
 // clang-format off
 //   <xsd:complexType name="descriptionType" mixed="true">
@@ -174,31 +194,57 @@ bool AppendIfSect1(std::ostream& os, MarkdownContext const& ctx,
 //     </xsd:sequence>
 //   </xsd:complexType>
 // clang-format on
-bool AppendIfDetailedDescription(std::ostream& os, MarkdownContext const& ctx,
-                                 pugi::xml_node const& node) {
-  if (std::string_view{node.name()} != "detaileddescription") return false;
-  for (auto const& child : node) {
+void AppendDescriptionType(std::ostream& os, MarkdownContext const& ctx,
+                           pugi::xml_node node) {
+  auto nested = ctx;
+  bool first_paragraph = true;
+  for (auto const child : node) {
+    if (!first_paragraph) nested.paragraph_start = "\n\n";
+    first_paragraph = false;
     // Unexpected: title, internal -> we do not use this...
-    if (AppendIfParagraph(os, ctx, child)) continue;
-    if (AppendIfSect1(os, ctx, child)) continue;
+    if (AppendIfParagraph(os, nested, child)) continue;
+    if (AppendIfSect1(os, nested, child)) continue;
     // While the XML schema does not allow for `sect2`, `sect3`, or `sect4`
     // elements, in practice Doxygen does generate them. And we use them in at
     // least one page.
-    if (AppendIfSect2(os, ctx, child)) continue;
-    if (AppendIfSect3(os, ctx, child)) continue;
-    if (AppendIfSect4(os, ctx, child)) continue;
+    if (AppendIfSect2(os, nested, child)) continue;
+    if (AppendIfSect3(os, nested, child)) continue;
+    if (AppendIfSect4(os, nested, child)) continue;
     UnknownChildType(__func__, child);
   }
+}
+
+bool AppendIfDetailedDescription(std::ostream& os, MarkdownContext const& ctx,
+                                 pugi::xml_node node) {
+  if (std::string_view{node.name()} != "detaileddescription") return false;
+  AppendDescriptionType(os, ctx, node);
+  return true;
+}
+
+bool AppendIfBriefDescription(std::ostream& os, MarkdownContext const& ctx,
+                              pugi::xml_node node) {
+  if (std::string_view{node.name()} != "briefdescription") return false;
+  AppendDescriptionType(os, ctx, node);
   return true;
 }
 
 bool AppendIfPlainText(std::ostream& os, MarkdownContext const& ctx,
-                       pugi::xml_node const& node) {
+                       pugi::xml_node node) {
   if (!std::string_view{node.name()}.empty() || !node.attributes().empty()) {
     return false;
   }
+  // Doxygen injects the following sequence when a zero-width joiner character
+  // is in the middle of a code span.  We need to remove them.
+  auto const zwj = std::string_view{"&zwj;"};
+  auto value = std::string{node.value()};
+  auto const end = std::string::npos;
+  std::string::size_type pos = 0;
+  for (pos = value.find(zwj, pos); pos != end; pos = value.find(zwj, pos)) {
+    value = value.erase(pos, zwj.size());
+  }
+
   for (auto const& d : ctx.decorators) os << d;
-  os << node.value();
+  os << value;
   for (auto i = ctx.decorators.rbegin(); i != ctx.decorators.rend(); ++i) {
     os << *i;
   }
@@ -212,14 +258,15 @@ bool AppendIfPlainText(std::ostream& os, MarkdownContext const& ctx,
 //     <xsd:attribute name="url" type="xsd:string" />
 //   </xsd:complexType>
 bool AppendIfULink(std::ostream& os, MarkdownContext const& ctx,
-                   pugi::xml_node const& node) {
+                   pugi::xml_node node) {
   if (std::string_view{node.name()} != "ulink") return false;
-  os << "[";
+  std::ostringstream link;
   for (auto const child : node) {
-    if (AppendIfDocTitleCmdGroup(os, ctx, child)) continue;
+    if (AppendIfDocTitleCmdGroup(link, ctx, child)) continue;
     UnknownChildType(__func__, child);
   }
-  os << "](" << node.attribute("url").as_string() << ")";
+  auto const ref = EscapeCodeLink(std::move(link).str());
+  os << "[" << ref << "](" << node.attribute("url").as_string() << ")";
   return true;
 }
 
@@ -230,11 +277,11 @@ bool AppendIfULink(std::ostream& os, MarkdownContext const& ctx,
 //     <xsd:group ref="docCmdGroup" minOccurs="0" maxOccurs="unbounded" />
 //   </xsd:complexType>
 bool AppendIfBold(std::ostream& os, MarkdownContext const& ctx,
-                  pugi::xml_node const& node) {
+                  pugi::xml_node node) {
   if (std::string_view{node.name()} != "bold") return false;
   auto nested = ctx;
   nested.decorators.emplace_back("**");
-  for (auto const& child : node) {
+  for (auto const child : node) {
     if (AppendIfDocCmdGroup(os, nested, child)) continue;
     UnknownChildType(__func__, child);
   }
@@ -244,11 +291,11 @@ bool AppendIfBold(std::ostream& os, MarkdownContext const& ctx,
 // The `strike` elements are of type `docMarkupType`. More details in
 // `AppendIfBold()`.
 bool AppendIfStrike(std::ostream& os, MarkdownContext const& ctx,
-                    pugi::xml_node const& node) {
+                    pugi::xml_node node) {
   if (std::string_view{node.name()} != "strike") return false;
   auto nested = ctx;
   nested.decorators.emplace_back("~");
-  for (auto const& child : node) {
+  for (auto const child : node) {
     if (AppendIfDocCmdGroup(os, nested, child)) continue;
     UnknownChildType(__func__, child);
   }
@@ -258,11 +305,11 @@ bool AppendIfStrike(std::ostream& os, MarkdownContext const& ctx,
 // The `strike` elements are of type `docMarkupType`. More details in
 // `AppendIfBold()`.
 bool AppendIfEmphasis(std::ostream& os, MarkdownContext const& ctx,
-                      pugi::xml_node const& node) {
+                      pugi::xml_node node) {
   if (std::string_view{node.name()} != "emphasis") return false;
   auto nested = ctx;
   nested.decorators.emplace_back("*");
-  for (auto const& child : node) {
+  for (auto const child : node) {
     if (AppendIfDocCmdGroup(os, nested, child)) continue;
     UnknownChildType(__func__, child);
   }
@@ -272,11 +319,11 @@ bool AppendIfEmphasis(std::ostream& os, MarkdownContext const& ctx,
 // The `computeroutput` elements are of type `docMarkupType`. More details in
 // `AppendIfBold()`.
 bool AppendIfComputerOutput(std::ostream& os, MarkdownContext const& ctx,
-                            pugi::xml_node const& node) {
+                            pugi::xml_node node) {
   if (std::string_view{node.name()} != "computeroutput") return false;
   auto nested = ctx;
   nested.decorators.emplace_back("`");
-  for (auto const& child : node) {
+  for (auto const child : node) {
     if (AppendIfDocCmdGroup(os, nested, child)) continue;
     UnknownChildType(__func__, child);
   }
@@ -297,22 +344,38 @@ bool AppendIfComputerOutput(std::ostream& os, MarkdownContext const& ctx,
 //   <xsd:attribute name="external" type="xsd:string" />
 // </xsd:complexType>
 bool AppendIfRef(std::ostream& os, MarkdownContext const& ctx,
-                 pugi::xml_node const& node) {
+                 pugi::xml_node node) {
   if (std::string_view{node.name()} != "ref") return false;
-  os << "[";
+
+  std::ostringstream link;
   for (auto const child : node) {
-    if (AppendIfDocTitleCmdGroup(os, ctx, child)) continue;
+    if (AppendIfDocTitleCmdGroup(link, ctx, child)) continue;
     UnknownChildType(__func__, child);
   }
-  os << "]";
-  if (!std::string_view(node.attribute("external").as_string()).empty()) {
-    os << "(" << node.attribute("external").as_string() << ")";
-  } else {
-    // DocFX YAML supports `xref:` as the syntax to cross link other documents
-    // generated from the same DoxFX YAML source:
-    //    https://dotnet.github.io/docfx/tutorial/links_and_cross_references.html#using-cross-reference
-    os << "(xref:" << node.attribute("refid").as_string() << ")";
-  }
+  auto const ref = EscapeCodeLink(std::move(link).str());
+
+  // DocFX YAML supports `xref:` as the syntax to cross link other documents
+  // generated from the same DoxFX YAML source:
+  //    https://dotnet.github.io/docfx/tutorial/links_and_cross_references.html#using-cross-reference
+  os << "[" << ref << "]"
+     << "(xref:" << node.attribute("refid").as_string() << ")";
+  return true;
+}
+
+// The `ndash` element is just a convenient way to represent long dashes.
+bool AppendIfNDash(std::ostream& os, MarkdownContext const& /*ctx*/,
+                   pugi::xml_node node) {
+  if (std::string_view{node.name()} != "ndash") return false;
+  os << "&ndash;";
+  return true;
+}
+
+// The `linebreak` represents a linebreak. Use `<br>` because we are targeting
+// a dialect of markdown that supports it.
+bool AppendIfLinebreak(std::ostream& os, MarkdownContext const& /*ctx*/,
+                       pugi::xml_node node) {
+  if (std::string_view{node.name()} != "linebreak") return false;
+  os << "<br>";
   return true;
 }
 
@@ -360,7 +423,7 @@ bool AppendIfRef(std::ostream& os, MarkdownContext const& ctx,
 //   </xsd:choice>
 // </xsd:group>
 bool AppendIfDocTitleCmdGroup(std::ostream& os, MarkdownContext const& ctx,
-                              pugi::xml_node const& node) {
+                              pugi::xml_node node) {
   if (AppendIfPlainText(os, ctx, node)) return true;
   if (AppendIfULink(os, ctx, node)) return true;
   if (AppendIfBold(os, ctx, node)) return true;
@@ -376,9 +439,10 @@ bool AppendIfDocTitleCmdGroup(std::ostream& os, MarkdownContext const& ctx,
   // Unexpected: formula
   if (AppendIfRef(os, ctx, node)) return true;
   // Unexpected: emoji
-  // Unexpected: linebreak
+  if (AppendIfLinebreak(os, ctx, node)) return true;
   // Unexpected: nonbreakablespace
   // Unexpected: many many symbols
+  if (AppendIfNDash(os, ctx, node)) return true;
   return false;
 }
 
@@ -413,18 +477,29 @@ bool AppendIfDocTitleCmdGroup(std::ostream& os, MarkdownContext const& ctx,
 //   </xsd:choice>
 // </xsd:group>
 bool AppendIfDocCmdGroup(std::ostream& os, MarkdownContext const& ctx,
-                         pugi::xml_node const& node) {
+                         pugi::xml_node node) {
+  auto const name = std::string_view{node.name()};
+  // <parameterlist> is part of the detailed description for functions. In
+  // DocFX YAML the parameters get their own YAML elements, and do not need
+  // to be documented in the markdown too.
+  if (name == "parameterlist") return true;
   if (AppendIfDocTitleCmdGroup(os, ctx, node)) return true;
   // Unexpected: hruler, preformatted
   if (AppendIfProgramListing(os, ctx, node)) return true;
-  // Unexpected: verbatim, indexentry
+  // Unexpected: indexentry
+  if (AppendIfVerbatim(os, ctx, node)) return true;
   if (AppendIfOrderedList(os, ctx, node)) return true;
   if (AppendIfItemizedList(os, ctx, node)) return true;
   if (AppendIfSimpleSect(os, ctx, node)) return true;
   // Unexpected: title
   if (AppendIfVariableList(os, ctx, node)) return true;
-  // Unexpected: table, header, dotfile, mscfile, diafile, toclist, language
-  // Unexpected: parameterlist, xrefsect, copydoc, blockquote, parblock
+  if (AppendIfTable(os, ctx, node)) return true;
+  // Unexpected: header, dotfile, mscfile, diafile, toclist, language
+  if (AppendIfXRefSect(os, ctx, node)) return true;
+  // Unexpected: copydoc, blockquote
+  if (AppendIfParBlock(os, ctx, node)) return true;
+  // zero-width joiner, just ignore them.
+  if (name == "zwj") return true;
   return false;
 }
 
@@ -441,10 +516,10 @@ bool AppendIfDocCmdGroup(std::ostream& os, MarkdownContext const& ctx,
 // The `<xsd:group>` signifies that there may be 0 or more (unbounded) number of
 // `docCmdGroup` child elements.
 bool AppendIfParagraph(std::ostream& os, MarkdownContext const& ctx,
-                       pugi::xml_node const& node) {
+                       pugi::xml_node node) {
   if (std::string_view{node.name()} != "para") return false;
   os << ctx.paragraph_start << ctx.paragraph_indent;
-  for (auto const& child : node) {
+  for (auto const child : node) {
     if (AppendIfDocCmdGroup(os, ctx, child)) continue;
     UnknownChildType(__func__, child);
   }
@@ -463,16 +538,141 @@ bool AppendIfParagraph(std::ostream& os, MarkdownContext const& ctx,
 //   </xsd:complexType>
 // clang-format on
 bool AppendIfProgramListing(std::ostream& os, MarkdownContext const& ctx,
-                            pugi::xml_node const& node) {
+                            pugi::xml_node node) {
   if (std::string_view{node.name()} != "programlisting") return false;
   // Start with a new paragraph, with the right level of indentation, and a new
   // code fence.
   os << ctx.paragraph_start << ctx.paragraph_indent << "```cpp";
-  for (auto const& child : node) {
+  for (auto const child : node) {
     if (AppendIfCodeline(os, ctx, child)) continue;
     UnknownChildType(__func__, child);
   }
   os << "\n" << ctx.paragraph_indent << "```";
+  return true;
+}
+
+// The type for `verbatim` is a simple string.
+bool AppendIfVerbatim(std::ostream& os, MarkdownContext const& ctx,
+                      pugi::xml_node node) {
+  if (std::string_view{node.name()} != "verbatim") return false;
+  os << ctx.paragraph_start << ctx.paragraph_indent << "```\n"
+     << ctx.paragraph_indent << node.child_value() << "\n"
+     << ctx.paragraph_indent << "```";
+  return true;
+}
+
+// The type for `parblock` is a sequence of paragraphs.
+//
+// clang-format off
+//   <xsd:complexType name="docParBlockType">
+//     <xsd:sequence>
+//       <xsd:element name="para" type="docParaType" minOccurs="0" maxOccurs="unbounded" />
+//     </xsd:sequence>
+//   </xsd:complexType>
+// clang-format on
+bool AppendIfParBlock(std::ostream& os, MarkdownContext const& ctx,
+                      pugi::xml_node node) {
+  if (std::string_view{node.name()} != "parblock") return false;
+  for (auto const child : node) {
+    if (AppendIfParagraph(os, ctx, child)) continue;
+    UnknownChildType(__func__, child);
+  }
+  return true;
+}
+
+// The type for `table` is a sequence of rows, maybe with a caption.
+//
+// clang-format off
+//   <xsd:complexType name="docTableType">
+//     <xsd:sequence>
+//       <xsd:element name="caption" type="docCaptionType" minOccurs="0" maxOccurs="1" />
+//       <xsd:element name="row" type="docRowType" minOccurs="0" maxOccurs="unbounded" />
+//     </xsd:sequence>
+//     <xsd:attribute name="rows" type="xsd:integer" />
+//     <xsd:attribute name="cols" type="xsd:integer" />
+//     <xsd:attribute name="width" type="xsd:string" />
+//   </xsd:complexType>
+// clang-format on
+bool AppendIfTable(std::ostream& os, MarkdownContext const& ctx,
+                   pugi::xml_node node) {
+  if (std::string_view{node.name()} != "table") return false;
+  for (auto const child : node) {
+    if (AppendIfTableRow(os, ctx, child)) continue;
+    UnknownChildType(__func__, child);
+  }
+  return true;
+}
+
+// The type for `row` is a sequence of `<entry>` elements.
+//
+// clang-format off
+//    <xsd:complexType name="docRowType">
+//      <xsd:sequence>
+//        <xsd:element name="entry" type="docEntryType" minOccurs="0" maxOccurs="unbounded" />
+//      </xsd:sequence>
+//    </xsd:complexType>
+// clang-format on
+bool AppendIfTableRow(std::ostream& os, MarkdownContext const& ctx,
+                      pugi::xml_node node) {
+  if (std::string_view{node.name()} != "row") return false;
+  os << "\n" << ctx.paragraph_indent;
+  auto nested = ctx;
+  nested.paragraph_indent = "";
+  nested.paragraph_start = "| ";
+  for (auto const child : node) {
+    if (AppendIfTableEntry(os, nested, child)) {
+      nested.paragraph_start = " | ";
+      continue;
+    }
+    UnknownChildType(__func__, child);
+  }
+  os << " |";
+  // This may not work for tables with colspan, but it is good enough for the
+  // documents we have in `google-cloud-cpp`.
+  auto nheaders =
+      std::count_if(node.begin(), node.end(), [](pugi::xml_node child) {
+        return std::string_view{child.name()} == "entry" &&
+               std::string_view{child.attribute("thead").as_string()} == "yes";
+      });
+  if (nheaders != 0) {
+    os << "\n" << ctx.paragraph_indent;
+    for (; nheaders != 0; --nheaders) {
+      os << "| ---- ";
+    }
+    os << "|";
+  }
+  return true;
+}
+
+// The type for a `<entry>` element is a sequence of `<para>` elements, maybe
+// with some attributes. We will ignore most of the attributes for now.
+//
+// clang-format off
+//   <xsd:complexType name="docEntryType">
+//      <xsd:sequence>
+//        <xsd:element name="para" type="docParaType" minOccurs="0" maxOccurs="unbounded" />
+//      </xsd:sequence>
+//      <xsd:attribute name="thead" type="DoxBool" />
+//      <xsd:attribute name="colspan" type="xsd:integer" />
+//      <xsd:attribute name="rowspan" type="xsd:integer" />
+//      <xsd:attribute name="align" type="DoxAlign" />
+//      <xsd:attribute name="valign" type="DoxVerticalAlign" />
+//      <xsd:attribute name="width" type="xsd:string" />
+//      <xsd:attribute name="class" type="xsd:string" />
+//      <xsd:anyAttribute processContents="skip"/>
+//    </xsd:complexType>
+// clang-format on
+bool AppendIfTableEntry(std::ostream& os, MarkdownContext const& ctx,
+                        pugi::xml_node node) {
+  if (std::string_view{node.name()} != "entry") return false;
+  auto nested = ctx;
+  for (auto const child : node) {
+    if (AppendIfParagraph(os, nested, child)) {
+      nested.paragraph_start = " ";
+      continue;
+    }
+    UnknownChildType(__func__, child);
+  }
   return true;
 }
 
@@ -492,10 +692,10 @@ bool AppendIfProgramListing(std::ostream& os, MarkdownContext const& ctx,
 //   </xsd:complexType>
 // clang-format on
 bool AppendIfCodeline(std::ostream& os, MarkdownContext const& ctx,
-                      pugi::xml_node const& node) {
+                      pugi::xml_node node) {
   if (std::string_view{node.name()} != "codeline") return false;
   os << "\n" << ctx.paragraph_indent;
-  for (auto const& child : node) {
+  for (auto const child : node) {
     if (AppendIfHighlight(os, ctx, child)) continue;
     UnknownChildType(__func__, child);
   }
@@ -513,9 +713,9 @@ bool AppendIfCodeline(std::ostream& os, MarkdownContext const& ctx,
 //     <xsd:attribute name="class" type="DoxHighlightClass" />
 //   </xsd:complexType>
 bool AppendIfHighlight(std::ostream& os, MarkdownContext const& ctx,
-                       pugi::xml_node const& node) {
+                       pugi::xml_node node) {
   if (std::string_view{node.name()} != "highlight") return false;
-  for (auto const& child : node) {
+  for (auto const child : node) {
     if (AppendIfPlainText(os, ctx, child)) continue;
     if (AppendIfHighlightSp(os, ctx, child)) continue;
     if (AppendIfHighlightRef(os, ctx, child)) continue;
@@ -531,7 +731,7 @@ bool AppendIfHighlight(std::ostream& os, MarkdownContext const& ctx,
 //     <xsd:attribute name="value" type="xsd:integer" use="optional"/>
 //   </xsd:complexType>
 bool AppendIfHighlightSp(std::ostream& os, MarkdownContext const& /*ctx*/,
-                         pugi::xml_node const& node) {
+                         pugi::xml_node node) {
   if (std::string_view{node.name()} != "sp") return false;
   // Leave the 'value' attribute unhandled. It is probably the number of spaces,
   // but without documentation it is hard to say. Since it is unused, this
@@ -551,9 +751,9 @@ bool AppendIfHighlightSp(std::ostream& os, MarkdownContext const& /*ctx*/,
 //     <xsd:attribute name="external" type="xsd:string" />
 //   </xsd:complexType>
 bool AppendIfHighlightRef(std::ostream& os, MarkdownContext const& ctx,
-                          pugi::xml_node const& node) {
+                          pugi::xml_node node) {
   if (std::string_view{node.name()} != "ref") return false;
-  for (auto const& child : node) {
+  for (auto const child : node) {
     if (AppendIfDocTitleCmdGroup(os, ctx, child)) continue;
     UnknownChildType(__func__, child);
   }
@@ -562,12 +762,12 @@ bool AppendIfHighlightRef(std::ostream& os, MarkdownContext const& ctx,
 
 /// Handle `orderedlist` elements.
 bool AppendIfOrderedList(std::ostream& os, MarkdownContext const& ctx,
-                         pugi::xml_node const& node) {
+                         pugi::xml_node node) {
   if (std::string_view{node.name()} != "orderedlist") return false;
   auto nested = ctx;
   nested.paragraph_indent = std::string(ctx.paragraph_indent.size(), ' ');
   nested.item_prefix = "1. ";
-  for (auto const& child : node) {
+  for (auto const child : node) {
     if (AppendIfListItem(os, nested, child)) continue;
     UnknownChildType(__func__, child);
   }
@@ -575,12 +775,12 @@ bool AppendIfOrderedList(std::ostream& os, MarkdownContext const& ctx,
 }
 
 bool AppendIfItemizedList(std::ostream& os, MarkdownContext const& ctx,
-                          pugi::xml_node const& node) {
+                          pugi::xml_node node) {
   if (std::string_view{node.name()} != "itemizedlist") return false;
   auto nested = ctx;
   nested.paragraph_indent = std::string(ctx.paragraph_indent.size(), ' ');
   nested.item_prefix = "- ";
-  for (auto const& child : node) {
+  for (auto const child : node) {
     if (AppendIfListItem(os, nested, child)) continue;
     UnknownChildType(__func__, child);
   }
@@ -588,14 +788,14 @@ bool AppendIfItemizedList(std::ostream& os, MarkdownContext const& ctx,
 }
 
 bool AppendIfListItem(std::ostream& os, MarkdownContext const& ctx,
-                      pugi::xml_node const& node) {
+                      pugi::xml_node node) {
   if (std::string_view{node.name()} != "listitem") return false;
   // The first paragraph is the list item is indented as needed, and starts
   // with the item prefix (typically "- " or "1. ").
   auto nested = ctx;
   nested.paragraph_start = "\n";
   nested.paragraph_indent = ctx.paragraph_indent + ctx.item_prefix;
-  for (auto const& child : node) {
+  for (auto const child : node) {
     if (AppendIfParagraph(os, nested, child)) {
       // Subsequence paragraphs within the same list item require a blank line
       nested.paragraph_start = "\n\n";
@@ -625,13 +825,13 @@ bool AppendIfListItem(std::ostream& os, MarkdownContext const& ctx,
 //     </xsd:sequence>
 //   </xsd:group>
 bool AppendIfVariableList(std::ostream& os, MarkdownContext const& ctx,
-                          pugi::xml_node const& node) {
+                          pugi::xml_node node) {
   if (std::string_view{node.name()} != "variablelist") return false;
 
   auto nested = ctx;
   nested.paragraph_start = "\n";
   nested.paragraph_indent = ctx.paragraph_indent + "- ";
-  for (auto const& child : node) {
+  for (auto const child : node) {
     if (AppendIfVariableListEntry(os, nested, child)) {
       // Subsequence paragraphs within the same list item require a blank line
       nested.paragraph_start = "\n\n";
@@ -660,12 +860,12 @@ bool AppendIfVariableList(std::ostream& os, MarkdownContext const& ctx,
 //     <xsd:group ref="docTitleCmdGroup" minOccurs="0" maxOccurs="unbounded" />
 //   </xsd:complexType>
 bool AppendIfVariableListEntry(std::ostream& os, MarkdownContext const& ctx,
-                               pugi::xml_node const& node) {
+                               pugi::xml_node node) {
   if (std::string_view{node.name()} != "varlistentry") return false;
   auto const term = node.child("term");
   if (!term) MissingElement(__func__, "term", node);
   os << ctx.paragraph_start << ctx.paragraph_indent;
-  for (auto const& child : term) {
+  for (auto const child : term) {
     if (AppendIfDocTitleCmdGroup(os, ctx, child)) continue;
     UnknownChildType(__func__, child);
   }
@@ -682,9 +882,9 @@ bool AppendIfVariableListEntry(std::ostream& os, MarkdownContext const& ctx,
 //   </xsd:complexType>
 // clang-format on
 bool AppendIfVariableListItem(std::ostream& os, MarkdownContext const& ctx,
-                              pugi::xml_node const& node) {
+                              pugi::xml_node node) {
   if (std::string_view{node.name()} != "listitem") return false;
-  for (auto const& child : node) {
+  for (auto const child : node) {
     if (AppendIfParagraph(os, ctx, child)) continue;
     UnknownChildType(__func__, child);
   }
@@ -732,12 +932,12 @@ bool AppendIfVariableListItem(std::ostream& os, MarkdownContext const& ctx,
 //   </xsd:complexType>
 // clang-format on
 bool AppendIfSimpleSect(std::ostream& os, MarkdownContext const& ctx,
-                        pugi::xml_node const& node) {
+                        pugi::xml_node node) {
   if (std::string_view{node.name()} != "simplesect") return false;
   static auto const* const kUseH6 = [] {
     return new std::unordered_set<std::string>{
-        "see", "return", "author",    "authors",   "version", "since", "date",
-        "pre", "post",   "copyright", "invariant", "par",     "rcs",
+        "author", "authors",   "version",   "since", "date", "pre",
+        "post",   "copyright", "invariant", "par",   "rcs",
     };
   }();
 
@@ -746,7 +946,15 @@ bool AppendIfSimpleSect(std::ostream& os, MarkdownContext const& ctx,
   nested.paragraph_indent = ctx.paragraph_indent + "> ";
 
   auto const kind = std::string{node.attribute("kind").as_string()};
-  if (kUseH6->count(kind) != 0) {
+  // In DocFX YAML the return description and type are captured as
+  // separate YAML elements. Including them in the markdown section would
+  // just repeat the text.
+  if (kind == "return") return true;
+
+  if (kind == "see") {
+    nested = ctx;
+    os << "\n\n###### See Also";
+  } else if (kUseH6->count(kind) != 0) {
     nested = ctx;
     os << "\n\n###### ";
     AppendTitle(os, nested, node);
@@ -769,7 +977,7 @@ bool AppendIfSimpleSect(std::ostream& os, MarkdownContext const& ctx,
     throw std::runtime_error(std::move(os).str());
   }
 
-  for (auto const& child : node) {
+  for (auto const child : node) {
     if (std::string_view{child.name()} == "title") continue;
     if (AppendIfParagraph(os, nested, child)) continue;
     UnknownChildType(__func__, child);
@@ -778,18 +986,18 @@ bool AppendIfSimpleSect(std::ostream& os, MarkdownContext const& ctx,
 }
 
 bool AppendIfAnchor(std::ostream& /*os*/, MarkdownContext const& /*ctx*/,
-                    pugi::xml_node const& node) {
+                    pugi::xml_node node) {
   // Do not generate any code for anchors, they have no obvious mapping to
   // Markdown.
   return std::string_view{node.name()} == "anchor";
 }
 
 void AppendTitle(std::ostream& os, MarkdownContext const& ctx,
-                 pugi::xml_node const& node) {
+                 pugi::xml_node node) {
   // The XML schema says there is only one of these, but it is easier to write
   // the loop.
-  for (auto const& title : node.children("title")) {
-    for (auto const& child : title) {
+  for (auto const title : node.children("title")) {
+    for (auto const child : title) {
       if (AppendIfPlainText(os, ctx, child)) continue;
       UnknownChildType(__func__, child);
     }

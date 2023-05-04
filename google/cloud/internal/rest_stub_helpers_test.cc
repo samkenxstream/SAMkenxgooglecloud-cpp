@@ -47,7 +47,7 @@ auto constexpr kMalformedJsonRolePayload = R"(
 )";
 
 TEST(RestStubHelpers, RestResponseToProtoErrorInfo) {
-  auto mock_200_response = absl::make_unique<MockRestResponse>();
+  auto mock_200_response = std::make_unique<MockRestResponse>();
   EXPECT_CALL(*mock_200_response, StatusCode()).WillOnce([]() {
     return HttpStatusCode::kOk;
   });
@@ -79,7 +79,7 @@ auto constexpr kJsonRolePayloadWithUnknownField = R"(
 )";
 
 TEST(RestStubHelpers, RestResponseToProtoContainsUnknownField) {
-  auto mock_200_response = absl::make_unique<MockRestResponse>();
+  auto mock_200_response = std::make_unique<MockRestResponse>();
   EXPECT_CALL(*mock_200_response, StatusCode()).WillOnce([]() {
     return HttpStatusCode::kOk;
   });
@@ -134,17 +134,17 @@ TEST(RestStubHelpers, DeleteWithEmptyResponse) {
     return MakeMockHttpPayloadSuccess(json_error);
   });
 
-  auto mock_client = absl::make_unique<MockRestClient>();
+  auto mock_client = std::make_unique<MockRestClient>();
   EXPECT_CALL(*mock_client, Delete)
-      .WillOnce([&](RestRequest const& request) {
+      .WillOnce([&](RestContext&, RestRequest const& request) {
         EXPECT_THAT(request.path(), Eq("/v1/delete/"));
         return std::unique_ptr<rest_internal::RestResponse>(mock_200_response);
       })
-      .WillOnce([&](RestRequest const& request) {
+      .WillOnce([&](RestContext&, RestRequest const& request) {
         EXPECT_THAT(request.path(), Eq("/v1/delete/"));
         return Status(StatusCode::kInternal, "Internal Error");
       })
-      .WillOnce([&](RestRequest const& request) {
+      .WillOnce([&](RestContext&, RestRequest const& request) {
         EXPECT_THAT(request.path(), Eq("/v1/delete/"));
         return std::unique_ptr<rest_internal::RestResponse>(mock_403_response);
       });
@@ -184,13 +184,13 @@ TEST(RestStubHelpers, DeleteWithNonEmptyResponse) {
     return MakeMockHttpPayloadSuccess(json_response);
   });
 
-  auto mock_client = absl::make_unique<MockRestClient>();
+  auto mock_client = std::make_unique<MockRestClient>();
   EXPECT_CALL(*mock_client, Delete)
-      .WillOnce([&](RestRequest const& request) {
+      .WillOnce([&](RestContext&, RestRequest const& request) {
         EXPECT_THAT(request.path(), Eq("/v1/delete/"));
         return Status(StatusCode::kInternal, "Internal Error");
       })
-      .WillOnce([&](RestRequest const& request) {
+      .WillOnce([&](RestContext&, RestRequest const& request) {
         EXPECT_THAT(request.path(), Eq("/v1/delete/"));
         return std::unique_ptr<rest_internal::RestResponse>(mock_200_response);
       });
@@ -221,15 +221,15 @@ TEST(RestStubHelpers, Get) {
   google::iam::admin::v1::GetRoleRequest proto_request;
   proto_request.set_name("role_name");
 
-  auto mock_client = absl::make_unique<MockRestClient>();
+  auto mock_client = std::make_unique<MockRestClient>();
   EXPECT_CALL(*mock_client, Get)
-      .WillOnce([&](RestRequest const& request) {
+      .WillOnce([&](RestContext&, RestRequest const& request) {
         EXPECT_THAT(request.path(), Eq("/v1/"));
         EXPECT_THAT(request.GetQueryParameter("name"),
                     Contains(proto_request.name()));
         return Status(StatusCode::kInternal, "Internal Error");
       })
-      .WillOnce([&](RestRequest const& request)
+      .WillOnce([&](RestContext&, RestRequest const& request)
                     -> google::cloud::StatusOr<
                         std::unique_ptr<rest_internal::RestResponse>> {
         EXPECT_THAT(request.path(), Eq("/v1/"));
@@ -297,19 +297,19 @@ TEST(RestStubHelpers, Patch) {
   update_role.set_description("update_role_description");
   *proto_request.mutable_role() = update_role;
 
-  auto mock_client = absl::make_unique<MockRestClient>();
+  auto mock_client = std::make_unique<MockRestClient>();
   EXPECT_CALL(*mock_client, Patch)
-      .WillOnce([&](RestRequest const& request,
+      .WillOnce([&](RestContext&, RestRequest const& request,
                     std::vector<absl::Span<char const>> const&) {
         EXPECT_THAT(request.path(), Eq("/v1/"));
         return Status(StatusCode::kInternal, "Internal Error");
       })
-      .WillOnce([&](RestRequest const& request,
+      .WillOnce([&](RestContext& context, RestRequest const& request,
                     std::vector<absl::Span<char const>> const& payload) {
         EXPECT_THAT(request.path(), Eq("/v1/"));
         EXPECT_THAT(request.GetHeader("content-type"),
                     Contains("application/json"));
-        EXPECT_THAT(request.GetHeader("custom"), Contains("header"));
+        EXPECT_THAT(context.GetHeader("custom"), Contains("header"));
         std::string payload_str(payload[0].begin(), payload[0].end());
         EXPECT_THAT(payload_str, Eq(json_request));
         return std::unique_ptr<rest_internal::RestResponse>(mock_200_response);
@@ -347,17 +347,17 @@ TEST(RestStubHelpers, PostWithNonEmptyResponse) {
   update_role.set_description("update_role_description");
   *proto_request.mutable_role() = update_role;
 
-  auto mock_client = absl::make_unique<MockRestClient>();
+  auto mock_client = std::make_unique<MockRestClient>();
   EXPECT_CALL(*mock_client,
-              Post(_, A<std::vector<absl::Span<char const>> const&>()))
-      .WillOnce([&](RestRequest const& request,
+              Post(_, _, A<std::vector<absl::Span<char const>> const&>()))
+      .WillOnce([&](RestContext&, RestRequest const& request,
                     std::vector<absl::Span<char const>> const&) {
         EXPECT_THAT(request.path(), Eq("/v1/"));
         EXPECT_THAT(request.GetQueryParameter("name"),
                     Contains(proto_request.name()));
         return Status(StatusCode::kInternal, "Internal Error");
       })
-      .WillOnce([&](RestRequest const& request,
+      .WillOnce([&](RestContext&, RestRequest const& request,
                     std::vector<absl::Span<char const>> const& payload)
                     -> google::cloud::StatusOr<
                         std::unique_ptr<rest_internal::RestResponse>> {
@@ -404,17 +404,17 @@ TEST(RestStubHelpers, PostWithEmptyResponse) {
   update_role.set_description("update_role_description");
   *proto_request.mutable_role() = update_role;
 
-  auto mock_client = absl::make_unique<MockRestClient>();
+  auto mock_client = std::make_unique<MockRestClient>();
   EXPECT_CALL(*mock_client,
-              Post(_, A<std::vector<absl::Span<char const>> const&>()))
-      .WillOnce([&](RestRequest const& request,
+              Post(_, _, A<std::vector<absl::Span<char const>> const&>()))
+      .WillOnce([&](RestContext&, RestRequest const& request,
                     std::vector<absl::Span<char const>> const&) {
         EXPECT_THAT(request.path(), Eq("/v1/"));
         EXPECT_THAT(request.GetQueryParameter("name"),
                     Contains(proto_request.name()));
         return Status(StatusCode::kInternal, "Internal Error");
       })
-      .WillOnce([&](RestRequest const& request,
+      .WillOnce([&](RestContext&, RestRequest const& request,
                     std::vector<absl::Span<char const>> const& payload) {
         EXPECT_THAT(request.path(), Eq("/v1/"));
         EXPECT_THAT(request.GetQueryParameter("name"),
@@ -456,16 +456,16 @@ TEST(RestStubHelpers, Put) {
   update_role.set_description("update_role_description");
   *proto_request.mutable_role() = update_role;
 
-  auto mock_client = absl::make_unique<MockRestClient>();
+  auto mock_client = std::make_unique<MockRestClient>();
   EXPECT_CALL(*mock_client, Put)
-      .WillOnce([&](RestRequest const& request,
+      .WillOnce([&](RestContext&, RestRequest const& request,
                     std::vector<absl::Span<char const>> const&) {
         EXPECT_THAT(request.path(), Eq("/v1/"));
         EXPECT_THAT(request.GetHeader("content-type"),
                     Contains("application/json"));
         return Status(StatusCode::kInternal, "Internal Error");
       })
-      .WillOnce([&](RestRequest const& request,
+      .WillOnce([&](RestContext&, RestRequest const& request,
                     std::vector<absl::Span<char const>> const& payload) {
         EXPECT_THAT(request.path(), Eq("/v1/"));
         EXPECT_THAT(request.GetHeader("content-type"),

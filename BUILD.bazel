@@ -20,6 +20,7 @@ exports_files([
     "LICENSE",
 ])
 
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load(":libraries.bzl", "GOOGLE_CLOUD_CPP_EXPERIMENTAL_LIBRARIES", "GOOGLE_CLOUD_CPP_GA_LIBRARIES", "GOOGLE_CLOUD_CPP_TRANSITION_LIBRARIES")
 
 EXPERIMENTAL_LIBRARIES = GOOGLE_CLOUD_CPP_EXPERIMENTAL_LIBRARIES
@@ -97,6 +98,12 @@ cc_library(
     ],
 )
 
+bool_flag(
+    name = "enable-ctype-cord-workaround",
+    build_setting_default = False,
+    visibility = ["//:__subpackages__"],
+)
+
 cc_library(
     name = "experimental-storage-grpc",
     tags = ["manual"],
@@ -127,10 +134,15 @@ cc_library(
     ],
 )
 
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+cc_library(
+    name = "experimental-opentelemetry",
+    deps = [
+        "//google/cloud/opentelemetry:google_cloud_cpp_opentelemetry",
+    ],
+)
 
 bool_flag(
-    name = "experimental-opentelemetry",
+    name = "enable-experimental-opentelemetry",
     build_setting_default = False,
     visibility = ["//:__subpackages__"],
 )

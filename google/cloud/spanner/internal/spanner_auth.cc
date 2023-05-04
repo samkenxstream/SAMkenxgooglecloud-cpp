@@ -64,7 +64,7 @@ SpannerAuth::ExecuteStreamingSql(
     google::spanner::v1::ExecuteSqlRequest const& request) {
   auto status = auth_->ConfigureContext(context);
   if (!status.ok()) {
-    return absl::make_unique<ClientReaderInterfaceError>(std::move(status));
+    return std::make_unique<ClientReaderInterfaceError>(std::move(status));
   }
   return child_->ExecuteStreamingSql(context, request);
 }
@@ -84,7 +84,7 @@ SpannerAuth::StreamingRead(grpc::ClientContext& context,
                            google::spanner::v1::ReadRequest const& request) {
   auto status = auth_->ConfigureContext(context);
   if (!status.ok()) {
-    return absl::make_unique<ClientReaderInterfaceError>(std::move(status));
+    return std::make_unique<ClientReaderInterfaceError>(std::move(status));
   }
   return child_->StreamingRead(context, request);
 }
@@ -131,13 +131,13 @@ StatusOr<google::spanner::v1::PartitionResponse> SpannerAuth::PartitionRead(
 
 future<StatusOr<google::spanner::v1::BatchCreateSessionsResponse>>
 SpannerAuth::AsyncBatchCreateSessions(
-    CompletionQueue& cq, std::unique_ptr<grpc::ClientContext> context,
+    CompletionQueue& cq, std::shared_ptr<grpc::ClientContext> context,
     google::spanner::v1::BatchCreateSessionsRequest const& request) {
   using ReturnType = StatusOr<google::spanner::v1::BatchCreateSessionsResponse>;
   auto& child = child_;
   return auth_->AsyncConfigureContext(std::move(context))
       .then([cq, child,
-             request](future<StatusOr<std::unique_ptr<grpc::ClientContext>>>
+             request](future<StatusOr<std::shared_ptr<grpc::ClientContext>>>
                           f) mutable {
         auto context = f.get();
         if (!context) {
@@ -149,12 +149,12 @@ SpannerAuth::AsyncBatchCreateSessions(
 }
 
 future<Status> SpannerAuth::AsyncDeleteSession(
-    CompletionQueue& cq, std::unique_ptr<grpc::ClientContext> context,
+    CompletionQueue& cq, std::shared_ptr<grpc::ClientContext> context,
     google::spanner::v1::DeleteSessionRequest const& request) {
   auto& child = child_;
   return auth_->AsyncConfigureContext(std::move(context))
       .then([cq, child,
-             request](future<StatusOr<std::unique_ptr<grpc::ClientContext>>>
+             request](future<StatusOr<std::shared_ptr<grpc::ClientContext>>>
                           f) mutable {
         auto context = f.get();
         if (!context) return make_ready_future(std::move(context).status());
@@ -163,13 +163,13 @@ future<Status> SpannerAuth::AsyncDeleteSession(
 }
 
 future<StatusOr<google::spanner::v1::ResultSet>> SpannerAuth::AsyncExecuteSql(
-    CompletionQueue& cq, std::unique_ptr<grpc::ClientContext> context,
+    CompletionQueue& cq, std::shared_ptr<grpc::ClientContext> context,
     google::spanner::v1::ExecuteSqlRequest const& request) {
   using ReturnType = StatusOr<google::spanner::v1::ResultSet>;
   auto& child = child_;
   return auth_->AsyncConfigureContext(std::move(context))
       .then([cq, child,
-             request](future<StatusOr<std::unique_ptr<grpc::ClientContext>>>
+             request](future<StatusOr<std::shared_ptr<grpc::ClientContext>>>
                           f) mutable {
         auto context = f.get();
         if (!context) {

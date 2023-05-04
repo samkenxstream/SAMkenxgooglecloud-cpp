@@ -17,6 +17,7 @@
 #include "google/cloud/spanner/internal/logging_result_set_reader.h"
 #include "google/cloud/spanner/internal/partial_result_set_resume.h"
 #include "google/cloud/spanner/internal/partial_result_set_source.h"
+#include "google/cloud/spanner/internal/route_to_leader.h"
 #include "google/cloud/spanner/internal/status_utils.h"
 #include "google/cloud/spanner/options.h"
 #include "google/cloud/spanner/query_partition.h"
@@ -27,7 +28,6 @@
 #include "google/cloud/internal/retry_loop.h"
 #include "google/cloud/internal/retry_policy.h"
 #include "google/cloud/options.h"
-#include "absl/memory/memory.h"
 #include <google/protobuf/util/time_util.h>
 #include <grpcpp/grpcpp.h>
 
@@ -61,7 +61,7 @@ using ::google::cloud::Idempotency;
 class DefaultPartialResultSetReader : public PartialResultSetReader {
  public:
   DefaultPartialResultSetReader(
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       std::unique_ptr<
           grpc::ClientReaderInterface<google::spanner::v1::PartialResultSet>>
           reader)
@@ -84,7 +84,7 @@ class DefaultPartialResultSetReader : public PartialResultSetReader {
   }
 
  private:
-  std::unique_ptr<grpc::ClientContext> context_;
+  std::shared_ptr<grpc::ClientContext> context_;
   std::unique_ptr<
       grpc::ClientReaderInterface<google::spanner::v1::PartialResultSet>>
       reader_;
@@ -280,7 +280,7 @@ class StatusOnlyResultSetSource : public ResultSourceInterface {
 template <typename ResultType>
 ResultType MakeStatusOnlyResult(Status status) {
   return ResultType(
-      absl::make_unique<StatusOnlyResultSetSource>(std::move(status)));
+      std::make_unique<StatusOnlyResultSetSource>(std::move(status)));
 }
 
 class DmlResultSetSource : public ResultSourceInterface {
@@ -388,8 +388,10 @@ StatusOr<google::spanner::v1::Transaction> ConnectionImpl::BeginTransaction(
   auto response = RetryLoop(
       RetryPolicyPrototype()->clone(), BackoffPolicyPrototype()->clone(),
       Idempotency::kIdempotent,
-      [&stub](grpc::ClientContext& context,
-              google::spanner::v1::BeginTransactionRequest const& request) {
+      [&stub, route_to_leader = ctx.route_to_leader](
+          grpc::ClientContext& context,
+          google::spanner::v1::BeginTransactionRequest const& request) {
+        if (route_to_leader) RouteToLeader(context);
         return stub->BeginTransaction(context, request);
       },
       begin, func);
@@ -443,23 +445,25 @@ spanner::RowStream ConnectionImpl::ReadImpl(
   auto stub = session_pool_->GetStub(*session);
   auto const tracing_enabled = RpcStreamTracingEnabled();
   auto const& tracing_options = RpcTracingOptions();
-  auto factory = [stub, request, tracing_enabled,
+  auto factory = [stub, request, route_to_leader = ctx.route_to_leader,
+                  tracing_enabled,
                   tracing_options](std::string const& resume_token) mutable {
     if (!resume_token.empty()) request->set_resume_token(resume_token);
-    auto context = absl::make_unique<grpc::ClientContext>();
+    auto context = std::make_shared<grpc::ClientContext>();
     internal::ConfigureContext(*context, internal::CurrentOptions());
+    if (route_to_leader) RouteToLeader(*context);
     auto grpc_reader = stub->StreamingRead(*context, *request);
     std::unique_ptr<PartialResultSetReader> reader =
-        absl::make_unique<DefaultPartialResultSetReader>(
-            std::move(context), std::move(grpc_reader));
+        std::make_unique<DefaultPartialResultSetReader>(std::move(context),
+                                                        std::move(grpc_reader));
     if (tracing_enabled) {
-      reader = absl::make_unique<LoggingResultSetReader>(std::move(reader),
-                                                         tracing_options);
+      reader = std::make_unique<LoggingResultSetReader>(std::move(reader),
+                                                        tracing_options);
     }
     return reader;
   };
   for (;;) {
-    auto rpc = absl::make_unique<PartialResultSetResume>(
+    auto rpc = std::make_unique<PartialResultSetResume>(
         factory, Idempotency::kIdempotent, RetryPolicyPrototype()->clone(),
         BackoffPolicyPrototype()->clone());
     auto reader = PartialResultSetSource::Create(std::move(rpc));
@@ -527,6 +531,7 @@ StatusOr<std::vector<spanner::ReadPartition>> ConnectionImpl::PartitionReadImpl(
         Idempotency::kIdempotent,
         [&stub](grpc::ClientContext& context,
                 google::spanner::v1::PartitionReadRequest const& request) {
+          RouteToLeader(context);  // always for PartitionRead()
           return stub->PartitionRead(context, request);
         },
         request, __func__);
@@ -669,25 +674,27 @@ ResultType ConnectionImpl::CommonQueryImpl(
   auto const tracing_enabled = RpcStreamTracingEnabled();
   auto const& tracing_options = RpcTracingOptions();
   auto retry_resume_fn =
-      [stub, retry_policy_prototype, backoff_policy_prototype, tracing_enabled,
+      [stub, retry_policy_prototype, backoff_policy_prototype,
+       route_to_leader = ctx.route_to_leader, tracing_enabled,
        tracing_options](google::spanner::v1::ExecuteSqlRequest& request) mutable
       -> StatusOr<std::unique_ptr<ResultSourceInterface>> {
-    auto factory = [stub, request, tracing_enabled,
+    auto factory = [stub, request, route_to_leader, tracing_enabled,
                     tracing_options](std::string const& resume_token) mutable {
       if (!resume_token.empty()) request.set_resume_token(resume_token);
-      auto context = absl::make_unique<grpc::ClientContext>();
+      auto context = std::make_shared<grpc::ClientContext>();
       internal::ConfigureContext(*context, internal::CurrentOptions());
+      if (route_to_leader) RouteToLeader(*context);
       auto grpc_reader = stub->ExecuteStreamingSql(*context, request);
       std::unique_ptr<PartialResultSetReader> reader =
-          absl::make_unique<DefaultPartialResultSetReader>(
+          std::make_unique<DefaultPartialResultSetReader>(
               std::move(context), std::move(grpc_reader));
       if (tracing_enabled) {
-        reader = absl::make_unique<LoggingResultSetReader>(std::move(reader),
-                                                           tracing_options);
+        reader = std::make_unique<LoggingResultSetReader>(std::move(reader),
+                                                          tracing_options);
       }
       return reader;
     };
-    auto rpc = absl::make_unique<PartialResultSetResume>(
+    auto rpc = std::make_unique<PartialResultSetResume>(
         std::move(factory), Idempotency::kIdempotent,
         retry_policy_prototype->clone(), backoff_policy_prototype->clone());
 
@@ -746,13 +753,16 @@ StatusOr<ResultType> ConnectionImpl::CommonDmlImpl(
 
   auto retry_resume_fn =
       [function_name, stub, retry_policy_prototype, backoff_policy_prototype,
-       session](google::spanner::v1::ExecuteSqlRequest& request) mutable
+       session, route_to_leader = ctx.route_to_leader](
+          google::spanner::v1::ExecuteSqlRequest& request) mutable
       -> StatusOr<std::unique_ptr<ResultSourceInterface>> {
     StatusOr<google::spanner::v1::ResultSet> response = RetryLoop(
         retry_policy_prototype->clone(), backoff_policy_prototype->clone(),
         Idempotency::kIdempotent,
-        [stub](grpc::ClientContext& context,
-               google::spanner::v1::ExecuteSqlRequest const& request) {
+        [stub, route_to_leader](
+            grpc::ClientContext& context,
+            google::spanner::v1::ExecuteSqlRequest const& request) {
+          if (route_to_leader) RouteToLeader(context);
           return stub->ExecuteSql(context, request);
         },
         request, function_name);
@@ -831,6 +841,7 @@ ConnectionImpl::PartitionQueryImpl(
         Idempotency::kIdempotent,
         [&stub](grpc::ClientContext& context,
                 google::spanner::v1::PartitionQueryRequest const& request) {
+          RouteToLeader(context);  // always for PartitionQuery()
           return stub->PartitionQuery(context, request);
         },
         request, __func__);
@@ -905,6 +916,7 @@ StatusOr<spanner::BatchDmlResult> ConnectionImpl::ExecuteBatchDmlImpl(
         Idempotency::kIdempotent,
         [&stub](grpc::ClientContext& context,
                 google::spanner::v1::ExecuteBatchDmlRequest const& request) {
+          RouteToLeader(context);  // always for ExecuteBatchDml()
           return stub->ExecuteBatchDml(context, request);
         },
         request, __func__);
@@ -1028,6 +1040,7 @@ StatusOr<spanner::CommitResult> ConnectionImpl::CommitImpl(
       Idempotency::kIdempotent,
       [&stub](grpc::ClientContext& context,
               google::spanner::v1::CommitRequest const& request) {
+        RouteToLeader(context);  // always for Commit()
         return stub->Commit(context, request);
       },
       request, __func__);
@@ -1091,6 +1104,7 @@ Status ConnectionImpl::RollbackImpl(
       Idempotency::kIdempotent,
       [&stub](grpc::ClientContext& context,
               google::spanner::v1::RollbackRequest const& request) {
+        RouteToLeader(context);  // always for Rollback()
         return stub->Rollback(context, request);
       },
       request, __func__);

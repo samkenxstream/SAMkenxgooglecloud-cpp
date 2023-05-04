@@ -17,7 +17,6 @@
 // source: google/cloud/connectors/v1/connectors_service.proto
 
 #include "google/cloud/connectors/v1/connectors_connection_idempotency_policy.h"
-#include "absl/memory/memory.h"
 #include <memory>
 
 namespace google {
@@ -32,7 +31,7 @@ ConnectorsConnectionIdempotencyPolicy::
 
 std::unique_ptr<ConnectorsConnectionIdempotencyPolicy>
 ConnectorsConnectionIdempotencyPolicy::clone() const {
-  return absl::make_unique<ConnectorsConnectionIdempotencyPolicy>(*this);
+  return std::make_unique<ConnectorsConnectionIdempotencyPolicy>(*this);
 }
 
 Idempotency ConnectorsConnectionIdempotencyPolicy::ListConnections(
@@ -95,6 +94,13 @@ Idempotency ConnectorsConnectionIdempotencyPolicy::GetConnectionSchemaMetadata(
   return Idempotency::kIdempotent;
 }
 
+Idempotency
+ConnectorsConnectionIdempotencyPolicy::RefreshConnectionSchemaMetadata(
+    google::cloud::connectors::v1::
+        RefreshConnectionSchemaMetadataRequest const&) {
+  return Idempotency::kNonIdempotent;
+}
+
 Idempotency ConnectorsConnectionIdempotencyPolicy::ListRuntimeEntitySchemas(
     google::cloud::connectors::v1::ListRuntimeEntitySchemasRequest) {  // NOLINT
   return Idempotency::kIdempotent;
@@ -110,9 +116,14 @@ Idempotency ConnectorsConnectionIdempotencyPolicy::GetRuntimeConfig(
   return Idempotency::kIdempotent;
 }
 
+Idempotency ConnectorsConnectionIdempotencyPolicy::GetGlobalSettings(
+    google::cloud::connectors::v1::GetGlobalSettingsRequest const&) {
+  return Idempotency::kIdempotent;
+}
+
 std::unique_ptr<ConnectorsConnectionIdempotencyPolicy>
 MakeDefaultConnectorsConnectionIdempotencyPolicy() {
-  return absl::make_unique<ConnectorsConnectionIdempotencyPolicy>();
+  return std::make_unique<ConnectorsConnectionIdempotencyPolicy>();
 }
 
 GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_END

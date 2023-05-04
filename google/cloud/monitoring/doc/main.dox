@@ -10,30 +10,9 @@ to instrument your application for Cloud Monitoring, we recommend using
 
 While this library is **GA**, please note Google Cloud C++ client libraries do **not** follow [Semantic Versioning](https://semver.org/).
 
-This library requires a C++14 compiler. It is supported (and tested) on multiple
-Linux distributions, as well as Windows and macOS. The [README][github-readme]
-on [GitHub][github-link] provides detailed instructions to install the necessary
-dependencies, as well as how to compile the client library.
-
 @tableofcontents{HTML:2}
 
-## Setting up your repo
-
-In order to use the Cloud Monitoring API C++ client library from your own code,
-you'll need to configure your build system to discover and compile the Cloud
-C++ client libraries. In some cases your build system or package manager may
-need to download the libraries too. The Cloud C++ client libraries natively
-support [Bazel](https://bazel.build/) and [CMake](https://cmake.org/) as build
-systems. We've created a minimal, "Hello World", [quickstart][github-quickstart]
-that includes detailed instructions on how to compile the library for use in
-your application. You can fetch the source from [GitHub][github-link] as normal:
-
-@code{.sh}
-git clone https://github.com/googleapis/google-cloud-cpp.git
-cd google-cloud-cpp/google/cloud/monitoring/quickstart
-@endcode
-
-@par Example: Quickstart
+## Quickstart
 
 The following shows the code that you'll run in the
 `google/cloud/monitoring/quickstart/` directory,
@@ -41,141 +20,29 @@ which should give you a taste of the Cloud Monitoring API C++ client library API
 
 @snippet quickstart.cc all
 
-## Environment Variables
+## Main classes
 
-<!-- inject-endpoint-env-vars-start -->
+<!-- inject-client-list-start -->
+This library offers multiple `*Client` classes, which are listed below. Each
+one of these classes exposes all the RPCs for a gRPC `service` as member
+functions of the class. This library groups multiple gRPC services because they
+are part of the same product or are often used together. A typical example may
+be the administrative and data plane operations for a single product.
 
-- `GOOGLE_CLOUD_CPP_ALERT_POLICY_SERVICE_ENDPOINT=...` overrides the
-  `EndpointOption` (which defaults to "monitoring.googleapis.com")
-  used by `MakeAlertPolicyServiceConnection()`.
+The library also has other classes that provide helpers, retry policies,
+configuration parameters, and infrastructure to mock the `*Client` classes
+when testing your application.
 
-- `GOOGLE_CLOUD_CPP_DASHBOARDS_SERVICE_ENDPOINT=...` overrides the
-  `EndpointOption` (which defaults to "monitoring.googleapis.com")
-  used by `MakeDashboardsServiceConnection()`.
-
-- `GOOGLE_CLOUD_CPP_GROUP_SERVICE_ENDPOINT=...` overrides the
-  `EndpointOption` (which defaults to "monitoring.googleapis.com")
-  used by `MakeGroupServiceConnection()`.
-
-- `GOOGLE_CLOUD_CPP_METRICS_SCOPES_ENDPOINT=...` overrides the
-  `EndpointOption` (which defaults to "monitoring.googleapis.com")
-  used by `MakeMetricsScopesConnection()`.
-
-- `GOOGLE_CLOUD_CPP_METRIC_SERVICE_ENDPOINT=...` overrides the
-  `EndpointOption` (which defaults to "monitoring.googleapis.com")
-  used by `MakeMetricServiceConnection()`.
-
-- `GOOGLE_CLOUD_CPP_NOTIFICATION_CHANNEL_SERVICE_ENDPOINT=...` overrides the
-  `EndpointOption` (which defaults to "monitoring.googleapis.com")
-  used by `MakeNotificationChannelServiceConnection()`.
-
-- `GOOGLE_CLOUD_CPP_QUERY_SERVICE_ENDPOINT=...` overrides the
-  `EndpointOption` (which defaults to "monitoring.googleapis.com")
-  used by `MakeQueryServiceConnection()`.
-
-- `GOOGLE_CLOUD_CPP_SERVICE_MONITORING_SERVICE_ENDPOINT=...` overrides the
-  `EndpointOption` (which defaults to "monitoring.googleapis.com")
-  used by `MakeServiceMonitoringServiceConnection()`.
-
-- `GOOGLE_CLOUD_CPP_UPTIME_CHECK_SERVICE_ENDPOINT=...` overrides the
-  `EndpointOption` (which defaults to "monitoring.googleapis.com")
-  used by `MakeUptimeCheckServiceConnection()`.
-
-<!-- inject-endpoint-env-vars-end -->
-
-- `GOOGLE_CLOUD_CPP_ENABLE_TRACING=rpc` turns on tracing for most gRPC
-  calls. The library injects an additional Stub decorator that prints each gRPC
-  request and response.  Unless you have configured your own logging backend,
-  you should also set `GOOGLE_CLOUD_CPP_ENABLE_CLOG` to produce any output on
-  the program's console.
-
-- `GOOGLE_CLOUD_CPP_ENABLE_TRACING=rpc-streams` turns on tracing for streaming
-  gRPC calls. This can produce a lot of output, so use with caution!
-
-- `GOOGLE_CLOUD_CPP_TRACING_OPTIONS=...` modifies the behavior of gRPC tracing,
-  including whether messages will be output on multiple lines, or whether
-  string/bytes fields will be truncated.
-
-- `GOOGLE_CLOUD_CPP_ENABLE_CLOG=yes` turns on logging in the library. Basically
-  the library always "logs" but the logging infrastructure has no backend to
-  actually print anything until the application sets a backend or it sets this
-  environment variable.
-
-## Error Handling
-
-[status-or-header]: https://github.com/googleapis/google-cloud-cpp/blob/main/google/cloud/status_or.h
-
-This library never throws exceptions to signal error, but you can use exceptions
-to detect errors in the returned objects. In general, the library returns a
-[`StatusOr<T>`][status-or-header] if an error is possible. This is an "outcome"
-type, when the operation is successful a `StatusOr<T>` converts to `true` in
-boolean context (and its `.ok()` member function returns `true`), the
-application can then use `operator->` or `operator*` to access the `T` value.
-When the operation fails a `StatusOr<T>` converts to `false` (and `.ok()`
-returns `false`). It is undefined behavior to use the value in this case.
-
-If you prefer to use exceptions on error, you can use the `.value()` accessor.
-It will return the `T` value or throw on error.
-
-For operations that do not return a value the library simply returns
-`google::cloud::Status`.
-
-## Override the default endpoint
-
-In some cases, you may need to override the default endpoint used by the client
-library. Use the `google::cloud::EndpointOption` when initializing the client
-library to change this default.
-
-<!-- inject-endpoint-snippet-start -->
-For example, this will override the default endpoint for `monitoring_dashboard_v1::DashboardsServiceClient`:
-
-@snippet dashboards_client_samples.cc set-client-endpoint
-
-Follow these links to find examples for other \c *Client classes:
- [monitoring_dashboard_v1::DashboardsServiceClient](@ref monitoring_dashboard_v1::DashboardsServiceClient-endpoint-snippet)
- [monitoring_metricsscope_v1::MetricsScopesClient](@ref monitoring_metricsscope_v1::MetricsScopesClient-endpoint-snippet)
- [monitoring_v3::AlertPolicyServiceClient](@ref monitoring_v3::AlertPolicyServiceClient-endpoint-snippet)
- [monitoring_v3::GroupServiceClient](@ref monitoring_v3::GroupServiceClient-endpoint-snippet)
- [monitoring_v3::MetricServiceClient](@ref monitoring_v3::MetricServiceClient-endpoint-snippet)
- [monitoring_v3::NotificationChannelServiceClient](@ref monitoring_v3::NotificationChannelServiceClient-endpoint-snippet)
- [monitoring_v3::QueryServiceClient](@ref monitoring_v3::QueryServiceClient-endpoint-snippet)
- [monitoring_v3::ServiceMonitoringServiceClient](@ref monitoring_v3::ServiceMonitoringServiceClient-endpoint-snippet)
- [monitoring_v3::UptimeCheckServiceClient](@ref monitoring_v3::UptimeCheckServiceClient-endpoint-snippet)
-
-<!-- inject-endpoint-snippet-end -->
-
-## Override the authentication configuration
-
-Some applications cannot use the default authentication mechanism (known as
-[Application Default Credentials]). You can override this default using
-`google::cloud::UnifiedCredentialsOption`. The following example shows how
-to explicitly load a service account key file.
-
-<!-- inject-service-account-snippet-start -->
-@snippet dashboards_client_samples.cc with-service-account
-
-Follow these links to find examples for other \c *Client classes:
- [monitoring_dashboard_v1::DashboardsServiceClient](@ref monitoring_dashboard_v1::DashboardsServiceClient-service-account-snippet)
- [monitoring_metricsscope_v1::MetricsScopesClient](@ref monitoring_metricsscope_v1::MetricsScopesClient-service-account-snippet)
- [monitoring_v3::AlertPolicyServiceClient](@ref monitoring_v3::AlertPolicyServiceClient-service-account-snippet)
- [monitoring_v3::GroupServiceClient](@ref monitoring_v3::GroupServiceClient-service-account-snippet)
- [monitoring_v3::MetricServiceClient](@ref monitoring_v3::MetricServiceClient-service-account-snippet)
- [monitoring_v3::NotificationChannelServiceClient](@ref monitoring_v3::NotificationChannelServiceClient-service-account-snippet)
- [monitoring_v3::QueryServiceClient](@ref monitoring_v3::QueryServiceClient-service-account-snippet)
- [monitoring_v3::ServiceMonitoringServiceClient](@ref monitoring_v3::ServiceMonitoringServiceClient-service-account-snippet)
- [monitoring_v3::UptimeCheckServiceClient](@ref monitoring_v3::UptimeCheckServiceClient-service-account-snippet)
-
-<!-- inject-service-account-snippet-end -->
-
-Keep in mind that we chose this as an example because it is relatively easy to
-understand. Consult the [Best practices for managing service account keys]
-guide for more details.
-
-@see @ref guac - for more information on the factory functions to create
-`google::cloud::Credentials` objects.
-
-[Best practices for managing service account keys]: https://cloud.google.com/iam/docs/best-practices-for-managing-service-account-keys
-[Application Default Credentials]: https://cloud.google.com/docs/authentication#adc
+- [\c monitoring_dashboard_v1::DashboardsServiceClient](@ref google::cloud::monitoring_dashboard_v1::DashboardsServiceClient)
+- [\c monitoring_metricsscope_v1::MetricsScopesClient](@ref google::cloud::monitoring_metricsscope_v1::MetricsScopesClient)
+- [\c monitoring_v3::AlertPolicyServiceClient](@ref google::cloud::monitoring_v3::AlertPolicyServiceClient)
+- [\c monitoring_v3::GroupServiceClient](@ref google::cloud::monitoring_v3::GroupServiceClient)
+- [\c monitoring_v3::MetricServiceClient](@ref google::cloud::monitoring_v3::MetricServiceClient)
+- [\c monitoring_v3::NotificationChannelServiceClient](@ref google::cloud::monitoring_v3::NotificationChannelServiceClient)
+- [\c monitoring_v3::QueryServiceClient](@ref google::cloud::monitoring_v3::QueryServiceClient)
+- [\c monitoring_v3::ServiceMonitoringServiceClient](@ref google::cloud::monitoring_v3::ServiceMonitoringServiceClient)
+- [\c monitoring_v3::UptimeCheckServiceClient](@ref google::cloud::monitoring_v3::UptimeCheckServiceClient)
+<!-- inject-client-list-end -->
 
 ## Retry, Backoff, and Idempotency Policies.
 
@@ -183,122 +50,15 @@ The library automatically retries requests that fail with transient errors, and
 uses [exponential backoff] to backoff between retries. Application developers
 can override the default policies.
 
+## More Information
+
+- @ref common-error-handling - describes how the library reports errors.
+- @ref monitoring-override-endpoint - describes how to override the default
+  endpoint.
+- @ref monitoring-override-authentication - describes how to change the
+  authentication credentials used by the library.
+
 [cloud-service-docs]: https://cloud.google.com/monitoring
 [exponential backoff]: https://en.wikipedia.org/wiki/Exponential_backoff
-[github-link]: https://github.com/googleapis/google-cloud-cpp 'GitHub Repository'
-<!-- The ugly %2E disables auto-linking in Doxygen -->
-[github-readme]:  https://github.com/googleapis/google-cloud-cpp/blob/main/google/cloud/monitoring/README%2Emd
-[github-quickstart]:  https://github.com/googleapis/google-cloud-cpp/blob/main/google/cloud/monitoring/quickstart/README%2Emd
 
 */
-
-// <!-- inject-endpoint-pages-start -->
-
-/*! @page monitoring_dashboard_v1::DashboardsServiceClient-endpoint-snippet Override monitoring_dashboard_v1::DashboardsServiceClient Endpoint Configuration
-
-@snippet google/cloud/monitoring/dashboard/v1/samples/dashboards_client_samples.cc set-client-endpoint
-
-*/
-
-/*! @page monitoring_dashboard_v1::DashboardsServiceClient-service-account-snippet Override monitoring_dashboard_v1::DashboardsServiceClient Authentication Defaults
-
-@snippet google/cloud/monitoring/dashboard/v1/samples/dashboards_client_samples.cc with-service-account
-
-*/
-
-/*! @page monitoring_metricsscope_v1::MetricsScopesClient-endpoint-snippet Override monitoring_metricsscope_v1::MetricsScopesClient Endpoint Configuration
-
-@snippet google/cloud/monitoring/metricsscope/v1/samples/metrics_scopes_client_samples.cc set-client-endpoint
-
-*/
-
-/*! @page monitoring_metricsscope_v1::MetricsScopesClient-service-account-snippet Override monitoring_metricsscope_v1::MetricsScopesClient Authentication Defaults
-
-@snippet google/cloud/monitoring/metricsscope/v1/samples/metrics_scopes_client_samples.cc with-service-account
-
-*/
-
-/*! @page monitoring_v3::AlertPolicyServiceClient-endpoint-snippet Override monitoring_v3::AlertPolicyServiceClient Endpoint Configuration
-
-@snippet google/cloud/monitoring/v3/samples/alert_policy_client_samples.cc set-client-endpoint
-
-*/
-
-/*! @page monitoring_v3::AlertPolicyServiceClient-service-account-snippet Override monitoring_v3::AlertPolicyServiceClient Authentication Defaults
-
-@snippet google/cloud/monitoring/v3/samples/alert_policy_client_samples.cc with-service-account
-
-*/
-
-/*! @page monitoring_v3::GroupServiceClient-endpoint-snippet Override monitoring_v3::GroupServiceClient Endpoint Configuration
-
-@snippet google/cloud/monitoring/v3/samples/group_client_samples.cc set-client-endpoint
-
-*/
-
-/*! @page monitoring_v3::GroupServiceClient-service-account-snippet Override monitoring_v3::GroupServiceClient Authentication Defaults
-
-@snippet google/cloud/monitoring/v3/samples/group_client_samples.cc with-service-account
-
-*/
-
-/*! @page monitoring_v3::MetricServiceClient-endpoint-snippet Override monitoring_v3::MetricServiceClient Endpoint Configuration
-
-@snippet google/cloud/monitoring/v3/samples/metric_client_samples.cc set-client-endpoint
-
-*/
-
-/*! @page monitoring_v3::MetricServiceClient-service-account-snippet Override monitoring_v3::MetricServiceClient Authentication Defaults
-
-@snippet google/cloud/monitoring/v3/samples/metric_client_samples.cc with-service-account
-
-*/
-
-/*! @page monitoring_v3::NotificationChannelServiceClient-endpoint-snippet Override monitoring_v3::NotificationChannelServiceClient Endpoint Configuration
-
-@snippet google/cloud/monitoring/v3/samples/notification_channel_client_samples.cc set-client-endpoint
-
-*/
-
-/*! @page monitoring_v3::NotificationChannelServiceClient-service-account-snippet Override monitoring_v3::NotificationChannelServiceClient Authentication Defaults
-
-@snippet google/cloud/monitoring/v3/samples/notification_channel_client_samples.cc with-service-account
-
-*/
-
-/*! @page monitoring_v3::QueryServiceClient-endpoint-snippet Override monitoring_v3::QueryServiceClient Endpoint Configuration
-
-@snippet google/cloud/monitoring/v3/samples/query_client_samples.cc set-client-endpoint
-
-*/
-
-/*! @page monitoring_v3::QueryServiceClient-service-account-snippet Override monitoring_v3::QueryServiceClient Authentication Defaults
-
-@snippet google/cloud/monitoring/v3/samples/query_client_samples.cc with-service-account
-
-*/
-
-/*! @page monitoring_v3::ServiceMonitoringServiceClient-endpoint-snippet Override monitoring_v3::ServiceMonitoringServiceClient Endpoint Configuration
-
-@snippet google/cloud/monitoring/v3/samples/service_monitoring_client_samples.cc set-client-endpoint
-
-*/
-
-/*! @page monitoring_v3::ServiceMonitoringServiceClient-service-account-snippet Override monitoring_v3::ServiceMonitoringServiceClient Authentication Defaults
-
-@snippet google/cloud/monitoring/v3/samples/service_monitoring_client_samples.cc with-service-account
-
-*/
-
-/*! @page monitoring_v3::UptimeCheckServiceClient-endpoint-snippet Override monitoring_v3::UptimeCheckServiceClient Endpoint Configuration
-
-@snippet google/cloud/monitoring/v3/samples/uptime_check_client_samples.cc set-client-endpoint
-
-*/
-
-/*! @page monitoring_v3::UptimeCheckServiceClient-service-account-snippet Override monitoring_v3::UptimeCheckServiceClient Authentication Defaults
-
-@snippet google/cloud/monitoring/v3/samples/uptime_check_client_samples.cc with-service-account
-
-*/
-// <!-- inject-endpoint-pages-end -->

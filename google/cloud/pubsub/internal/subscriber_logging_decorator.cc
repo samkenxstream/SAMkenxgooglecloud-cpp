@@ -109,7 +109,7 @@ std::unique_ptr<::google::cloud::AsyncStreamingReadWriteRpc<
     google::pubsub::v1::StreamingPullResponse>>
 SubscriberLogging::AsyncStreamingPull(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context) {
+    std::shared_ptr<grpc::ClientContext> context) {
   using LoggingStream =
       ::google::cloud::internal::AsyncStreamingReadWriteRpcLogging<
           google::pubsub::v1::StreamingPullRequest,
@@ -119,7 +119,7 @@ SubscriberLogging::AsyncStreamingPull(
   GCP_LOG(DEBUG) << __func__ << "(" << request_id << ")";
   auto stream = child_->AsyncStreamingPull(cq, std::move(context));
   if (components_.count("rpc-streams") > 0) {
-    stream = absl::make_unique<LoggingStream>(
+    stream = std::make_unique<LoggingStream>(
         std::move(stream), tracing_options_, std::move(request_id));
   }
   return stream;
@@ -205,11 +205,11 @@ StatusOr<google::pubsub::v1::SeekResponse> SubscriberLogging::Seek(
 
 future<Status> SubscriberLogging::AsyncModifyAckDeadline(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::pubsub::v1::ModifyAckDeadlineRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::pubsub::v1::ModifyAckDeadlineRequest const& request) {
         return child_->AsyncModifyAckDeadline(cq, std::move(context), request);
       },
@@ -218,11 +218,11 @@ future<Status> SubscriberLogging::AsyncModifyAckDeadline(
 
 future<Status> SubscriberLogging::AsyncAcknowledge(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::pubsub::v1::AcknowledgeRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::pubsub::v1::AcknowledgeRequest const& request) {
         return child_->AsyncAcknowledge(cq, std::move(context), request);
       },

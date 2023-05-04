@@ -42,13 +42,12 @@ int main(int argc, char* argv[]) {
   auto writer = client.WriteObject(bucket_name, "quickstart.txt");
   writer << "Hello World!";
   writer.Close();
-  if (writer.metadata()) {
-    std::cout << "Successfully created object: " << *writer.metadata() << "\n";
-  } else {
+  if (!writer.metadata()) {
     std::cerr << "Error creating object: " << writer.metadata().status()
               << "\n";
     return 1;
   }
+  std::cout << "Successfully created object: " << *writer.metadata() << "\n";
 
   auto reader = client.ReadObject(bucket_name, "quickstart.txt");
   if (!reader) {
@@ -71,9 +70,8 @@ int main(int argc, char* argv[]) {
   fixed directory (such as `/usr/local` or `/opt`) should consult the
   [packaging guide](/doc/packaging.md).
 - Developers who prefer using a package manager such as
-  [vcpkg](https://vcpkg.io), [Conda](https://conda.io),
-  or [Conan](https://conan.io) should follow the instructions for their package
-  manager.
+  [vcpkg](https://vcpkg.io), or [Conda](https://conda.io), should follow the
+  instructions for their package manager.
 - Developers wanting to use the libraries as part of a larger CMake or Bazel
   project should consult the [quickstart guides](#quickstart) for the library
   or libraries they want to use.

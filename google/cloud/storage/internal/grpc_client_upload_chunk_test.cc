@@ -19,7 +19,6 @@
 #include "google/cloud/testing_util/is_proto_equal.h"
 #include "google/cloud/testing_util/mock_completion_queue_impl.h"
 #include "google/cloud/testing_util/status_matchers.h"
-#include "absl/memory/memory.h"
 #include <gmock/gmock.h>
 
 namespace google {
@@ -30,6 +29,7 @@ namespace {
 
 using ::google::cloud::storage::TransferStallTimeoutOption;
 using ::google::cloud::storage::internal::ConstBuffer;
+using ::google::cloud::storage::internal::CreateNullHashFunction;
 using ::google::cloud::storage::internal::UploadChunkRequest;
 using ::google::cloud::storage::testing::MockInsertStream;
 using ::google::cloud::storage::testing::MockStorageStub;
@@ -48,17 +48,16 @@ static_assert(
 /// @verify that stall timeouts are reported correctly.
 TEST(GrpcClientUploadChunkTest, StallTimeoutWrite) {
   auto mock = std::make_shared<MockStorageStub>();
-  EXPECT_CALL(*mock, WriteObject)
-      .WillOnce([&](std::unique_ptr<grpc::ClientContext>) {
-        ::testing::InSequence sequence;
-        auto stream = absl::make_unique<MockInsertStream>();
-        EXPECT_CALL(*stream, Cancel).Times(1);
-        EXPECT_CALL(*stream, Write).WillOnce(Return(false));
-        EXPECT_CALL(*stream, Close)
-            .WillOnce(Return(
-                make_status_or(google::storage::v2::WriteObjectResponse{})));
-        return stream;
-      });
+  EXPECT_CALL(*mock, WriteObject).WillOnce([&](auto) {
+    ::testing::InSequence sequence;
+    auto stream = std::make_unique<MockInsertStream>();
+    EXPECT_CALL(*stream, Cancel).Times(1);
+    EXPECT_CALL(*stream, Write).WillOnce(Return(false));
+    EXPECT_CALL(*stream, Close)
+        .WillOnce(
+            Return(make_status_or(google::storage::v2::WriteObjectResponse{})));
+    return stream;
+  });
 
   auto const expected = std::chrono::seconds(42);
   auto mock_cq = std::make_shared<MockCompletionQueueImpl>();
@@ -74,8 +73,9 @@ TEST(GrpcClientUploadChunkTest, StallTimeoutWrite) {
   google::cloud::internal::OptionsSpan const span(
       Options{}.set<TransferStallTimeoutOption>(expected));
   auto const payload = std::string(UploadChunkRequest::kChunkSizeQuantum, 'A');
-  auto response = client->UploadChunk(UploadChunkRequest(
-      "test-only-upload-id", /*offset=*/0, {ConstBuffer{payload}}));
+  auto response = client->UploadChunk(
+      UploadChunkRequest("test-only-upload-id", /*offset=*/0,
+                         {ConstBuffer{payload}}, CreateNullHashFunction()));
   EXPECT_THAT(response,
               StatusIs(StatusCode::kDeadlineExceeded, HasSubstr("Write()")));
 }
@@ -83,17 +83,16 @@ TEST(GrpcClientUploadChunkTest, StallTimeoutWrite) {
 /// @verify that stall timeouts are reported correctly.
 TEST(GrpcClientUploadChunkTest, StallTimeoutWritesDone) {
   auto mock = std::make_shared<MockStorageStub>();
-  EXPECT_CALL(*mock, WriteObject)
-      .WillOnce([&](std::unique_ptr<grpc::ClientContext>) {
-        ::testing::InSequence sequence;
-        auto stream = absl::make_unique<MockInsertStream>();
-        EXPECT_CALL(*stream, Write).WillOnce(Return(true));
-        EXPECT_CALL(*stream, Cancel).Times(1);
-        EXPECT_CALL(*stream, Write).WillOnce(Return(false));
-        EXPECT_CALL(*stream, Close)
-            .WillOnce(Return(google::storage::v2::WriteObjectResponse{}));
-        return stream;
-      });
+  EXPECT_CALL(*mock, WriteObject).WillOnce([&](auto) {
+    ::testing::InSequence sequence;
+    auto stream = std::make_unique<MockInsertStream>();
+    EXPECT_CALL(*stream, Write).WillOnce(Return(true));
+    EXPECT_CALL(*stream, Cancel).Times(1);
+    EXPECT_CALL(*stream, Write).WillOnce(Return(false));
+    EXPECT_CALL(*stream, Close)
+        .WillOnce(Return(google::storage::v2::WriteObjectResponse{}));
+    return stream;
+  });
 
   auto const expected = std::chrono::seconds(42);
   auto mock_cq = std::make_shared<MockCompletionQueueImpl>();
@@ -113,8 +112,9 @@ TEST(GrpcClientUploadChunkTest, StallTimeoutWritesDone) {
       Options{}.set<TransferStallTimeoutOption>(expected));
   auto const payload = std::string(
       kExpectedWriteSize + UploadChunkRequest::kChunkSizeQuantum, 'A');
-  auto response = client->UploadChunk(UploadChunkRequest(
-      "test-only-upload-id", /*offset=*/0, {ConstBuffer{payload}}));
+  auto response = client->UploadChunk(
+      UploadChunkRequest("test-only-upload-id", /*offset=*/0,
+                         {ConstBuffer{payload}}, CreateNullHashFunction()));
   EXPECT_THAT(response,
               StatusIs(StatusCode::kDeadlineExceeded, HasSubstr("Write()")));
 }
@@ -122,17 +122,16 @@ TEST(GrpcClientUploadChunkTest, StallTimeoutWritesDone) {
 /// @verify that stall timeouts are reported correctly.
 TEST(GrpcClientUploadChunkTest, StallTimeoutClose) {
   auto mock = std::make_shared<MockStorageStub>();
-  EXPECT_CALL(*mock, WriteObject)
-      .WillOnce([&](std::unique_ptr<grpc::ClientContext>) {
-        ::testing::InSequence sequence;
-        auto stream = absl::make_unique<MockInsertStream>();
-        EXPECT_CALL(*stream, Write).Times(2).WillRepeatedly(Return(true));
-        EXPECT_CALL(*stream, Cancel).Times(1);
-        EXPECT_CALL(*stream, Close)
-            .WillOnce(Return(
-                make_status_or(google::storage::v2::WriteObjectResponse{})));
-        return stream;
-      });
+  EXPECT_CALL(*mock, WriteObject).WillOnce([&](auto) {
+    ::testing::InSequence sequence;
+    auto stream = std::make_unique<MockInsertStream>();
+    EXPECT_CALL(*stream, Write).Times(2).WillRepeatedly(Return(true));
+    EXPECT_CALL(*stream, Cancel).Times(1);
+    EXPECT_CALL(*stream, Close)
+        .WillOnce(
+            Return(make_status_or(google::storage::v2::WriteObjectResponse{})));
+    return stream;
+  });
 
   auto const expected = std::chrono::seconds(42);
   auto mock_cq = std::make_shared<MockCompletionQueueImpl>();
@@ -155,8 +154,9 @@ TEST(GrpcClientUploadChunkTest, StallTimeoutClose) {
       Options{}.set<TransferStallTimeoutOption>(expected));
   auto const payload = std::string(
       kExpectedWriteSize + UploadChunkRequest::kChunkSizeQuantum, 'A');
-  auto response = client->UploadChunk(UploadChunkRequest(
-      "test-only-upload-id", /*offset=*/0, {ConstBuffer{payload}}));
+  auto response = client->UploadChunk(
+      UploadChunkRequest("test-only-upload-id", /*offset=*/0,
+                         {ConstBuffer{payload}}, CreateNullHashFunction()));
   EXPECT_THAT(response,
               StatusIs(StatusCode::kDeadlineExceeded, HasSubstr("Close()")));
 }

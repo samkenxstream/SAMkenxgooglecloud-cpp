@@ -34,7 +34,8 @@ using ::google::cloud::testing_util::StatusIs;
 using ::testing::Return;
 
 #ifdef GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY
-
+using ::google::cloud::testing_util::DisableTracing;
+using ::google::cloud::testing_util::EnableTracing;
 using ::google::cloud::testing_util::InstallSpanCatcher;
 using ::google::cloud::testing_util::SpanAttribute;
 using ::google::cloud::testing_util::SpanHasAttributes;
@@ -248,10 +249,13 @@ TEST(GoldenKitchenSinkTracingConnectionTest, Deprecated2) {
 }
 
 TEST(GoldenKitchenSinkTracingConnectionTest, StreamingRead) {
+  auto span_catcher = InstallSpanCatcher();
+
   auto mock = std::make_shared<MockGoldenKitchenSinkConnection>();
-  EXPECT_CALL(*mock, StreamingRead)
-      .WillOnce(Return(mocks::MakeStreamRange<Response>(
-          {}, internal::AbortedError("fail"))));
+  EXPECT_CALL(*mock, StreamingRead).WillOnce([] {
+    EXPECT_TRUE(ThereIsAnActiveSpan());
+    return mocks::MakeStreamRange<Response>({}, internal::AbortedError("fail"));
+  });
 
   auto under_test = GoldenKitchenSinkTracingConnection(mock);
   auto stream = under_test.StreamingRead(Request{});
@@ -259,6 +263,16 @@ TEST(GoldenKitchenSinkTracingConnectionTest, StreamingRead) {
   ASSERT_FALSE(*it);
   EXPECT_THAT(*it, StatusIs(StatusCode::kAborted));
   EXPECT_EQ(++it, stream.end());
+
+  auto spans = span_catcher->GetSpans();
+  EXPECT_THAT(
+      spans,
+      ElementsAre(AllOf(
+          SpanHasInstrumentationScope(), SpanKindIsClient(),
+          SpanNamed("golden_v1::GoldenKitchenSinkConnection::StreamingRead"),
+          SpanWithStatus(opentelemetry::trace::StatusCode::kError, "fail"),
+          SpanHasAttributes(
+              SpanAttribute<int>("gcloud.status_code", kErrorCode)))));
 }
 
 TEST(GoldenKitchenSinkTracingConnectionTest, AsyncStreamingReadWrite) {
@@ -268,7 +282,7 @@ TEST(GoldenKitchenSinkTracingConnectionTest, AsyncStreamingReadWrite) {
                                                                  Response>;
   EXPECT_CALL(*mock, AsyncStreamingReadWrite)
       .WillOnce(Return(ByMove(
-          absl::make_unique<ErrorStream>(internal::AbortedError("fail")))));
+          std::make_unique<ErrorStream>(internal::AbortedError("fail")))));
 
   auto under_test = GoldenKitchenSinkTracingConnection(mock);
   auto stream = under_test.AsyncStreamingReadWrite();
@@ -332,9 +346,7 @@ TEST(MakeGoldenKitchenSinkTracingConnection, TracingEnabled) {
   auto span_catcher = InstallSpanCatcher();
 
   auto mock = std::make_shared<MockGoldenKitchenSinkConnection>();
-  EXPECT_CALL(*mock, options)
-      .WillOnce(
-          Return(Options{}.set<internal::OpenTelemetryTracingOption>(true)));
+  EXPECT_CALL(*mock, options).WillOnce(Return(EnableTracing(Options{})));
   EXPECT_CALL(*mock, DoNothing)
       .WillOnce(Return(internal::AbortedError("fail")));
 
@@ -350,9 +362,7 @@ TEST(MakeGoldenKitchenSinkTracingConnection, TracingDisabled) {
   auto span_catcher = InstallSpanCatcher();
 
   auto mock = std::make_shared<MockGoldenKitchenSinkConnection>();
-  EXPECT_CALL(*mock, options)
-      .WillOnce(
-          Return(Options{}.set<internal::OpenTelemetryTracingOption>(false)));
+  EXPECT_CALL(*mock, options).WillOnce(Return(DisableTracing(Options{})));
   EXPECT_CALL(*mock, DoNothing)
       .WillOnce(Return(internal::AbortedError("fail")));
 

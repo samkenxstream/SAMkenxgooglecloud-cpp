@@ -44,13 +44,15 @@ substitutions:
   _TRIGGER_SOURCE: '${_PR_NUMBER:-main}'
   _TRIGGER_TYPE: 'manual'
   _LOGS_BUCKET: 'cloud-cpp-community-publiclogs'
+  _TAG1: 'team-only'
 
 timeout: 12600s
 tags: [
   '${_TRIGGER_TYPE}',
   '${_BUILD_NAME}',
   '${_DISTRO}',
-  '${_PR_NUMBER}'
+  '${_PR_NUMBER}',
+  '${_TAG1}'
 ]
 
 availableSecrets:
@@ -64,7 +66,7 @@ logsBucket: 'gs://${_LOGS_BUCKET}/logs/google-cloud-cpp/${_TRIGGER_SOURCE}/${COM
 
 steps:
   # Builds the docker image that will be used by the main build step.
-- name: 'gcr.io/kaniko-project/executor:v1.9.1'
+- name: 'gcr.io/kaniko-project/executor:v1.9.2'
   args: [
     '--log-format=text',
     '--context=dir:///workspace/ci',

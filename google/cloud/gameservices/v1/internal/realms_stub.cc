@@ -56,9 +56,12 @@ StatusOr<google::cloud::gaming::v1::Realm> DefaultRealmsServiceStub::GetRealm(
 future<StatusOr<google::longrunning::Operation>>
 DefaultRealmsServiceStub::AsyncCreateRealm(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::gaming::v1::CreateRealmRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::gaming::v1::CreateRealmRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::gaming::v1::CreateRealmRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -70,9 +73,12 @@ DefaultRealmsServiceStub::AsyncCreateRealm(
 future<StatusOr<google::longrunning::Operation>>
 DefaultRealmsServiceStub::AsyncDeleteRealm(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::gaming::v1::DeleteRealmRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::gaming::v1::DeleteRealmRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::gaming::v1::DeleteRealmRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -84,9 +90,12 @@ DefaultRealmsServiceStub::AsyncDeleteRealm(
 future<StatusOr<google::longrunning::Operation>>
 DefaultRealmsServiceStub::AsyncUpdateRealm(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::gaming::v1::UpdateRealmRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::gaming::v1::UpdateRealmRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::gaming::v1::UpdateRealmRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -111,9 +120,11 @@ DefaultRealmsServiceStub::PreviewRealmUpdate(
 future<StatusOr<google::longrunning::Operation>>
 DefaultRealmsServiceStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -124,16 +135,17 @@ DefaultRealmsServiceStub::AsyncGetOperation(
 
 future<Status> DefaultRealmsServiceStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

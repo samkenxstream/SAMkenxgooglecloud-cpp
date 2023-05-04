@@ -14,6 +14,7 @@
 
 #include "generator/internal/tracing_connection_generator.h"
 #include "generator/internal/codegen_utils.h"
+#include "generator/internal/pagination.h"
 #include "generator/internal/predicate_utils.h"
 #include "generator/internal/printer.h"
 #include "google/cloud/internal/absl_str_cat_quiet.h"
@@ -118,7 +119,9 @@ Status TracingConnectionGenerator::GenerateCc() {
   CcLocalIncludes({
       vars("tracing_connection_header_path"),
       "google/cloud/internal/opentelemetry.h",
-      HasPaginatedMethod() ? "google/cloud/internal/traced_stream_range.h" : "",
+      HasPaginatedMethod() || HasStreamingReadMethod()
+          ? "google/cloud/internal/traced_stream_range.h"
+          : "",
   });
   CcSystemIncludes({"memory"});
 
@@ -249,7 +252,11 @@ $tracing_connection_class_name$::Async$method_name$() {
     return R"""(
 StreamRange<$response_type$>
 $tracing_connection_class_name$::$method_name$($request_type$ const& request) {
-  return child_->$method_name$(request);
+  auto span = internal::MakeSpan("$product_namespace$::$connection_class_name$::$method_name$");
+  auto scope = opentelemetry::trace::Scope(span);
+  auto sr = child_->$method_name$(request);
+  return internal::MakeTracedStreamRange<$response_type$>(
+        std::move(span), std::move(sr));
 })""";
   }
 
@@ -284,7 +291,10 @@ future<Status>)"""
 future<StatusOr<$longrunning_deduced_response_type$>>)""",
         R"""(
 $tracing_connection_class_name$::$method_name$($request_type$ const& request) {
-  return child_->$method_name$(request);
+  auto span = internal::MakeSpan(
+      "$product_namespace$::$connection_class_name$::$method_name$");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(std::move(span), child_->$method_name$(request));
 }
 )""");
   }
@@ -310,7 +320,10 @@ future<Status>)"""
 future<StatusOr<$response_type$>>)""",
                       R"""(
 $tracing_connection_class_name$::Async$method_name$($request_type$ const& request) {
-  return child_->Async$method_name$(request);
+  auto span = internal::MakeSpan(
+      "$product_namespace$::$connection_class_name$::Async$method_name$");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(std::move(span), child_->Async$method_name$(request));
 }
 )""");
 }

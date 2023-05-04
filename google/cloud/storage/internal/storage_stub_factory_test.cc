@@ -21,7 +21,6 @@
 #include "google/cloud/testing_util/scoped_log.h"
 #include "google/cloud/testing_util/status_matchers.h"
 #include "google/cloud/testing_util/validate_metadata.h"
-#include "absl/memory/memory.h"
 #include <gmock/gmock.h>
 
 namespace google {
@@ -92,7 +91,7 @@ TEST_F(StorageStubFactory, ReadObject) {
         auto mock = std::make_shared<MockStorageStub>();
         EXPECT_CALL(*mock, ReadObject)
             .WillOnce(
-                [this](std::unique_ptr<grpc::ClientContext> context,
+                [this](auto context,
                        google::storage::v2::ReadObjectRequest const& request) {
                   // Verify the Auth decorator is present
                   EXPECT_THAT(context->credentials(), NotNull());
@@ -100,7 +99,7 @@ TEST_F(StorageStubFactory, ReadObject) {
                   IsContextMDValid(*context,
                                    "google.storage.v2.Storage.ReadObject",
                                    request);
-                  auto stream = absl::make_unique<MockObjectMediaStream>();
+                  auto stream = std::make_unique<MockObjectMediaStream>();
                   EXPECT_CALL(*stream, Read)
                       .WillOnce(Return(
                           Status(StatusCode::kUnavailable, "nothing here")));
@@ -117,7 +116,7 @@ TEST_F(StorageStubFactory, ReadObject) {
   ScopedLog log;
   CompletionQueue cq;
   auto stub = CreateTestStub(cq, factory.AsStdFunction());
-  auto stream = stub->ReadObject(absl::make_unique<grpc::ClientContext>(),
+  auto stream = stub->ReadObject(std::make_shared<grpc::ClientContext>(),
                                  google::storage::v2::ReadObjectRequest{});
   auto response = stream->Read();
   ASSERT_TRUE(absl::holds_alternative<Status>(response));
@@ -134,14 +133,14 @@ TEST_F(StorageStubFactory, WriteObject) {
         auto mock = std::make_shared<MockStorageStub>();
         EXPECT_CALL(*mock, AsyncWriteObject)
             .WillOnce([this](google::cloud::CompletionQueue const&,
-                             std::unique_ptr<grpc::ClientContext> context) {
+                             auto context) {
               // Verify the Auth decorator is present
               EXPECT_THAT(context->credentials(), NotNull());
               // Verify the Metadata decorator is present
               IsContextMDValid(*context,
                                "google.storage.v2.Storage.WriteObject",
                                google::storage::v2::WriteObjectRequest{});
-              auto stream = absl::make_unique<MockAsyncInsertStream>();
+              auto stream = std::make_unique<MockAsyncInsertStream>();
               EXPECT_CALL(*stream, Start)
                   .WillOnce(Return(ByMove(make_ready_future(true))));
               EXPECT_CALL(*stream, Finish)
@@ -162,7 +161,7 @@ TEST_F(StorageStubFactory, WriteObject) {
   CompletionQueue cq;
   auto stub = CreateTestStub(cq, factory.AsStdFunction());
   auto stream =
-      stub->AsyncWriteObject(cq, absl::make_unique<grpc::ClientContext>());
+      stub->AsyncWriteObject(cq, std::make_shared<grpc::ClientContext>());
   EXPECT_TRUE(stream->Start().get());
   auto close = stream->Finish().get();
   EXPECT_THAT(close, StatusIs(StatusCode::kUnavailable));

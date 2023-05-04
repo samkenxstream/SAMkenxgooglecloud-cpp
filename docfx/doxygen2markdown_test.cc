@@ -19,6 +19,7 @@ namespace docfx {
 namespace {
 
 using ::testing::HasSubstr;
+using ::testing::IsEmpty;
 using ::testing::Not;
 
 TEST(Doxygen2Markdown, Sect4) {
@@ -234,6 +235,26 @@ Second paragraph (4).)md";
   EXPECT_EQ(kExpected, os.str());
 }
 
+TEST(Doxygen2Markdown, BriefDescription) {
+  auto constexpr kXml = R"xml(<?xml version="1.0" standalone="yes"?>
+    <doxygen version="1.9.1" xml:lang="en-US">
+        <briefdescription id='tested-node'>
+          <para>This is <bold>not</bold> too detailed.</para>
+        </briefdescription>
+    </doxygen>)xml";
+
+  auto constexpr kExpected = R"md(
+
+This is **not** too detailed.)md";
+  pugi::xml_document doc;
+  doc.load_string(kXml);
+  auto selected = doc.select_node("//*[@id='tested-node']");
+  ASSERT_TRUE(selected);
+  std::ostringstream os;
+  ASSERT_TRUE(AppendIfBriefDescription(os, {}, selected.node()));
+  EXPECT_EQ(kExpected, os.str());
+}
+
 TEST(Doxygen2Markdown, PlainText) {
   pugi::xml_document doc;
   doc.load_string(R"xml(<?xml version="1.0" standalone="yes"?>
@@ -359,12 +380,13 @@ TEST(Doxygen2Markdown, RefExternal) {
   pugi::xml_document doc;
   doc.load_string(R"xml(<?xml version="1.0" standalone="yes"?>
     <doxygen version="1.9.1" xml:lang="en-US">
-        <ref id="test-node" external="https://example.com">Reference Text</ref>
+        <ref id="test-node" external="/workspace/google/cloud/cloud.tag" refid="classgoogle_1_1cloud_1_1StatusOr">Reference Text</ref>
     </doxygen>)xml");
   auto selected = doc.select_node("//*[@id='test-node']");
   std::ostringstream os;
   ASSERT_TRUE(AppendIfRef(os, {}, selected.node()));
-  EXPECT_EQ("[Reference Text](https://example.com)", os.str());
+  EXPECT_EQ("[Reference Text](xref:classgoogle_1_1cloud_1_1StatusOr)",
+            os.str());
 }
 
 TEST(Doxygen2Markdown, RefInternal) {
@@ -377,6 +399,18 @@ TEST(Doxygen2Markdown, RefInternal) {
   std::ostringstream os;
   ASSERT_TRUE(AppendIfRef(os, {}, selected.node()));
   EXPECT_EQ("[Reference Text](xref:some_id)", os.str());
+}
+
+TEST(Doxygen2Markdown, NDash) {
+  pugi::xml_document doc;
+  doc.load_string(R"xml(<?xml version="1.0" standalone="yes"?>
+    <doxygen version="1.9.1" xml:lang="en-US">
+        <ndash id="test-node" />
+    </doxygen>)xml");
+  auto selected = doc.select_node("//*[@id='test-node']");
+  std::ostringstream os;
+  ASSERT_TRUE(AppendIfNDash(os, {}, selected.node()));
+  EXPECT_EQ("&ndash;", os.str());
 }
 
 TEST(Doxygen2Markdown, Paragraph) {
@@ -438,6 +472,13 @@ TEST(Doxygen2Markdown, ParagraphSimpleContents) {
         <para id='test-004'><computeroutput>The answer is 42.</computeroutput></para>
         <para id='test-005'><ref refid="test_id">The answer is 42.</ref></para>
         <para id='test-006'><ulink url="https://example.com/">The answer is 42.</ulink></para>
+        <para id='test-007'><ndash/></para>
+        <para id='test-008'><ref refid="group__guac" kindref="compound">Authentication Components</ref></para>
+        <para id='test-009'><ref refid="classgoogle_1_1cloud_1_1Options" kindref="compound">google::cloud::Options</ref></para>
+        <para id='test-010'><ref refid="classgoogle_1_1cloud_1_1Options" kindref="compound">Options</ref></para>
+        <para id='test-011'>abc<zwj/>123</para>
+        <para id='test-012'><ulink url="https://example.com/">google::cloud::Test</ulink></para>
+        <para id='test-013'><computeroutput>projects/*&zwj;/secrets/*&zwj;/versions/*</computeroutput></para>
     </doxygen>)xml";
 
   struct TestCase {
@@ -451,6 +492,14 @@ TEST(Doxygen2Markdown, ParagraphSimpleContents) {
       {"test-004", "\n\n`The answer is 42.`"},
       {"test-005", "\n\n[The answer is 42.](xref:test_id)"},
       {"test-006", "\n\n[The answer is 42.](https://example.com/)"},
+      {"test-007", "\n\n&ndash;"},
+      {"test-008", "\n\n[Authentication Components](xref:group__guac)"},
+      {"test-009",
+       "\n\n[`google::cloud::Options`](xref:classgoogle_1_1cloud_1_1Options)"},
+      {"test-010", "\n\n[Options](xref:classgoogle_1_1cloud_1_1Options)"},
+      {"test-011", "\n\nabc123"},
+      {"test-012", "\n\n[`google::cloud::Test`](https://example.com/)"},
+      {"test-013", "\n\n`projects/*/secrets/*/versions/*`"},
   };
 
   pugi::xml_document doc;
@@ -598,6 +647,158 @@ for (StatusOr<int> const& v : sr) {
   EXPECT_EQ(kExpected, os.str());
 }
 
+TEST(Doxygen2Markdown, ParagraphVerbatim) {
+  auto constexpr kXml = R"xml(<?xml version="1.0" standalone="yes"?>
+    <doxygen version="1.9.1" xml:lang="en-US">
+        <para id='test-node'>
+          <verbatim>https://cloud.google.com/storage/docs/transcoding
+</verbatim>
+        </para>
+    </doxygen>)xml";
+
+  auto constexpr kExpected = R"md(
+
+
+
+```
+https://cloud.google.com/storage/docs/transcoding
+
+```)md";
+
+  pugi::xml_document doc;
+  doc.load_string(kXml);
+  auto selected = doc.select_node("//*[@id='test-node']");
+  std::ostringstream os;
+  ASSERT_TRUE(AppendIfParagraph(os, {}, selected.node()));
+  EXPECT_EQ(kExpected, os.str());
+}
+
+TEST(Doxygen2Markdown, ParagraphParBlock) {
+  auto constexpr kXml = R"xml(<?xml version="1.0" standalone="yes"?>
+    <doxygen version="1.9.1" xml:lang="en-US">
+        <para id='test-node'>
+          <parblock>
+            <para>First paragraph</para>
+            <para>Second paragraph</para>
+          </parblock>
+        </para>
+    </doxygen>)xml";
+
+  auto constexpr kExpected = R"md(
+
+
+
+First paragraph
+
+Second paragraph)md";
+
+  pugi::xml_document doc;
+  doc.load_string(kXml);
+  auto selected = doc.select_node("//*[@id='test-node']");
+  std::ostringstream os;
+  ASSERT_TRUE(AppendIfParagraph(os, {}, selected.node()));
+  EXPECT_EQ(kExpected, os.str());
+}
+
+TEST(Doxygen2Markdown, ParagraphTable) {
+  auto constexpr kXml = R"xml(<?xml version="1.0" standalone="yes"?>
+    <doxygen version="1.9.1" xml:lang="en-US">
+        <para id='test-node'>
+          <table rows="3" cols="2">
+            <row>
+              <entry thead="yes"><para>Environment Variable</para></entry>
+              <entry thead="yes"><para><ref refid="classgoogle_1_1cloud_1_1Options" kindref="compound" external="/workspace/cmake-out/google/cloud/cloud.tag">Options</ref> setting</para></entry>
+            </row>
+            <row>
+              <entry thead="no"><para><computeroutput>SPANNER_OPTIMIZER_VERSION</computeroutput></para></entry>
+              <entry thead="no"><para><computeroutput><ref refid="structgoogle_1_1cloud_1_1spanner_1_1QueryOptimizerVersionOption" kindref="compound">QueryOptimizerVersionOption</ref></computeroutput></para></entry>
+            </row>
+            <row>
+              <entry thead="no"><para><computeroutput>SPANNER_OPTIMIZER_STATISTICS_PACKAGE</computeroutput></para></entry>
+              <entry thead="no">
+                <para><computeroutput><ref refid="structgoogle_1_1cloud_1_1spanner_1_1QueryOptimizerStatisticsPackageOption" kindref="compound">QueryOptimizerStatisticsPackageOption</ref></computeroutput></para>
+                <para>With another paragraph</para>
+              </entry>
+            </row>
+          </table>
+        </para>
+    </doxygen>)xml";
+
+  auto constexpr kExpected = R"md(
+
+
+| Environment Variable | [Options](xref:classgoogle_1_1cloud_1_1Options) setting |
+| ---- | ---- |
+| `SPANNER_OPTIMIZER_VERSION` | [`QueryOptimizerVersionOption`](xref:structgoogle_1_1cloud_1_1spanner_1_1QueryOptimizerVersionOption) |
+| `SPANNER_OPTIMIZER_STATISTICS_PACKAGE` | [`QueryOptimizerStatisticsPackageOption`](xref:structgoogle_1_1cloud_1_1spanner_1_1QueryOptimizerStatisticsPackageOption) With another paragraph |)md";
+
+  pugi::xml_document doc;
+  doc.load_string(kXml);
+  auto selected = doc.select_node("//*[@id='test-node']");
+  std::ostringstream os;
+  ASSERT_TRUE(AppendIfParagraph(os, {}, selected.node()));
+  EXPECT_EQ(kExpected, os.str());
+}
+
+TEST(Doxygen2Markdown, ParagraphXrefSect) {
+  auto constexpr kXml = R"xml(<?xml version="1.0" standalone="yes"?>
+    <doxygen version="1.9.1" xml:lang="en-US">
+      <para id='tested-node'>
+        <xrefsect id="deprecated_1_deprecated000007">
+          <xreftitle>Deprecated</xreftitle>
+          <xrefdescription>
+            <para>Use <computeroutput><ref refid="classgoogle_1_1cloud_1_1Options" kindref="compound">Options</ref></computeroutput> and <computeroutput><ref refid="structgoogle_1_1cloud_1_1EndpointOption" kindref="compound">EndpointOption</ref></computeroutput>.</para>
+          </xrefdescription>
+        </xrefsect>
+      </para>
+    </doxygen>)xml";
+
+  auto constexpr kExpected = R"md(
+
+**Deprecated**
+
+Use [`Options`](xref:classgoogle_1_1cloud_1_1Options) and [`EndpointOption`](xref:structgoogle_1_1cloud_1_1EndpointOption).)md";
+  pugi::xml_document doc;
+  doc.load_string(kXml);
+  auto selected = doc.select_node("//*[@id='tested-node']");
+  ASSERT_TRUE(selected);
+  std::ostringstream os;
+  ASSERT_TRUE(AppendIfParagraph(os, {}, selected.node()));
+  EXPECT_EQ(kExpected, os.str());
+}
+
+TEST(Doxygen2Markdown, ParagraphLinebreak) {
+  auto constexpr kXml = R"xml(<?xml version="1.0" standalone="yes"?>
+    <doxygen version="1.9.1" xml:lang="en-US">
+    <para id='tested-node'>Required. Parent resource name. The format of this value varies depending on the scope of the request (project or organization) and whether you have <ulink url="https://cloud.google.com/dlp/docs/specifying-location">specified a processing location</ulink>:<itemizedlist>
+        <listitem><para>Projects scope, location specified:<linebreak/>
+        <computeroutput>projects/</computeroutput><emphasis>PROJECT_ID</emphasis><computeroutput>/locations/</computeroutput><emphasis>LOCATION_ID</emphasis></para>
+        </listitem><listitem><para>Projects scope, no location specified (defaults to global):<linebreak/>
+        <computeroutput>projects/</computeroutput><emphasis>PROJECT_ID</emphasis></para>
+        </listitem><listitem><para>Organizations scope, location specified:<linebreak/>
+        <computeroutput>organizations/</computeroutput><emphasis>ORG_ID</emphasis><computeroutput>/locations/</computeroutput><emphasis>LOCATION_ID</emphasis></para>
+        </listitem><listitem><para>Organizations scope, no location specified (defaults to global):<linebreak/>
+        <computeroutput>organizations/</computeroutput><emphasis>ORG_ID</emphasis>
+        </listitem>
+      </itemizedlist>
+    </para>
+  )xml";
+  auto constexpr kExpected = R"md(
+
+Required. Parent resource name. The format of this value varies depending on the scope of the request (project or organization) and whether you have [specified a processing location](https://cloud.google.com/dlp/docs/specifying-location):
+- Projects scope, location specified:<br>`projects/`*PROJECT_ID*`/locations/`*LOCATION_ID*
+- Projects scope, no location specified (defaults to global):<br>`projects/`*PROJECT_ID*
+- Organizations scope, location specified:<br>`organizations/`*ORG_ID*`/locations/`*LOCATION_ID*
+- Organizations scope, no location specified (defaults to global):<br>`organizations/`*ORG_ID*)md";
+  pugi::xml_document doc;
+  doc.load_string(kXml);
+  auto selected = doc.select_node("//*[@id='tested-node']");
+  ASSERT_TRUE(selected);
+  std::ostringstream os;
+  ASSERT_TRUE(AppendIfParagraph(os, {}, selected.node()));
+  EXPECT_EQ(kExpected, os.str());
+}
+
 TEST(Doxygen2Markdown, ItemizedListSimple) {
   pugi::xml_document doc;
   doc.load_string(R"xml(<?xml version="1.0" standalone="yes"?>
@@ -702,16 +903,16 @@ TEST(Doxygen2Markdown, VariableListSimple) {
     <doxygen version="1.9.1" xml:lang="en-US">
         <variablelist id='test-node'>
           <varlistentry><term>Class <ref refid="classgoogle_1_1cloud_1_1ConnectionOptions" kindref="compound">google::cloud::ConnectionOptions&lt; ConnectionTraits &gt;</ref>  </term></varlistentry>
-          <listitem><para>Use <ref refid="classgoogle_1_1cloud_1_1Options" kindref="compound">Options</ref> instead.</para></listitem>
+          <listitem><para>Use <computeroutput><ref refid="classgoogle_1_1cloud_1_1Options" kindref="compound">Options</ref></computeroutput> instead.</para></listitem>
           <varlistentry><term>Member <ref refid="test_only" kindref="member">TestClass::test</ref>(std::string prefix)</term></varlistentry>
           <listitem><para>Use <ref refid="test_ref" kindref="compound">Options</ref> instead.</para></listitem>
         </variablelist>
     </doxygen>)xml";
   auto constexpr kExpected = R"md(
-- Class [google::cloud::ConnectionOptions< ConnectionTraits >](xref:classgoogle_1_1cloud_1_1ConnectionOptions)
+- Class [`google::cloud::ConnectionOptions< ConnectionTraits >`](xref:classgoogle_1_1cloud_1_1ConnectionOptions)
 
-  Use [Options](xref:classgoogle_1_1cloud_1_1Options) instead.
-- Member [TestClass::test](xref:test_only)(std::string prefix)
+  Use [`Options`](xref:classgoogle_1_1cloud_1_1Options) instead.
+- Member [`TestClass::test`](xref:test_only)(std::string prefix)
 
   Use [Options](xref:test_ref) instead.)md";
 
@@ -742,8 +943,8 @@ First paragraph.
 Second paragraph.)md";
 
   auto const cases = std::vector<std::string>{
-      "see", "return", "author",    "authors",   "version", "since", "date",
-      "pre", "post",   "copyright", "invariant", "par",     "rcs",
+      "author", "authors",   "version",   "since", "date", "pre",
+      "post",   "copyright", "invariant", "par",   "rcs",
   };
 
   for (auto const& kind : cases) {
@@ -759,6 +960,32 @@ Second paragraph.)md";
     ASSERT_TRUE(AppendIfSimpleSect(os, {}, selected.node()));
     EXPECT_EQ(kExpected, os.str());
   }
+}
+
+TEST(Doxygen2Markdown, SimpleSectSeeAlso) {
+  auto constexpr kXml = R"xml(<?xml version="1.0" standalone="yes"?>
+    <doxygen version="1.9.1" xml:lang="en-US">
+        <simplesect id='test-node' kind="see">
+          <para>First paragraph.</para>
+          <para>Second paragraph.</para>
+        </simplesect>
+    </doxygen>)xml";
+
+  auto constexpr kExpected = R"md(
+
+###### See Also
+
+First paragraph.
+
+Second paragraph.)md";
+
+  pugi::xml_document doc;
+  doc.load_string(kXml);
+
+  auto selected = doc.select_node("//*[@id='test-node']");
+  std::ostringstream os;
+  ASSERT_TRUE(AppendIfSimpleSect(os, {}, selected.node()));
+  EXPECT_EQ(kExpected, os.str());
 }
 
 TEST(Doxygen2Markdown, SimpleSectBlockQuote) {
@@ -798,6 +1025,23 @@ TEST(Doxygen2Markdown, SimpleSectBlockQuote) {
     auto const expected = std::string("\n\n") + test.header + kExpectedBody;
     EXPECT_EQ(expected, os.str());
   }
+}
+
+TEST(Doxygen2Markdown, SimpleSectReturn) {
+  auto constexpr kXml = R"xml(<?xml version="1.0" standalone="yes"?>
+    <doxygen version="1.9.1" xml:lang="en-US">
+        <simplesect id='test-node' kind='return'>
+          <para>First paragraph.</para>
+          <para>Second paragraph.</para>
+        </simplesect>
+    </doxygen>)xml";
+
+  pugi::xml_document doc;
+  doc.load_string(kXml);
+  auto selected = doc.select_node("//*[@id='test-node']");
+  std::ostringstream os;
+  ASSERT_TRUE(AppendIfSimpleSect(os, {}, selected.node()));
+  EXPECT_THAT(os.str(), IsEmpty());
 }
 
 TEST(Doxygen2Markdown, Anchor) {

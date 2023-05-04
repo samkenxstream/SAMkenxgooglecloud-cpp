@@ -52,7 +52,7 @@ CloudDeployMetadata::GetDeliveryPipeline(
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployMetadata::AsyncCreateDeliveryPipeline(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::deploy::v1::CreateDeliveryPipelineRequest const& request) {
   SetMetadata(*context, "parent=" + request.parent());
   return child_->AsyncCreateDeliveryPipeline(cq, std::move(context), request);
@@ -61,7 +61,7 @@ CloudDeployMetadata::AsyncCreateDeliveryPipeline(
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployMetadata::AsyncUpdateDeliveryPipeline(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::deploy::v1::UpdateDeliveryPipelineRequest const& request) {
   SetMetadata(*context,
               "delivery_pipeline.name=" + request.delivery_pipeline().name());
@@ -71,7 +71,7 @@ CloudDeployMetadata::AsyncUpdateDeliveryPipeline(
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployMetadata::AsyncDeleteDeliveryPipeline(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::deploy::v1::DeleteDeliveryPipelineRequest const& request) {
   SetMetadata(*context, "name=" + request.name());
   return child_->AsyncDeleteDeliveryPipeline(cq, std::move(context), request);
@@ -95,7 +95,7 @@ StatusOr<google::cloud::deploy::v1::Target> CloudDeployMetadata::GetTarget(
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployMetadata::AsyncCreateTarget(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::deploy::v1::CreateTargetRequest const& request) {
   SetMetadata(*context, "parent=" + request.parent());
   return child_->AsyncCreateTarget(cq, std::move(context), request);
@@ -104,7 +104,7 @@ CloudDeployMetadata::AsyncCreateTarget(
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployMetadata::AsyncUpdateTarget(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::deploy::v1::UpdateTargetRequest const& request) {
   SetMetadata(*context, "target.name=" + request.target().name());
   return child_->AsyncUpdateTarget(cq, std::move(context), request);
@@ -113,7 +113,7 @@ CloudDeployMetadata::AsyncUpdateTarget(
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployMetadata::AsyncDeleteTarget(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::deploy::v1::DeleteTargetRequest const& request) {
   SetMetadata(*context, "name=" + request.name());
   return child_->AsyncDeleteTarget(cq, std::move(context), request);
@@ -137,7 +137,7 @@ StatusOr<google::cloud::deploy::v1::Release> CloudDeployMetadata::GetRelease(
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployMetadata::AsyncCreateRelease(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::deploy::v1::CreateReleaseRequest const& request) {
   SetMetadata(*context, "parent=" + request.parent());
   return child_->AsyncCreateRelease(cq, std::move(context), request);
@@ -159,6 +159,22 @@ CloudDeployMetadata::ApproveRollout(
   return child_->ApproveRollout(context, request);
 }
 
+StatusOr<google::cloud::deploy::v1::AdvanceRolloutResponse>
+CloudDeployMetadata::AdvanceRollout(
+    grpc::ClientContext& context,
+    google::cloud::deploy::v1::AdvanceRolloutRequest const& request) {
+  SetMetadata(context, "name=" + request.name());
+  return child_->AdvanceRollout(context, request);
+}
+
+StatusOr<google::cloud::deploy::v1::CancelRolloutResponse>
+CloudDeployMetadata::CancelRollout(
+    grpc::ClientContext& context,
+    google::cloud::deploy::v1::CancelRolloutRequest const& request) {
+  SetMetadata(context, "name=" + request.name());
+  return child_->CancelRollout(context, request);
+}
+
 StatusOr<google::cloud::deploy::v1::ListRolloutsResponse>
 CloudDeployMetadata::ListRollouts(
     grpc::ClientContext& context,
@@ -177,10 +193,18 @@ StatusOr<google::cloud::deploy::v1::Rollout> CloudDeployMetadata::GetRollout(
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployMetadata::AsyncCreateRollout(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::deploy::v1::CreateRolloutRequest const& request) {
   SetMetadata(*context, "parent=" + request.parent());
   return child_->AsyncCreateRollout(cq, std::move(context), request);
+}
+
+StatusOr<google::cloud::deploy::v1::IgnoreJobResponse>
+CloudDeployMetadata::IgnoreJob(
+    grpc::ClientContext& context,
+    google::cloud::deploy::v1::IgnoreJobRequest const& request) {
+  SetMetadata(context, "rollout=" + request.rollout());
+  return child_->IgnoreJob(context, request);
 }
 
 StatusOr<google::cloud::deploy::v1::RetryJobResponse>
@@ -206,6 +230,14 @@ StatusOr<google::cloud::deploy::v1::JobRun> CloudDeployMetadata::GetJobRun(
   return child_->GetJobRun(context, request);
 }
 
+StatusOr<google::cloud::deploy::v1::TerminateJobRunResponse>
+CloudDeployMetadata::TerminateJobRun(
+    grpc::ClientContext& context,
+    google::cloud::deploy::v1::TerminateJobRunRequest const& request) {
+  SetMetadata(context, "name=" + request.name());
+  return child_->TerminateJobRun(context, request);
+}
+
 StatusOr<google::cloud::deploy::v1::Config> CloudDeployMetadata::GetConfig(
     grpc::ClientContext& context,
     google::cloud::deploy::v1::GetConfigRequest const& request) {
@@ -216,7 +248,7 @@ StatusOr<google::cloud::deploy::v1::Config> CloudDeployMetadata::GetConfig(
 future<StatusOr<google::longrunning::Operation>>
 CloudDeployMetadata::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
   SetMetadata(*context, "name=" + request.name());
   return child_->AsyncGetOperation(cq, std::move(context), request);
@@ -224,7 +256,7 @@ CloudDeployMetadata::AsyncGetOperation(
 
 future<Status> CloudDeployMetadata::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
   SetMetadata(*context, "name=" + request.name());
   return child_->AsyncCancelOperation(cq, std::move(context), request);

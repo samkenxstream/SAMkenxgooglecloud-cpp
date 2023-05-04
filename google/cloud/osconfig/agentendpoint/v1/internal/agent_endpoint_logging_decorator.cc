@@ -39,11 +39,11 @@ std::unique_ptr<google::cloud::internal::StreamingReadRpc<
     google::cloud::osconfig::agentendpoint::v1::
         ReceiveTaskNotificationResponse>>
 AgentEndpointServiceLogging::ReceiveTaskNotification(
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::osconfig::agentendpoint::v1::
         ReceiveTaskNotificationRequest const& request) {
   return google::cloud::internal::LogWrapper(
-      [this](std::unique_ptr<grpc::ClientContext> context,
+      [this](std::shared_ptr<grpc::ClientContext> context,
              google::cloud::osconfig::agentendpoint::v1::
                  ReceiveTaskNotificationRequest const& request)
           -> std::unique_ptr<google::cloud::internal::StreamingReadRpc<
@@ -52,12 +52,12 @@ AgentEndpointServiceLogging::ReceiveTaskNotification(
         auto stream =
             child_->ReceiveTaskNotification(std::move(context), request);
         if (components_.count("rpc-streams") > 0) {
-          stream = absl::make_unique<
-              google::cloud::internal::StreamingReadRpcLogging<
+          stream =
+              std::make_unique<google::cloud::internal::StreamingReadRpcLogging<
                   google::cloud::osconfig::agentendpoint::v1::
                       ReceiveTaskNotificationResponse>>(
-              std::move(stream), tracing_options_,
-              google::cloud::internal::RequestIdForLogging());
+                  std::move(stream), tracing_options_,
+                  google::cloud::internal::RequestIdForLogging());
         }
         return stream;
       },

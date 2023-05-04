@@ -13,9 +13,12 @@
 // limitations under the License.
 
 #include "google/cloud/storage/internal/retry_client.h"
+#include "google/cloud/storage/internal/tracing_client.h"
 #include "google/cloud/storage/testing/canonical_errors.h"
 #include "google/cloud/storage/testing/mock_client.h"
+#include "google/cloud/internal/opentelemetry_options.h"
 #include "google/cloud/testing_util/chrono_literals.h"
+#include "google/cloud/testing_util/opentelemetry_matchers.h"
 #include "google/cloud/testing_util/status_matchers.h"
 #include <gmock/gmock.h>
 
@@ -194,18 +197,19 @@ TEST(RetryClientTest, UploadChunkHandleTransient) {
       .WillOnce(
           Return(QueryResumableUploadResponse{3 * quantum, absl::nullopt}));
 
-  auto response = client->UploadChunk(
-      UploadChunkRequest("test-only-session-id", 0, {{payload}}));
+  auto response = client->UploadChunk(UploadChunkRequest(
+      "test-only-session-id", 0, {{payload}}, CreateNullHashFunction()));
   ASSERT_STATUS_OK(response);
   EXPECT_EQ(quantum, response->committed_size.value_or(0));
 
-  response = client->UploadChunk(
-      UploadChunkRequest("test-only-session-id", quantum, {{payload}}));
+  response = client->UploadChunk(UploadChunkRequest(
+      "test-only-session-id", quantum, {{payload}}, CreateNullHashFunction()));
   ASSERT_STATUS_OK(response);
   EXPECT_EQ(2 * quantum, response->committed_size.value_or(0));
 
-  response = client->UploadChunk(
-      UploadChunkRequest("test-only-session-id", 2 * quantum, {{payload}}));
+  response = client->UploadChunk(UploadChunkRequest("test-only-session-id",
+                                                    2 * quantum, {{payload}},
+                                                    CreateNullHashFunction()));
   ASSERT_STATUS_OK(response);
   EXPECT_EQ(3 * quantum, response->committed_size.value_or(0));
 }
@@ -235,8 +239,8 @@ TEST(RetryClientTest, UploadChunkAbortedMaybeIsTransient) {
       .Times(AtLeast(2))
       .WillRepeatedly(Return(QueryResumableUploadResponse{0, absl::nullopt}));
 
-  auto response = client->UploadChunk(
-      UploadChunkRequest("test-only-session-id", 0, {{payload}}));
+  auto response = client->UploadChunk(UploadChunkRequest(
+      "test-only-session-id", 0, {{payload}}, CreateNullHashFunction()));
   EXPECT_THAT(response, StatusIs(StatusCode::kAborted,
                                  HasSubstr("Concurrent requests received.")));
 }
@@ -267,14 +271,16 @@ TEST(RetryClientTest, UploadChunkRestoreSession) {
     return QueryResumableUploadResponse{committed_size, absl::nullopt};
   });
 
-  auto response = client->UploadChunk(UploadChunkRequest(
-      "test-only-upload-id", restored_committed_size, {{p0}}));
+  auto response = client->UploadChunk(
+      UploadChunkRequest("test-only-upload-id", restored_committed_size, {{p0}},
+                         CreateNullHashFunction()));
   ASSERT_STATUS_OK(response);
   EXPECT_EQ(restored_committed_size + quantum,
             response->committed_size.value_or(0));
 
   response = client->UploadChunk(UploadChunkRequest(
-      "test-only-upload-id", restored_committed_size + quantum, {{p1}}));
+      "test-only-upload-id", restored_committed_size + quantum, {{p1}},
+      CreateNullHashFunction()));
   ASSERT_STATUS_OK(response);
   EXPECT_EQ(restored_committed_size + 2 * quantum,
             response->committed_size.value_or(0));
@@ -318,8 +324,8 @@ TEST(RetryClientTest, UploadChunkHandleTransientPartialFailures) {
     return QueryResumableUploadResponse{3 * quantum, absl::nullopt};
   });
 
-  auto response = client->UploadChunk(
-      UploadChunkRequest("test-only-upload-id", 0, {{payload}}));
+  auto response = client->UploadChunk(UploadChunkRequest(
+      "test-only-upload-id", 0, {{payload}}, CreateNullHashFunction()));
   ASSERT_STATUS_OK(response);
   EXPECT_EQ(3 * quantum, response->committed_size.value_or(0));
 }
@@ -337,8 +343,8 @@ TEST(RetryClientTest, UploadChunkPermanentError) {
 
   EXPECT_CALL(*mock, UploadChunk).WillOnce(Return(PermanentError()));
 
-  auto response = client->UploadChunk(
-      UploadChunkRequest("test-only-upload-id", 0, {{payload}}));
+  auto response = client->UploadChunk(UploadChunkRequest(
+      "test-only-upload-id", 0, {{payload}}, CreateNullHashFunction()));
   EXPECT_THAT(response, StatusIs(PermanentError().code(),
                                  HasSubstr(PermanentError().message())));
 }
@@ -357,8 +363,8 @@ TEST(RetryClientTest, UploadChunkPermanentErrorOnQuery) {
   EXPECT_CALL(*mock, UploadChunk).WillOnce(Return(TransientError()));
   EXPECT_CALL(*mock, QueryResumableUpload).WillOnce(Return(PermanentError()));
 
-  auto response = client->UploadChunk(
-      UploadChunkRequest("test-only-upload-id", 0, {{payload}}));
+  auto response = client->UploadChunk(UploadChunkRequest(
+      "test-only-upload-id", 0, {{payload}}, CreateNullHashFunction()));
   EXPECT_THAT(response, StatusIs(PermanentError().code(),
                                  HasSubstr(PermanentError().message())));
 }
@@ -383,13 +389,13 @@ TEST(RetryClientTest, UploadChunkHandleRollback) {
       .WillOnce(Return(QueryResumableUploadResponse{hwm, absl::nullopt}))
       .WillOnce(Return(QueryResumableUploadResponse{rollback, absl::nullopt}));
 
-  auto response = client->UploadChunk(
-      UploadChunkRequest("test-only-upload-id", rollback, {{payload}}));
+  auto response = client->UploadChunk(UploadChunkRequest(
+      "test-only-upload-id", rollback, {{payload}}, CreateNullHashFunction()));
   ASSERT_STATUS_OK(response);
   EXPECT_EQ(response->committed_size.value_or(0), hwm);
 
-  response = client->UploadChunk(
-      UploadChunkRequest("test-only-upload-id", hwm, {{payload}}));
+  response = client->UploadChunk(UploadChunkRequest(
+      "test-only-upload-id", hwm, {{payload}}, CreateNullHashFunction()));
   EXPECT_THAT(
       response,
       StatusIs(
@@ -414,8 +420,8 @@ TEST(RetryClientTest, UploadChunkHandleOvercommit) {
   EXPECT_CALL(*mock, UploadChunk)
       .WillOnce(Return(QueryResumableUploadResponse{excess, absl::nullopt}));
 
-  auto response = client->UploadChunk(
-      UploadChunkRequest("test-only-upload-id", 0, {{payload}}));
+  auto response = client->UploadChunk(UploadChunkRequest(
+      "test-only-upload-id", 0, {{payload}}, CreateNullHashFunction()));
   EXPECT_THAT(
       response,
       StatusIs(
@@ -441,8 +447,8 @@ TEST(RetryClientTest, UploadChunkExhausted) {
       .Times(AtLeast(2))
       .WillRepeatedly(Return(QueryResumableUploadResponse{0, absl::nullopt}));
 
-  auto response = client->UploadChunk(
-      UploadChunkRequest("test-only-upload-id", 0, {{payload}}));
+  auto response = client->UploadChunk(UploadChunkRequest(
+      "test-only-upload-id", 0, {{payload}}, CreateNullHashFunction()));
   EXPECT_THAT(response, StatusIs(StatusCode::kUnavailable));
 }
 
@@ -456,8 +462,8 @@ TEST(RetryClientTest, UploadChunkUploadChunkPolicyExhaustedOnStart) {
           .set<IdempotencyPolicyOption>(StrictIdempotencyPolicy().clone()));
 
   auto const payload = std::string(UploadChunkRequest::kChunkSizeQuantum, 'X');
-  auto response = client->UploadChunk(
-      UploadChunkRequest("test-only-upload-id", 0, {{payload}}));
+  auto response = client->UploadChunk(UploadChunkRequest(
+      "test-only-upload-id", 0, {{payload}}, CreateNullHashFunction()));
   EXPECT_THAT(
       response,
       StatusIs(StatusCode::kDeadlineExceeded,
@@ -493,13 +499,14 @@ TEST(RetryClientTest, UploadChunkMissingRangeHeaderInUpload) {
       .WillOnce(Return(QueryResumableUploadResponse{
           /*.committed_size=*/absl::nullopt, /*.payload=*/ObjectMetadata()}));
 
-  auto response = client->UploadChunk(
-      UploadChunkRequest("test-only-upload-id", 0, {{payload}}));
+  auto response = client->UploadChunk(UploadChunkRequest(
+      "test-only-upload-id", 0, {{payload}}, CreateNullHashFunction()));
   ASSERT_STATUS_OK(response);
   EXPECT_EQ(quantum, response->committed_size.value_or(0));
 
-  response = client->UploadChunk(UploadChunkRequest(
-      "test-only-upload-id", quantum, {{payload}}, HashValues{}));
+  response = client->UploadChunk(
+      UploadChunkRequest("test-only-upload-id", quantum, {{payload}},
+                         CreateNullHashFunction(), HashValues{}));
   ASSERT_STATUS_OK(response);
   EXPECT_FALSE(response->committed_size.has_value());
   EXPECT_TRUE(response->payload.has_value());
@@ -535,8 +542,8 @@ TEST(RetryClientTest, UploadChunkMissingRangeHeaderInQueryResumableUpload) {
           Return(QueryResumableUploadResponse{/*.committed_size=*/quantum,
                                               /*.payload=*/absl::nullopt}));
 
-  auto response = client->UploadChunk(
-      UploadChunkRequest("test-only-upload-id", 0, {{payload}}));
+  auto response = client->UploadChunk(UploadChunkRequest(
+      "test-only-upload-id", 0, {{payload}}, CreateNullHashFunction()));
   ASSERT_STATUS_OK(response);
   EXPECT_EQ(quantum, response->committed_size.value_or(0));
 }
@@ -570,7 +577,8 @@ TEST(RetryClientTest, UploadFinalChunkQueryMissingPayloadTriggersRetry) {
           Return(QueryResumableUploadResponse{quantum, ObjectMetadata()}));
 
   auto response = client->UploadChunk(
-      UploadChunkRequest("test-only-upload-id", 0, {{payload}}, HashValues{}));
+      UploadChunkRequest("test-only-upload-id", 0, {{payload}},
+                         CreateNullHashFunction(), HashValues{}));
   ASSERT_STATUS_OK(response);
   EXPECT_EQ(quantum, response->committed_size.value_or(0));
   EXPECT_TRUE(response->payload.has_value());
@@ -599,9 +607,67 @@ TEST(RetryClientTest, UploadFinalChunkQueryTooManyMissingPayloads) {
           Return(QueryResumableUploadResponse{quantum, absl::nullopt}));
 
   auto response = client->UploadChunk(
-      UploadChunkRequest("test-only-upload-id", 0, {{payload}}, HashValues{}));
+      UploadChunkRequest("test-only-upload-id", 0, {{payload}},
+                         CreateNullHashFunction(), HashValues{}));
   ASSERT_THAT(response, Not(IsOk()));
 }
+
+#ifdef GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY
+using ::google::cloud::testing_util::EnableTracing;
+using ::google::cloud::testing_util::InstallSpanCatcher;
+using ::google::cloud::testing_util::SpanNamed;
+using ::testing::ElementsAre;
+using ::testing::Return;
+
+TEST(RetryClientTest, BackoffSpansSimple) {
+  auto span_catcher = InstallSpanCatcher();
+  auto mock = std::make_shared<testing::MockClient>();
+  auto client = storage_internal::MakeTracingClient(
+      RetryClient::Create(std::shared_ptr<internal::RawClient>(mock)));
+  google::cloud::internal::OptionsSpan const span(
+      EnableTracing(BasicTestPolicies()));
+  EXPECT_CALL(*mock, GetObjectMetadata)
+      .WillRepeatedly(Return(TransientError()));
+  auto response = client->GetObjectMetadata(GetObjectMetadataRequest());
+  EXPECT_THAT(response, StatusIs(TransientError().code()));
+  EXPECT_THAT(span_catcher->GetSpans(),
+              ElementsAre(SpanNamed("Backoff"), SpanNamed("Backoff"),
+                          SpanNamed("Backoff"),
+                          SpanNamed("storage::Client::GetObjectMetadata")));
+}
+
+TEST(RetryClientTest, BackoffSpansUploadChunk) {
+  auto span_catcher = InstallSpanCatcher();
+  auto mock = std::make_shared<testing::MockClient>();
+  auto client = storage_internal::MakeTracingClient(
+      RetryClient::Create(std::shared_ptr<internal::RawClient>(mock)));
+  google::cloud::internal::OptionsSpan const span(
+      EnableTracing(BasicTestPolicies()));
+
+  ::testing::InSequence sequence;
+  EXPECT_CALL(*mock, UploadChunk).WillOnce(Return(TransientError()));
+  EXPECT_CALL(*mock, QueryResumableUpload)
+      .WillOnce(Return(QueryResumableUploadResponse{0, absl::nullopt}));
+  EXPECT_CALL(*mock, UploadChunk).WillOnce(Return(TransientError()));
+  EXPECT_CALL(*mock, QueryResumableUpload)
+      .WillOnce(Return(QueryResumableUploadResponse{0, absl::nullopt}));
+  EXPECT_CALL(*mock, UploadChunk).WillOnce(Return(TransientError()));
+  EXPECT_CALL(*mock, QueryResumableUpload)
+      .WillOnce(Return(QueryResumableUploadResponse{0, absl::nullopt}));
+  EXPECT_CALL(*mock, UploadChunk).WillOnce(Return(TransientError()));
+
+  auto const quantum = UploadChunkRequest::kChunkSizeQuantum;
+  std::string const payload(std::string(quantum * 2, 'X'));
+  auto response = client->UploadChunk(UploadChunkRequest(
+      "test-only-upload-id", 0, {{payload}}, CreateNullHashFunction()));
+  EXPECT_THAT(response, StatusIs(TransientError().code()));
+  EXPECT_THAT(
+      span_catcher->GetSpans(),
+      ElementsAre(SpanNamed("Backoff"), SpanNamed("Backoff"),
+                  SpanNamed("Backoff"),
+                  SpanNamed("storage::Client::WriteObject/UploadChunk")));
+}
+#endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY
 
 }  // namespace
 }  // namespace internal

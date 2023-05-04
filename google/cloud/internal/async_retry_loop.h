@@ -19,6 +19,8 @@
 #include "google/cloud/completion_queue.h"
 #include "google/cloud/future.h"
 #include "google/cloud/grpc_options.h"
+#include "google/cloud/internal/call_context.h"
+#include "google/cloud/internal/grpc_opentelemetry.h"
 #include "google/cloud/internal/invoke_result.h"
 #include "google/cloud/internal/retry_loop_helpers.h"
 #include "google/cloud/internal/retry_policy.h"
@@ -50,7 +52,7 @@ struct FutureValueType<future<T>> {
  * class MyStub { public:
  *   virtual future<StatusOr<ResponseProto>> AsyncRpcName(
  *      google::cloud::CompletionQueue& cq,
- *      std::unique_ptr<grpc::ClientContext> context,
+ *      std::shared_ptr<grpc::ClientContext> context,
  *      RequestProto const& request) = 0;
  * };
  * @endcode
@@ -184,14 +186,14 @@ class AsyncRetryLoopImpl
 
   using ReturnType = ::google::cloud::internal::invoke_result_t<
       Functor, google::cloud::CompletionQueue&,
-      std::unique_ptr<grpc::ClientContext>, Request const&>;
+      std::shared_ptr<grpc::ClientContext>, Request const&>;
   using T = typename FutureValueType<ReturnType>::value_type;
 
   future<T> Start() {
     auto weak = std::weak_ptr<AsyncRetryLoopImpl>(this->shared_from_this());
     result_ = promise<T>([weak]() mutable {
       if (auto self = weak.lock()) {
-        OptionsSpan span(self->options_);
+        ScopedCallContext scope(self->call_context_);
         self->Cancel();
       }
     });
@@ -228,8 +230,8 @@ class AsyncRetryLoopImpl
     }
     auto state = StartOperation();
     if (state.cancelled) return;
-    auto context = absl::make_unique<grpc::ClientContext>();
-    ConfigureContext(*context, options_);
+    auto context = std::make_shared<grpc::ClientContext>();
+    ConfigureContext(*context, call_context_.options);
     SetupContext<RetryPolicyType>::Setup(*retry_policy_, *context);
     SetPending(
         state.operation,
@@ -243,7 +245,7 @@ class AsyncRetryLoopImpl
     auto state = StartOperation();
     if (state.cancelled) return;
     SetPending(state.operation,
-               cq_.MakeRelativeTimer(backoff_policy_->OnCompletion())
+               TracedAsyncBackoff(cq_, backoff_policy_->OnCompletion())
                    .then([self](future<TimerArgType> f) {
                      self->OnBackoff(f.get());
                    }));
@@ -325,7 +327,7 @@ class AsyncRetryLoopImpl
   absl::decay_t<Functor> functor_;
   Request request_;
   char const* location_ = "unknown";
-  Options options_ = CurrentOptions();
+  CallContext call_context_;
   Status last_status_ = Status(StatusCode::kUnknown, "Retry policy exhausted");
   promise<T> result_;
 
@@ -346,7 +348,7 @@ template <typename Functor, typename Request, typename RetryPolicyType,
           typename std::enable_if<
               google::cloud::internal::is_invocable<
                   Functor, google::cloud::CompletionQueue&,
-                  std::unique_ptr<grpc::ClientContext>, Request const&>::value,
+                  std::shared_ptr<grpc::ClientContext>, Request const&>::value,
               int>::type = 0>
 auto AsyncRetryLoop(std::unique_ptr<RetryPolicyType> retry_policy,
                     std::unique_ptr<BackoffPolicy> backoff_policy,
@@ -354,7 +356,7 @@ auto AsyncRetryLoop(std::unique_ptr<RetryPolicyType> retry_policy,
                     Functor&& functor, Request request, char const* location)
     -> google::cloud::internal::invoke_result_t<
         Functor, google::cloud::CompletionQueue&,
-        std::unique_ptr<grpc::ClientContext>, Request const&> {
+        std::shared_ptr<grpc::ClientContext>, Request const&> {
   auto loop =
       std::make_shared<AsyncRetryLoopImpl<Functor, Request, RetryPolicyType>>(
           std::move(retry_policy), std::move(backoff_policy), idempotency,

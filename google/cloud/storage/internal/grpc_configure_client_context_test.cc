@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "google/cloud/storage/internal/grpc_configure_client_context.h"
+#include "google/cloud/storage/internal/hash_function.h"
 #include "google/cloud/storage/internal/object_requests.h"
 #include "google/cloud/testing_util/validate_metadata.h"
 #include <gmock/gmock.h>
@@ -23,6 +24,7 @@ namespace storage_internal {
 GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_BEGIN
 namespace {
 
+using ::google::cloud::storage::internal::CreateNullHashFunction;
 using ::google::cloud::testing_util::ValidateMetadataFixture;
 using ::testing::_;
 using ::testing::Contains;
@@ -131,9 +133,23 @@ TEST_F(GrpcConfigureClientContext, ApplyRoutingHeadersInsertObjectMedia) {
                             "bucket=projects/_/buckets/test-bucket")));
 }
 
-TEST_F(GrpcConfigureClientContext, ApplyRoutingHeadersUploadChunkMatch) {
+TEST_F(GrpcConfigureClientContext, ApplyRoutingHeadersUploadChunkMatchSlash) {
   storage::internal::UploadChunkRequest req(
-      "projects/_/buckets/test-bucket/blah/blah", 0, {});
+      "projects/_/buckets/test-bucket/blah/blah", 0, {},
+      CreateNullHashFunction());
+
+  grpc::ClientContext context;
+  ApplyRoutingHeaders(context, req);
+  auto metadata = GetMetadata(context);
+  EXPECT_THAT(metadata,
+              Contains(Pair("x-goog-request-params",
+                            "bucket=projects/_/buckets/test-bucket")));
+}
+
+TEST_F(GrpcConfigureClientContext, ApplyRoutingHeadersUploadChunkMatchColon) {
+  storage::internal::UploadChunkRequest req(
+      "projects/_/buckets/test-bucket:blah/blah", 0, {},
+      CreateNullHashFunction());
 
   grpc::ClientContext context;
   ApplyRoutingHeaders(context, req);
@@ -144,7 +160,8 @@ TEST_F(GrpcConfigureClientContext, ApplyRoutingHeadersUploadChunkMatch) {
 }
 
 TEST_F(GrpcConfigureClientContext, ApplyRoutingHeadersUploadChunkNoMatch) {
-  storage::internal::UploadChunkRequest req("does-not-match", 0, {});
+  storage::internal::UploadChunkRequest req("does-not-match", 0, {},
+                                            CreateNullHashFunction());
 
   grpc::ClientContext context;
   ApplyRoutingHeaders(context, req);

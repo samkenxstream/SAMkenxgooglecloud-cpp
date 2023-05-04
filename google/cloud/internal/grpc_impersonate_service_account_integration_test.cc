@@ -80,7 +80,7 @@ class TestStub {
 
   virtual future<StatusOr<Table>> AsyncGetTable(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       GetTableRequest const& request) = 0;
 };
 
@@ -101,9 +101,10 @@ class TestStubImpl : public TestStub {
 
   future<StatusOr<Table>> AsyncGetTable(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       GetTableRequest const& request) override {
-    return cq.MakeUnaryRpc(
+    return MakeUnaryRpcImpl<GetTableRequest, Table>(
+        cq,
         [this](grpc::ClientContext* context, GetTableRequest const& request,
                grpc::CompletionQueue* cq) {
           return stub_->AsyncGetTable(context, request, cq);
@@ -133,13 +134,11 @@ class TestStubAuth : public TestStub,
 
   future<StatusOr<Table>> AsyncGetTable(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       GetTableRequest const& request) override {
     auto self = shared_from_this();
     return auth_->AsyncConfigureContext(std::move(context))
-        .then([self, cq,
-               request](future<StatusOr<std::unique_ptr<grpc::ClientContext>>>
-                            f) mutable {
+        .then([self, cq, request](auto f) mutable {
           auto context = f.get();
           if (!context)
             return make_ready_future<StatusOr<Table>>(
@@ -171,11 +170,10 @@ class TestStubLogging : public TestStub {
 
   future<StatusOr<Table>> AsyncGetTable(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       GetTableRequest const& request) override {
     return LogWrapper(
-        [this](google::cloud::CompletionQueue& cq,
-               std::unique_ptr<grpc::ClientContext> context,
+        [this](google::cloud::CompletionQueue& cq, auto context,
                GetTableRequest const& request) {
           return child_->AsyncGetTable(cq, std::move(context), request);
         },
@@ -257,7 +255,7 @@ TEST_F(GrpcImpersonateServiceAccountIntegrationTest, AsyncCallWithToken) {
   auto async_get_table =
       [&](google::cloud::CompletionQueue& cq,
           GetTableRequest const& request) -> future<StatusOr<Table>> {
-    return stub->AsyncGetTable(cq, absl::make_unique<grpc::ClientContext>(),
+    return stub->AsyncGetTable(cq, std::make_shared<grpc::ClientContext>(),
                                request);
   };
 

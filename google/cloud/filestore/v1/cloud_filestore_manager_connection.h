@@ -21,7 +21,6 @@
 
 #include "google/cloud/filestore/v1/cloud_filestore_manager_connection_idempotency_policy.h"
 #include "google/cloud/filestore/v1/internal/cloud_filestore_manager_retry_traits.h"
-#include "google/cloud/filestore/v1/internal/cloud_filestore_manager_stub.h"
 #include "google/cloud/backoff_policy.h"
 #include "google/cloud/future.h"
 #include "google/cloud/options.h"
@@ -29,6 +28,7 @@
 #include "google/cloud/status_or.h"
 #include "google/cloud/stream_range.h"
 #include "google/cloud/version.h"
+#include <google/cloud/filestore/v1/cloud_filestore_service.pb.h>
 #include <google/longrunning/operations.grpc.pb.h>
 #include <memory>
 
@@ -89,6 +89,24 @@ class CloudFilestoreManagerConnection {
   virtual future<StatusOr<google::cloud::common::OperationMetadata>>
   DeleteInstance(
       google::cloud::filestore::v1::DeleteInstanceRequest const& request);
+
+  virtual StreamRange<google::cloud::filestore::v1::Snapshot> ListSnapshots(
+      google::cloud::filestore::v1::ListSnapshotsRequest request);
+
+  virtual StatusOr<google::cloud::filestore::v1::Snapshot> GetSnapshot(
+      google::cloud::filestore::v1::GetSnapshotRequest const& request);
+
+  virtual future<StatusOr<google::cloud::filestore::v1::Snapshot>>
+  CreateSnapshot(
+      google::cloud::filestore::v1::CreateSnapshotRequest const& request);
+
+  virtual future<StatusOr<google::cloud::common::OperationMetadata>>
+  DeleteSnapshot(
+      google::cloud::filestore::v1::DeleteSnapshotRequest const& request);
+
+  virtual future<StatusOr<google::cloud::filestore::v1::Snapshot>>
+  UpdateSnapshot(
+      google::cloud::filestore::v1::UpdateSnapshotRequest const& request);
 
   virtual StreamRange<google::cloud::filestore::v1::Backup> ListBackups(
       google::cloud::filestore::v1::ListBackupsRequest request);

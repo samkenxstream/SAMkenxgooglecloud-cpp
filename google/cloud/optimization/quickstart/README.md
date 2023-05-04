@@ -99,7 +99,7 @@ https://cloud.google.com/docs/authentication/production
    the dependencies:
 
    ```bash
-   cd $HOME/gooogle-cloud-cpp/google/cloud/optimization/quickstart
+   cd $HOME/google-cloud-cpp/google/cloud/optimization/quickstart
    cmake -H. -B.build -DCMAKE_TOOLCHAIN_FILE=$HOME/vcpkg/scripts/buildsystems/vcpkg.cmake
    cmake --build .build
    ```
@@ -120,14 +120,6 @@ trust store for SSL certificates, you can download and configure this using:
 ```bash
 curl -Lo roots.pem https://pki.google.com/roots.pem
 export GRPC_DEFAULT_SSL_ROOTS_FILE_PATH="$PWD/roots.pem"
-```
-
-To workaround a [bug in Bazel][bazel-grpc-macos-bug], gRPC requires this flag on
-macOS builds, you can add the option manually or include it in your `.bazelrc`
-file:
-
-```bash
-bazel build --copt=-DGRPC_BAZEL_BUILD ...
 ```
 
 ### Windows
@@ -151,7 +143,6 @@ set GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=%cd%\roots.pem
 ```
 
 [authentication-quickstart]: https://cloud.google.com/docs/authentication/getting-started "Authentication Getting Started"
-[bazel-grpc-macos-bug]: https://github.com/bazelbuild/bazel/issues/4341
 [bazel-install]: https://docs.bazel.build/versions/main/install.html
 [choco-cmake-link]: https://chocolatey.org/packages/cmake
 [grpc-roots-pem-bug]: https://github.com/grpc/grpc/issues/16571

@@ -21,7 +21,6 @@
 
 #include "google/cloud/deploy/v1/cloud_deploy_connection_idempotency_policy.h"
 #include "google/cloud/deploy/v1/internal/cloud_deploy_retry_traits.h"
-#include "google/cloud/deploy/v1/internal/cloud_deploy_stub.h"
 #include "google/cloud/backoff_policy.h"
 #include "google/cloud/future.h"
 #include "google/cloud/options.h"
@@ -29,6 +28,7 @@
 #include "google/cloud/status_or.h"
 #include "google/cloud/stream_range.h"
 #include "google/cloud/version.h"
+#include <google/cloud/deploy/v1/cloud_deploy.pb.h>
 #include <google/longrunning/operations.grpc.pb.h>
 #include <memory>
 
@@ -118,6 +118,13 @@ class CloudDeployConnection {
   ApproveRollout(
       google::cloud::deploy::v1::ApproveRolloutRequest const& request);
 
+  virtual StatusOr<google::cloud::deploy::v1::AdvanceRolloutResponse>
+  AdvanceRollout(
+      google::cloud::deploy::v1::AdvanceRolloutRequest const& request);
+
+  virtual StatusOr<google::cloud::deploy::v1::CancelRolloutResponse>
+  CancelRollout(google::cloud::deploy::v1::CancelRolloutRequest const& request);
+
   virtual StreamRange<google::cloud::deploy::v1::Rollout> ListRollouts(
       google::cloud::deploy::v1::ListRolloutsRequest request);
 
@@ -127,6 +134,9 @@ class CloudDeployConnection {
   virtual future<StatusOr<google::cloud::deploy::v1::Rollout>> CreateRollout(
       google::cloud::deploy::v1::CreateRolloutRequest const& request);
 
+  virtual StatusOr<google::cloud::deploy::v1::IgnoreJobResponse> IgnoreJob(
+      google::cloud::deploy::v1::IgnoreJobRequest const& request);
+
   virtual StatusOr<google::cloud::deploy::v1::RetryJobResponse> RetryJob(
       google::cloud::deploy::v1::RetryJobRequest const& request);
 
@@ -135,6 +145,10 @@ class CloudDeployConnection {
 
   virtual StatusOr<google::cloud::deploy::v1::JobRun> GetJobRun(
       google::cloud::deploy::v1::GetJobRunRequest const& request);
+
+  virtual StatusOr<google::cloud::deploy::v1::TerminateJobRunResponse>
+  TerminateJobRun(
+      google::cloud::deploy::v1::TerminateJobRunRequest const& request);
 
   virtual StatusOr<google::cloud::deploy::v1::Config> GetConfig(
       google::cloud::deploy::v1::GetConfigRequest const& request);

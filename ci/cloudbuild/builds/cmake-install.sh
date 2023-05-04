@@ -62,8 +62,10 @@ expected_dirs+=(
   # no RPC services in google/cloud/bigquery/logging
   ./include/google/cloud/bigquery/logging
   ./include/google/cloud/bigquery/logging/v1
+  ./include/google/cloud/bigquery/v2
   ./include/google/cloud/bigquery/v2/minimal
   ./include/google/cloud/bigquery/v2/minimal/internal
+  ./include/google/cloud/bigquery/v2/minimal/mocks
   ./include/google/cloud/bigtable/mocks
   # no RPC services in google/cloud/certificatemanager/logging
   ./include/google/cloud/certificatemanager/logging
@@ -78,6 +80,8 @@ expected_dirs+=(
   ./include/google/cloud/grpc_utils
   ./include/google/cloud/internal
   ./include/google/cloud/mocks
+  ./include/google/cloud/opentelemetry
+  ./include/google/cloud/opentelemetry/internal
   # orgpolicy/v1 is not automatically added. It is used by
   # google/cloud/asset, while google/cloud/orgpolicy uses
   # the **v2** protos.
@@ -96,6 +100,9 @@ expected_dirs+=(
   ./include/google/cloud/storage/testing
   # no gRPC services in google/cloud/workflows/type.
   ./include/google/cloud/workflows/type
+  # no gRPC services in google/cloud/workstations/logging
+  ./include/google/cloud/workstations/logging
+  ./include/google/cloud/workstations/logging/v1
   ./include/google/devtools/source
   ./include/google/devtools/source/v1
   # no gRPC services in google/identity/accesscontextmanager/type
@@ -103,6 +110,7 @@ expected_dirs+=(
   ./include/google/logging/type
   ./include/google/longrunning
   ./include/google/rpc
+  ./include/google/rpc/context
   ./include/google/spanner/v1
   ./include/google/type
   ./include/grafeas
@@ -113,6 +121,7 @@ expected_dirs+=(
   ./lib64/cmake/google_cloud_cpp_grafeas
   ./lib64/cmake/google_cloud_cpp_grpc_utils
   ./lib64/cmake/google_cloud_cpp_mocks
+  ./lib64/cmake/google_cloud_cpp_opentelemetry
   ./lib64/cmake/google_cloud_cpp_pubsub_mocks
   ./lib64/cmake/google_cloud_cpp_rest_internal
   ./lib64/cmake/google_cloud_cpp_rest_protobuf_internal
@@ -168,8 +177,8 @@ env -C "${out_dir}" ctest "${ctest_args[@]}"
 # Tests the installed artifacts by building and running the quickstarts.
 # shellcheck disable=SC2046
 feature_list="$(printf "%s;" $(features::libraries))"
-# GCS+gRPC is not a library, but it has a quickstart.
-feature_list="${feature_list}experimental-storage-grpc"
+# GCS+gRPC and OpenTelemetry also have quickstarts.
+feature_list="${feature_list}experimental-storage-grpc;experimental-opentelemetry"
 cmake -G Ninja \
   -S "${PROJECT_ROOT}/ci/verify_quickstart" \
   -B "${PROJECT_ROOT}/cmake-out/quickstart" \

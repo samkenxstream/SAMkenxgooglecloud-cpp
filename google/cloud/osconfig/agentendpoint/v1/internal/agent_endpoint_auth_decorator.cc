@@ -34,14 +34,14 @@ std::unique_ptr<google::cloud::internal::StreamingReadRpc<
     google::cloud::osconfig::agentendpoint::v1::
         ReceiveTaskNotificationResponse>>
 AgentEndpointServiceAuth::ReceiveTaskNotification(
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::osconfig::agentendpoint::v1::
         ReceiveTaskNotificationRequest const& request) {
   using ErrorStream = ::google::cloud::internal::StreamingReadRpcError<
       google::cloud::osconfig::agentendpoint::v1::
           ReceiveTaskNotificationResponse>;
   auto status = auth_->ConfigureContext(*context);
-  if (!status.ok()) return absl::make_unique<ErrorStream>(std::move(status));
+  if (!status.ok()) return std::make_unique<ErrorStream>(std::move(status));
   return child_->ReceiveTaskNotification(std::move(context), request);
 }
 

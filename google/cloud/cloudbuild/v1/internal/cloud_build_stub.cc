@@ -33,9 +33,12 @@ CloudBuildStub::~CloudBuildStub() = default;
 future<StatusOr<google::longrunning::Operation>>
 DefaultCloudBuildStub::AsyncCreateBuild(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::devtools::cloudbuild::v1::CreateBuildRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::devtools::cloudbuild::v1::CreateBuildRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::devtools::cloudbuild::v1::CreateBuildRequest const& request,
@@ -84,9 +87,12 @@ DefaultCloudBuildStub::CancelBuild(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCloudBuildStub::AsyncRetryBuild(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::devtools::cloudbuild::v1::RetryBuildRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::devtools::cloudbuild::v1::RetryBuildRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::devtools::cloudbuild::v1::RetryBuildRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -98,9 +104,12 @@ DefaultCloudBuildStub::AsyncRetryBuild(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCloudBuildStub::AsyncApproveBuild(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::devtools::cloudbuild::v1::ApproveBuildRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::devtools::cloudbuild::v1::ApproveBuildRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::devtools::cloudbuild::v1::ApproveBuildRequest const& request,
@@ -180,9 +189,12 @@ DefaultCloudBuildStub::UpdateBuildTrigger(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCloudBuildStub::AsyncRunBuildTrigger(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::devtools::cloudbuild::v1::RunBuildTriggerRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::devtools::cloudbuild::v1::RunBuildTriggerRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::devtools::cloudbuild::v1::RunBuildTriggerRequest const&
                  request,
@@ -209,9 +221,12 @@ DefaultCloudBuildStub::ReceiveTriggerWebhook(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCloudBuildStub::AsyncCreateWorkerPool(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::devtools::cloudbuild::v1::CreateWorkerPoolRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::devtools::cloudbuild::v1::CreateWorkerPoolRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::devtools::cloudbuild::v1::CreateWorkerPoolRequest const&
                  request,
@@ -236,9 +251,12 @@ DefaultCloudBuildStub::GetWorkerPool(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCloudBuildStub::AsyncDeleteWorkerPool(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::devtools::cloudbuild::v1::DeleteWorkerPoolRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::devtools::cloudbuild::v1::DeleteWorkerPoolRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::devtools::cloudbuild::v1::DeleteWorkerPoolRequest const&
                  request,
@@ -251,9 +269,12 @@ DefaultCloudBuildStub::AsyncDeleteWorkerPool(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCloudBuildStub::AsyncUpdateWorkerPool(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::devtools::cloudbuild::v1::UpdateWorkerPoolRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::devtools::cloudbuild::v1::UpdateWorkerPoolRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::devtools::cloudbuild::v1::UpdateWorkerPoolRequest const&
                  request,
@@ -279,9 +300,11 @@ DefaultCloudBuildStub::ListWorkerPools(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCloudBuildStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -292,16 +315,17 @@ DefaultCloudBuildStub::AsyncGetOperation(
 
 future<Status> DefaultCloudBuildStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

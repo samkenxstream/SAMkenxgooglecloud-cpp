@@ -21,6 +21,7 @@ certificatemanager
 channel
 cloudbuild
 composer
+confidentialcomputing
 connectors
 contactcenterinsights
 container
@@ -81,7 +82,9 @@ serviceusage
 shell
 spanner
 speech
+sql
 storage
+storageinsights
 storagetransfer
 talent
 tasks
@@ -98,3 +101,4 @@ vpcaccess
 webrisk
 websecurityscanner
 workflows
+workstations

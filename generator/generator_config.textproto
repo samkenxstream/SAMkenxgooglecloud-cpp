@@ -262,14 +262,6 @@ service {
   retryable_status_codes: ["kUnavailable"]
 }
 
-service {
-  service_proto_path: "google/cloud/bigquery/v2/model.proto"
-  product_path: "google/cloud/bigquery/v2"
-  forwarding_product_path: "google/cloud/bigquery"
-  initial_copyright_year: "2022"
-  retryable_status_codes: ["kUnavailable"]
-}
-
 # Bigtable
 service {
   service_proto_path: "google/bigtable/v2/bigtable.proto"
@@ -299,6 +291,7 @@ service {
   initial_copyright_year: "2021"
   emulator_endpoint_env_var: "BIGTABLE_INSTANCE_ADMIN_EMULATOR_HOST"
   retryable_status_codes: ["kUnavailable", "kAborted"]
+  omitted_rpcs: ["DeleteAppProfile(std::string const&)"]
 }
 
 service {
@@ -381,6 +374,16 @@ service {
   retryable_status_codes: ["kUnavailable"]
 }
 
+service {
+  service_proto_path: "google/devtools/cloudbuild/v2/repositories.proto"
+  additional_proto_files: ["google/devtools/cloudbuild/v2/cloudbuild.proto"]
+  product_path: "google/cloud/cloudbuild/v2"
+  initial_copyright_year: "2023"
+  retryable_status_codes: ["kUnavailable"]
+  # TODO(#11077): Remove experimental when service goes GA.
+  experimental: true
+}
+
 # Cloud Channel
 service {
   service_proto_path: "google/cloud/channel/v1/service.proto"
@@ -412,15 +415,25 @@ service {
 service {
   service_proto_path: "google/cloud/orchestration/airflow/service/v1/environments.proto"
   additional_proto_files: ["google/cloud/orchestration/airflow/service/v1/operations.proto"]
-  product_path: "google/cloud/composer"
+  product_path: "google/cloud/composer/v1"
+  forwarding_product_path: "google/cloud/composer"
   initial_copyright_year: "2022"
   retryable_status_codes: ["kUnavailable"]
 }
 
 service {
   service_proto_path: "google/cloud/orchestration/airflow/service/v1/image_versions.proto"
-  product_path: "google/cloud/composer"
+  product_path: "google/cloud/composer/v1"
+  forwarding_product_path: "google/cloud/composer"
   initial_copyright_year: "2022"
+  retryable_status_codes: ["kUnavailable"]
+}
+
+# Confidential Computing
+service {
+  service_proto_path: "google/cloud/confidentialcomputing/v1/service.proto"
+  product_path: "google/cloud/confidentialcomputing/v1"
+  initial_copyright_year: "2023"
   retryable_status_codes: ["kUnavailable"]
 }
 
@@ -517,7 +530,7 @@ service {
   product_path: "google/cloud/datacatalog/lineage/v1"
   initial_copyright_year: "2023"
   retryable_status_codes: ["kUnavailable"]
-  #TODO(#10976): Remove experimental when service goes GA.
+  # TODO(#10976): Remove experimental when service goes GA.
   experimental: true
 }
 
@@ -1037,6 +1050,12 @@ service {
   initial_copyright_year: "2020"
   backwards_compatibility_namespace_alias: true
   retryable_status_codes: ["kUnavailable"]
+  idempotency_overrides: [
+    {rpc_name: "IAMCredentials.GenerateAccessToken", idempotency: IDEMPOTENT},
+    {rpc_name: "IAMCredentials.GenerateIdToken", idempotency: IDEMPOTENT},
+    {rpc_name: "IAMCredentials.SignBlob", idempotency: IDEMPOTENT},
+    {rpc_name: "IAMCredentials.SignJwt", idempotency: IDEMPOTENT}
+  ]
 }
 
 service {
@@ -1051,6 +1070,13 @@ service {
     "SignBlob(std::string const&, std::string const&)",
     "SignJwt(std::string const&, std::string const&)"
   ]
+  idempotency_overrides: [
+    {rpc_name: "IAM.QueryGrantableRoles", idempotency: IDEMPOTENT},
+    {rpc_name: "IAM.QueryTestablePermissions", idempotency: IDEMPOTENT},
+    {rpc_name: "IAM.QueryAuditableServices", idempotency: IDEMPOTENT},
+    {rpc_name: "IAM.LintPolicy", idempotency: IDEMPOTENT}
+  ]
+
 }
 
 service {
@@ -1566,6 +1592,13 @@ service {
   retryable_status_codes: ["kUnavailable"]
 }
 
+service {
+  service_proto_path: "google/api/servicecontrol/v2/service_controller.proto"
+  product_path: "google/cloud/servicecontrol/v2"
+  initial_copyright_year: "2023"
+  retryable_status_codes: ["kUnavailable"]
+}
+
 # Service Directory
 service {
   service_proto_path: "google/cloud/servicedirectory/v1/lookup_service.proto"
@@ -1650,8 +1683,99 @@ service {
   product_path: "google/cloud/speech/v2"
   initial_copyright_year: "2022"
   retryable_status_codes: ["kUnavailable"]
-  #TODO(#10264): Remove experimental when service goes GA.
+  # TODO(#10264): Remove experimental when service goes GA.
   experimental: true
+}
+
+# Sql
+service {
+  service_proto_path: "google/cloud/sql/v1/cloud_sql_backup_runs.proto"
+  product_path: "google/cloud/sql/v1"
+  initial_copyright_year: "2023"
+  retryable_status_codes: ["kUnavailable"]
+  experimental: true
+  generate_rest_transport: true
+  generate_grpc_transport: false
+}
+
+service {
+  service_proto_path: "google/cloud/sql/v1/cloud_sql_connect.proto"
+  product_path: "google/cloud/sql/v1"
+  initial_copyright_year: "2023"
+  retryable_status_codes: ["kUnavailable"]
+  experimental: true
+  generate_rest_transport: true
+  generate_grpc_transport: false
+}
+
+service {
+  service_proto_path: "google/cloud/sql/v1/cloud_sql_databases.proto"
+  product_path: "google/cloud/sql/v1"
+  initial_copyright_year: "2023"
+  retryable_status_codes: ["kUnavailable"]
+  experimental: true
+  generate_rest_transport: true
+  generate_grpc_transport: false
+}
+
+service {
+  service_proto_path: "google/cloud/sql/v1/cloud_sql_flags.proto"
+  product_path: "google/cloud/sql/v1"
+  initial_copyright_year: "2023"
+  retryable_status_codes: ["kUnavailable"]
+  experimental: true
+  generate_rest_transport: true
+  generate_grpc_transport: false
+}
+
+service {
+  service_proto_path: "google/cloud/sql/v1/cloud_sql_instances.proto"
+  product_path: "google/cloud/sql/v1"
+  initial_copyright_year: "2023"
+  retryable_status_codes: ["kUnavailable"]
+  experimental: true
+  generate_rest_transport: true
+  generate_grpc_transport: false
+}
+
+service {
+  service_proto_path: "google/cloud/sql/v1/cloud_sql_operations.proto"
+  product_path: "google/cloud/sql/v1"
+  initial_copyright_year: "2023"
+  retryable_status_codes: ["kUnavailable"]
+  experimental: true
+  generate_rest_transport: true
+  generate_grpc_transport: false
+}
+
+service {
+  service_proto_path: "google/cloud/sql/v1/cloud_sql_ssl_certs.proto"
+  product_path: "google/cloud/sql/v1"
+  initial_copyright_year: "2023"
+  retryable_status_codes: ["kUnavailable"]
+  experimental: true
+  generate_rest_transport: true
+  generate_grpc_transport: false
+}
+
+service {
+  service_proto_path: "google/cloud/sql/v1/cloud_sql_tiers.proto"
+  product_path: "google/cloud/sql/v1"
+  initial_copyright_year: "2023"
+  retryable_status_codes: ["kUnavailable"]
+  experimental: true
+  generate_rest_transport: true
+  generate_grpc_transport: false
+}
+
+service {
+  service_proto_path: "google/cloud/sql/v1/cloud_sql_users.proto"
+  product_path: "google/cloud/sql/v1"
+  initial_copyright_year: "2023"
+  retryable_status_codes: ["kUnavailable"]
+  experimental: true
+  generate_rest_transport: true
+  generate_grpc_transport: false
 }
 
 # Storage
@@ -1669,6 +1793,14 @@ service {
     "QueryWriteStatus",
     "WriteObject"
   ]
+}
+
+# Storage Insights
+service {
+  service_proto_path: "google/cloud/storageinsights/v1/storageinsights.proto"
+  product_path: "google/cloud/storageinsights/v1"
+  initial_copyright_year: "2023"
+  retryable_status_codes: ["kUnavailable"]
 }
 
 # Storage Transfer Service
@@ -1756,6 +1888,16 @@ service {
 }
 
 # Cloud Trace
+service {
+  service_proto_path: "google/devtools/cloudtrace/v1/trace.proto"
+  product_path: "google/cloud/trace/v1"
+  initial_copyright_year: "2023"
+  retryable_status_codes: ["kUnavailable"]
+  idempotency_overrides: [
+    {rpc_name: "TraceService.PatchTraces", idempotency: IDEMPOTENT}
+  ]
+}
+
 service {
   service_proto_path: "google/devtools/cloudtrace/v2/tracing.proto"
   product_path: "google/cloud/trace/v2"
@@ -1882,5 +2024,13 @@ service {
   product_path: "google/cloud/workflows/executions/v1"
   forwarding_product_path: "google/cloud/workflows"
   initial_copyright_year: "2022"
+  retryable_status_codes: ["kUnavailable"]
+}
+
+# Workstations
+service {
+  service_proto_path: "google/cloud/workstations/v1/workstations.proto"
+  product_path: "google/cloud/workstations/v1"
+  initial_copyright_year: "2023"
   retryable_status_codes: ["kUnavailable"]
 }

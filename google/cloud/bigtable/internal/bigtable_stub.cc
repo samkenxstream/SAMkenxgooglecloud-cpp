@@ -20,7 +20,6 @@
 #include "google/cloud/grpc_error_delegate.h"
 #include "google/cloud/internal/async_streaming_read_rpc_impl.h"
 #include "google/cloud/status_or.h"
-#include "absl/memory/memory.h"
 #include <google/bigtable/v2/bigtable.grpc.pb.h>
 #include <memory>
 
@@ -34,10 +33,10 @@ BigtableStub::~BigtableStub() = default;
 std::unique_ptr<google::cloud::internal::StreamingReadRpc<
     google::bigtable::v2::ReadRowsResponse>>
 DefaultBigtableStub::ReadRows(
-    std::unique_ptr<grpc::ClientContext> client_context,
+    std::shared_ptr<grpc::ClientContext> client_context,
     google::bigtable::v2::ReadRowsRequest const& request) {
   auto stream = grpc_stub_->ReadRows(client_context.get(), request);
-  return absl::make_unique<google::cloud::internal::StreamingReadRpcImpl<
+  return std::make_unique<google::cloud::internal::StreamingReadRpcImpl<
       google::bigtable::v2::ReadRowsResponse>>(std::move(client_context),
                                                std::move(stream));
 }
@@ -45,10 +44,10 @@ DefaultBigtableStub::ReadRows(
 std::unique_ptr<google::cloud::internal::StreamingReadRpc<
     google::bigtable::v2::SampleRowKeysResponse>>
 DefaultBigtableStub::SampleRowKeys(
-    std::unique_ptr<grpc::ClientContext> client_context,
+    std::shared_ptr<grpc::ClientContext> client_context,
     google::bigtable::v2::SampleRowKeysRequest const& request) {
   auto stream = grpc_stub_->SampleRowKeys(client_context.get(), request);
-  return absl::make_unique<google::cloud::internal::StreamingReadRpcImpl<
+  return std::make_unique<google::cloud::internal::StreamingReadRpcImpl<
       google::bigtable::v2::SampleRowKeysResponse>>(std::move(client_context),
                                                     std::move(stream));
 }
@@ -68,10 +67,10 @@ DefaultBigtableStub::MutateRow(
 std::unique_ptr<google::cloud::internal::StreamingReadRpc<
     google::bigtable::v2::MutateRowsResponse>>
 DefaultBigtableStub::MutateRows(
-    std::unique_ptr<grpc::ClientContext> client_context,
+    std::shared_ptr<grpc::ClientContext> client_context,
     google::bigtable::v2::MutateRowsRequest const& request) {
   auto stream = grpc_stub_->MutateRows(client_context.get(), request);
-  return absl::make_unique<google::cloud::internal::StreamingReadRpcImpl<
+  return std::make_unique<google::cloud::internal::StreamingReadRpcImpl<
       google::bigtable::v2::MutateRowsResponse>>(std::move(client_context),
                                                  std::move(stream));
 }
@@ -118,7 +117,7 @@ std::unique_ptr<::google::cloud::internal::AsyncStreamingReadRpc<
     google::bigtable::v2::ReadRowsResponse>>
 DefaultBigtableStub::AsyncReadRows(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::v2::ReadRowsRequest const& request) {
   return google::cloud::internal::MakeStreamingReadRpc<
       google::bigtable::v2::ReadRowsRequest,
@@ -135,7 +134,7 @@ std::unique_ptr<::google::cloud::internal::AsyncStreamingReadRpc<
     google::bigtable::v2::SampleRowKeysResponse>>
 DefaultBigtableStub::AsyncSampleRowKeys(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::v2::SampleRowKeysRequest const& request) {
   return google::cloud::internal::MakeStreamingReadRpc<
       google::bigtable::v2::SampleRowKeysRequest,
@@ -151,9 +150,11 @@ DefaultBigtableStub::AsyncSampleRowKeys(
 future<StatusOr<google::bigtable::v2::MutateRowResponse>>
 DefaultBigtableStub::AsyncMutateRow(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::v2::MutateRowRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::bigtable::v2::MutateRowRequest,
+                                    google::bigtable::v2::MutateRowResponse>(
+      cq,
       [this](grpc::ClientContext* context,
              google::bigtable::v2::MutateRowRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -166,7 +167,7 @@ std::unique_ptr<::google::cloud::internal::AsyncStreamingReadRpc<
     google::bigtable::v2::MutateRowsResponse>>
 DefaultBigtableStub::AsyncMutateRows(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::v2::MutateRowsRequest const& request) {
   return google::cloud::internal::MakeStreamingReadRpc<
       google::bigtable::v2::MutateRowsRequest,
@@ -182,9 +183,12 @@ DefaultBigtableStub::AsyncMutateRows(
 future<StatusOr<google::bigtable::v2::CheckAndMutateRowResponse>>
 DefaultBigtableStub::AsyncCheckAndMutateRow(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::v2::CheckAndMutateRowRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::bigtable::v2::CheckAndMutateRowRequest,
+      google::bigtable::v2::CheckAndMutateRowResponse>(
+      cq,
       [this](grpc::ClientContext* context,
              google::bigtable::v2::CheckAndMutateRowRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -196,9 +200,12 @@ DefaultBigtableStub::AsyncCheckAndMutateRow(
 future<StatusOr<google::bigtable::v2::ReadModifyWriteRowResponse>>
 DefaultBigtableStub::AsyncReadModifyWriteRow(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::v2::ReadModifyWriteRowRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::bigtable::v2::ReadModifyWriteRowRequest,
+      google::bigtable::v2::ReadModifyWriteRowResponse>(
+      cq,
       [this](grpc::ClientContext* context,
              google::bigtable::v2::ReadModifyWriteRowRequest const& request,
              grpc::CompletionQueue* cq) {

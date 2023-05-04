@@ -13,9 +13,10 @@
 // limitations under the License.
 
 #include "google/cloud/internal/async_rest_polling_loop.h"
+#include "google/cloud/internal/call_context.h"
+#include "google/cloud/internal/grpc_opentelemetry.h"
 #include "google/cloud/log.h"
 #include "google/cloud/options.h"
-#include "absl/memory/memory.h"
 #include <algorithm>
 #include <mutex>
 #include <string>
@@ -45,13 +46,13 @@ class AsyncRestPollingLoopImpl
   future<StatusOr<Operation>> Start(future<StatusOr<Operation>> op) {
     auto self = shared_from_this();
     auto w = WeakFromThis();
-    auto const& options = internal::CurrentOptions();
-    promise_ = promise<StatusOr<Operation>>([w, options]() mutable {
-      if (auto self = w.lock()) {
-        internal::OptionsSpan span(std::move(options));
-        self->DoCancel();
-      }
-    });
+    promise_ = promise<StatusOr<Operation>>(
+        [w, c = internal::CallContext{}]() mutable {
+          if (auto self = w.lock()) {
+            internal::ScopedCallContext scope(std::move(c));
+            self->DoCancel();
+          }
+        });
     op.then([self](future<StatusOr<Operation>> f) { self->OnStart(f.get()); });
     return promise_.get_future();
   }
@@ -75,7 +76,7 @@ class AsyncRestPollingLoopImpl
     }
     // Cancels are best effort, so we use weak pointers.
     auto w = WeakFromThis();
-    cancel_(cq_, absl::make_unique<RestContext>(), request)
+    cancel_(cq_, std::make_unique<RestContext>(), request)
         .then([w](future<Status> f) {
           if (auto self = w.lock()) self->OnCancel(f.get());
         });
@@ -86,7 +87,9 @@ class AsyncRestPollingLoopImpl
   }
 
   void OnStart(StatusOr<Operation> op) {
-    if (!op || op->done()) return promise_.set_value(std::move(op));
+    if (!op) return promise_.set_value(std::move(op));
+    internal::AddSpanAttribute("gcloud.LRO_name", op->name());
+    if (op->done()) return promise_.set_value(std::move(op));
     GCP_LOG(DEBUG) << location_ << "() polling loop starting for "
                    << op->name();
     bool do_cancel = false;
@@ -104,8 +107,9 @@ class AsyncRestPollingLoopImpl
     GCP_LOG(DEBUG) << location_ << "() polling loop waiting "
                    << duration.count() << "ms";
     auto self = shared_from_this();
-    cq_.MakeRelativeTimer(duration).then(
-        [self](TimerResult f) { self->OnTimer(std::move(f)); });
+    internal::TracedAsyncBackoff(cq_, duration).then([self](TimerResult f) {
+      self->OnTimer(std::move(f));
+    });
   }
 
   void OnTimer(TimerResult f) {
@@ -118,7 +122,7 @@ class AsyncRestPollingLoopImpl
       request.set_name(op_name_);
     }
     auto self = shared_from_this();
-    poll_(cq_, absl::make_unique<RestContext>(), request)
+    poll_(cq_, std::make_unique<RestContext>(), request)
         .then([self](future<StatusOr<Operation>> g) {
           self->OnPoll(std::move(g));
         });

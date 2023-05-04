@@ -25,12 +25,20 @@ GOOGLE_CLOUD_STORAGE_WIN_DEFINES = [
 load(":google_cloud_cpp_storage.bzl", "google_cloud_cpp_storage_hdrs", "google_cloud_cpp_storage_srcs")
 load(":google_cloud_cpp_storage_grpc.bzl", "google_cloud_cpp_storage_grpc_hdrs", "google_cloud_cpp_storage_grpc_srcs")
 
+config_setting(
+    name = "ctype_cord_workaround_enabled",
+    flag_values = {"//:enable-ctype-cord-workaround": "true"},
+)
+
 cc_library(
     name = "google_cloud_cpp_storage_grpc",
     srcs = google_cloud_cpp_storage_grpc_srcs,
     hdrs = google_cloud_cpp_storage_grpc_hdrs,
     defines = ["GOOGLE_CLOUD_CPP_STORAGE_HAVE_GRPC"] + select({
         "@platforms//os:windows": GOOGLE_CLOUD_STORAGE_WIN_DEFINES,
+        "//conditions:default": [],
+    }) + select({
+        ":ctype_cord_workaround_enabled": ["GOOGLE_CLOUD_CPP_ENABLE_CTYPE_CORD_WORKAROUND"],
         "//conditions:default": [],
     }),
     visibility = [
@@ -75,7 +83,7 @@ cc_library(
         "@com_github_curl_curl//:curl",
         "@com_github_google_crc32c//:crc32c",
         "@com_github_nlohmann_json//:nlohmann_json",
-        "@com_google_absl//absl/memory",
+        "@com_google_absl//absl/strings:cord",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
         "@com_google_absl//absl/types:span",
@@ -117,7 +125,6 @@ cc_library(
         "@boringssl//:crypto",
         "@boringssl//:ssl",
         "@com_github_curl_curl//:curl",
-        "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -139,7 +146,6 @@ load(":storage_client_unit_tests.bzl", "storage_client_unit_tests")
         "@boringssl//:crypto",
         "@boringssl//:ssl",
         "@com_github_curl_curl//:curl",
-        "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
 ) for test in storage_client_unit_tests]
@@ -165,3 +171,16 @@ load(":storage_client_grpc_unit_tests.bzl", "storage_client_grpc_unit_tests")
         "@com_google_googletest//:gtest_main",
     ],
 ) for test in storage_client_grpc_unit_tests]
+
+load(":storage_client_benchmarks.bzl", "storage_client_benchmarks")
+
+[cc_binary(
+    name = benchmark.replace("/", "_").replace(".cc", ""),
+    srcs = [benchmark],
+    tags = ["benchmark"],
+    deps = [
+        ":google_cloud_cpp_storage",
+        "//:common",
+        "@com_google_benchmark//:benchmark_main",
+    ],
+) for benchmark in storage_client_benchmarks]

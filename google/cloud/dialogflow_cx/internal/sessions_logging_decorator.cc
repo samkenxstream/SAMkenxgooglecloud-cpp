@@ -51,7 +51,7 @@ std::unique_ptr<::google::cloud::AsyncStreamingReadWriteRpc<
     google::cloud::dialogflow::cx::v3::StreamingDetectIntentResponse>>
 SessionsLogging::AsyncStreamingDetectIntent(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context) {
+    std::shared_ptr<grpc::ClientContext> context) {
   using LoggingStream =
       ::google::cloud::internal::AsyncStreamingReadWriteRpcLogging<
           google::cloud::dialogflow::cx::v3::StreamingDetectIntentRequest,
@@ -61,7 +61,7 @@ SessionsLogging::AsyncStreamingDetectIntent(
   GCP_LOG(DEBUG) << __func__ << "(" << request_id << ")";
   auto stream = child_->AsyncStreamingDetectIntent(cq, std::move(context));
   if (components_.count("rpc-streams") > 0) {
-    stream = absl::make_unique<LoggingStream>(
+    stream = std::make_unique<LoggingStream>(
         std::move(stream), tracing_options_, std::move(request_id));
   }
   return stream;

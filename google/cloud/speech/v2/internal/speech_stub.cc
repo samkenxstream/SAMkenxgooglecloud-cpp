@@ -34,9 +34,12 @@ SpeechStub::~SpeechStub() = default;
 future<StatusOr<google::longrunning::Operation>>
 DefaultSpeechStub::AsyncCreateRecognizer(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::speech::v2::CreateRecognizerRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::speech::v2::CreateRecognizerRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::speech::v2::CreateRecognizerRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -73,9 +76,12 @@ DefaultSpeechStub::GetRecognizer(
 future<StatusOr<google::longrunning::Operation>>
 DefaultSpeechStub::AsyncUpdateRecognizer(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::speech::v2::UpdateRecognizerRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::speech::v2::UpdateRecognizerRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::speech::v2::UpdateRecognizerRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -87,9 +93,12 @@ DefaultSpeechStub::AsyncUpdateRecognizer(
 future<StatusOr<google::longrunning::Operation>>
 DefaultSpeechStub::AsyncDeleteRecognizer(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::speech::v2::DeleteRecognizerRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::speech::v2::DeleteRecognizerRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::speech::v2::DeleteRecognizerRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -101,9 +110,12 @@ DefaultSpeechStub::AsyncDeleteRecognizer(
 future<StatusOr<google::longrunning::Operation>>
 DefaultSpeechStub::AsyncUndeleteRecognizer(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::speech::v2::UndeleteRecognizerRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::speech::v2::UndeleteRecognizerRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::speech::v2::UndeleteRecognizerRequest const& request,
@@ -130,7 +142,7 @@ std::unique_ptr<::google::cloud::AsyncStreamingReadWriteRpc<
     google::cloud::speech::v2::StreamingRecognizeResponse>>
 DefaultSpeechStub::AsyncStreamingRecognize(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context) {
+    std::shared_ptr<grpc::ClientContext> context) {
   return google::cloud::internal::MakeStreamingReadWriteRpc<
       google::cloud::speech::v2::StreamingRecognizeRequest,
       google::cloud::speech::v2::StreamingRecognizeResponse>(
@@ -143,9 +155,12 @@ DefaultSpeechStub::AsyncStreamingRecognize(
 future<StatusOr<google::longrunning::Operation>>
 DefaultSpeechStub::AsyncBatchRecognize(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::speech::v2::BatchRecognizeRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::speech::v2::BatchRecognizeRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::speech::v2::BatchRecognizeRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -179,9 +194,12 @@ StatusOr<google::cloud::speech::v2::Config> DefaultSpeechStub::UpdateConfig(
 future<StatusOr<google::longrunning::Operation>>
 DefaultSpeechStub::AsyncCreateCustomClass(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::speech::v2::CreateCustomClassRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::speech::v2::CreateCustomClassRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::speech::v2::CreateCustomClassRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -218,9 +236,12 @@ DefaultSpeechStub::GetCustomClass(
 future<StatusOr<google::longrunning::Operation>>
 DefaultSpeechStub::AsyncUpdateCustomClass(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::speech::v2::UpdateCustomClassRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::speech::v2::UpdateCustomClassRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::speech::v2::UpdateCustomClassRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -232,9 +253,12 @@ DefaultSpeechStub::AsyncUpdateCustomClass(
 future<StatusOr<google::longrunning::Operation>>
 DefaultSpeechStub::AsyncDeleteCustomClass(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::speech::v2::DeleteCustomClassRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::speech::v2::DeleteCustomClassRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::speech::v2::DeleteCustomClassRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -246,9 +270,12 @@ DefaultSpeechStub::AsyncDeleteCustomClass(
 future<StatusOr<google::longrunning::Operation>>
 DefaultSpeechStub::AsyncUndeleteCustomClass(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::speech::v2::UndeleteCustomClassRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::speech::v2::UndeleteCustomClassRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::speech::v2::UndeleteCustomClassRequest const& request,
@@ -261,9 +288,12 @@ DefaultSpeechStub::AsyncUndeleteCustomClass(
 future<StatusOr<google::longrunning::Operation>>
 DefaultSpeechStub::AsyncCreatePhraseSet(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::speech::v2::CreatePhraseSetRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::speech::v2::CreatePhraseSetRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::speech::v2::CreatePhraseSetRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -298,9 +328,12 @@ StatusOr<google::cloud::speech::v2::PhraseSet> DefaultSpeechStub::GetPhraseSet(
 future<StatusOr<google::longrunning::Operation>>
 DefaultSpeechStub::AsyncUpdatePhraseSet(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::speech::v2::UpdatePhraseSetRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::speech::v2::UpdatePhraseSetRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::speech::v2::UpdatePhraseSetRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -312,9 +345,12 @@ DefaultSpeechStub::AsyncUpdatePhraseSet(
 future<StatusOr<google::longrunning::Operation>>
 DefaultSpeechStub::AsyncDeletePhraseSet(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::speech::v2::DeletePhraseSetRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::speech::v2::DeletePhraseSetRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::speech::v2::DeletePhraseSetRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -326,9 +362,12 @@ DefaultSpeechStub::AsyncDeletePhraseSet(
 future<StatusOr<google::longrunning::Operation>>
 DefaultSpeechStub::AsyncUndeletePhraseSet(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::speech::v2::UndeletePhraseSetRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::speech::v2::UndeletePhraseSetRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::speech::v2::UndeletePhraseSetRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -340,9 +379,11 @@ DefaultSpeechStub::AsyncUndeletePhraseSet(
 future<StatusOr<google::longrunning::Operation>>
 DefaultSpeechStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -353,16 +394,17 @@ DefaultSpeechStub::AsyncGetOperation(
 
 future<Status> DefaultSpeechStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

@@ -57,9 +57,12 @@ DefaultHubServiceStub::GetHub(
 future<StatusOr<google::longrunning::Operation>>
 DefaultHubServiceStub::AsyncCreateHub(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::networkconnectivity::v1::CreateHubRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::networkconnectivity::v1::CreateHubRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::networkconnectivity::v1::CreateHubRequest const&
                  request,
@@ -72,9 +75,12 @@ DefaultHubServiceStub::AsyncCreateHub(
 future<StatusOr<google::longrunning::Operation>>
 DefaultHubServiceStub::AsyncUpdateHub(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::networkconnectivity::v1::UpdateHubRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::networkconnectivity::v1::UpdateHubRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::networkconnectivity::v1::UpdateHubRequest const&
                  request,
@@ -87,9 +93,12 @@ DefaultHubServiceStub::AsyncUpdateHub(
 future<StatusOr<google::longrunning::Operation>>
 DefaultHubServiceStub::AsyncDeleteHub(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::networkconnectivity::v1::DeleteHubRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::networkconnectivity::v1::DeleteHubRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::networkconnectivity::v1::DeleteHubRequest const&
                  request,
@@ -126,9 +135,12 @@ DefaultHubServiceStub::GetSpoke(
 future<StatusOr<google::longrunning::Operation>>
 DefaultHubServiceStub::AsyncCreateSpoke(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::networkconnectivity::v1::CreateSpokeRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::networkconnectivity::v1::CreateSpokeRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::networkconnectivity::v1::CreateSpokeRequest const&
                  request,
@@ -141,9 +153,12 @@ DefaultHubServiceStub::AsyncCreateSpoke(
 future<StatusOr<google::longrunning::Operation>>
 DefaultHubServiceStub::AsyncUpdateSpoke(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::networkconnectivity::v1::UpdateSpokeRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::networkconnectivity::v1::UpdateSpokeRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::networkconnectivity::v1::UpdateSpokeRequest const&
                  request,
@@ -156,9 +171,12 @@ DefaultHubServiceStub::AsyncUpdateSpoke(
 future<StatusOr<google::longrunning::Operation>>
 DefaultHubServiceStub::AsyncDeleteSpoke(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::networkconnectivity::v1::DeleteSpokeRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::networkconnectivity::v1::DeleteSpokeRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::networkconnectivity::v1::DeleteSpokeRequest const&
                  request,
@@ -171,9 +189,11 @@ DefaultHubServiceStub::AsyncDeleteSpoke(
 future<StatusOr<google::longrunning::Operation>>
 DefaultHubServiceStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -184,16 +204,17 @@ DefaultHubServiceStub::AsyncGetOperation(
 
 future<Status> DefaultHubServiceStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

@@ -14,6 +14,8 @@
 
 #include "google/cloud/internal/async_polling_loop.h"
 #include "google/cloud/grpc_options.h"
+#include "google/cloud/internal/call_context.h"
+#include "google/cloud/internal/grpc_opentelemetry.h"
 #include "google/cloud/log.h"
 #include <algorithm>
 #include <mutex>
@@ -44,10 +46,9 @@ class AsyncPollingLoopImpl
   future<StatusOr<Operation>> Start(future<StatusOr<Operation>> op) {
     auto self = shared_from_this();
     auto w = WeakFromThis();
-    auto const& options = CurrentOptions();
-    promise_ = promise<StatusOr<Operation>>([w, options]() mutable {
+    promise_ = promise<StatusOr<Operation>>([w, c = CallContext{}]() mutable {
       if (auto self = w.lock()) {
-        OptionsSpan span(std::move(options));
+        ScopedCallContext scope(std::move(c));
         self->DoCancel();
       }
     });
@@ -74,7 +75,7 @@ class AsyncPollingLoopImpl
     }
     // Cancels are best effort, so we use weak pointers.
     auto w = WeakFromThis();
-    auto context = absl::make_unique<grpc::ClientContext>();
+    auto context = std::make_shared<grpc::ClientContext>();
     ConfigurePollContext(*context, CurrentOptions());
     cancel_(cq_, std::move(context), request).then([w](future<Status> f) {
       if (auto self = w.lock()) self->OnCancel(f.get());
@@ -86,7 +87,9 @@ class AsyncPollingLoopImpl
   }
 
   void OnStart(StatusOr<Operation> op) {
-    if (!op || op->done()) return promise_.set_value(std::move(op));
+    if (!op) return promise_.set_value(std::move(op));
+    AddSpanAttribute("gcloud.LRO_name", op->name());
+    if (op->done()) return promise_.set_value(std::move(op));
     GCP_LOG(DEBUG) << location_ << "() polling loop starting for "
                    << op->name();
     bool do_cancel = false;
@@ -104,8 +107,9 @@ class AsyncPollingLoopImpl
     GCP_LOG(DEBUG) << location_ << "() polling loop waiting "
                    << duration.count() << "ms";
     auto self = shared_from_this();
-    cq_.MakeRelativeTimer(duration).then(
-        [self](TimerResult f) { self->OnTimer(std::move(f)); });
+    TracedAsyncBackoff(cq_, duration).then([self](TimerResult f) {
+      self->OnTimer(std::move(f));
+    });
   }
 
   void OnTimer(TimerResult f) {
@@ -118,7 +122,7 @@ class AsyncPollingLoopImpl
       request.set_name(op_name_);
     }
     auto self = shared_from_this();
-    auto context = absl::make_unique<grpc::ClientContext>();
+    auto context = std::make_shared<grpc::ClientContext>();
     ConfigurePollContext(*context, CurrentOptions());
     poll_(cq_, std::move(context), request)
         .then([self](future<StatusOr<Operation>> g) {

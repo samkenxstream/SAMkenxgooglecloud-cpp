@@ -78,9 +78,12 @@ DefaultAgentsStub::SearchAgents(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAgentsStub::AsyncTrainAgent(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::dialogflow::v2::TrainAgentRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::dialogflow::v2::TrainAgentRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::dialogflow::v2::TrainAgentRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -92,9 +95,12 @@ DefaultAgentsStub::AsyncTrainAgent(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAgentsStub::AsyncExportAgent(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::dialogflow::v2::ExportAgentRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::dialogflow::v2::ExportAgentRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::dialogflow::v2::ExportAgentRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -106,9 +112,12 @@ DefaultAgentsStub::AsyncExportAgent(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAgentsStub::AsyncImportAgent(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::dialogflow::v2::ImportAgentRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::dialogflow::v2::ImportAgentRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::dialogflow::v2::ImportAgentRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -120,9 +129,12 @@ DefaultAgentsStub::AsyncImportAgent(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAgentsStub::AsyncRestoreAgent(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::dialogflow::v2::RestoreAgentRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::dialogflow::v2::RestoreAgentRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::dialogflow::v2::RestoreAgentRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -147,9 +159,11 @@ DefaultAgentsStub::GetValidationResult(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAgentsStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -160,16 +174,17 @@ DefaultAgentsStub::AsyncGetOperation(
 
 future<Status> DefaultAgentsStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

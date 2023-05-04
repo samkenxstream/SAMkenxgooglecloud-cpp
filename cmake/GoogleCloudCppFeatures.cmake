@@ -25,7 +25,7 @@ set(GOOGLE_CLOUD_CPP_LEGACY_FEATURES
 
 set(GOOGLE_CLOUD_CPP_EXPERIMENTAL_LIBRARIES # cmake-format: sorted
     # This is WIP, it needs a number of hand-crafted APIs.
-    "pubsublite")
+    "pubsublite" "sql")
 
 set(GOOGLE_CLOUD_CPP_TRANSITION_LIBRARIES # cmake-format: sorted
     # Transitioned circa 2023-02-22
@@ -55,6 +55,7 @@ set(GOOGLE_CLOUD_CPP_GA_LIBRARIES
     "channel"
     "cloudbuild"
     "composer"
+    "confidentialcomputing"
     "connectors"
     "contactcenterinsights"
     "container"
@@ -115,6 +116,7 @@ set(GOOGLE_CLOUD_CPP_GA_LIBRARIES
     "spanner"
     "speech"
     "storage"
+    "storageinsights"
     "storagetransfer"
     "talent"
     "tasks"
@@ -130,7 +132,8 @@ set(GOOGLE_CLOUD_CPP_GA_LIBRARIES
     "vpcaccess"
     "webrisk"
     "websecurityscanner"
-    "workflows")
+    "workflows"
+    "workstations")
 
 export_list_to_bazel(
     "libraries.bzl" YEAR 2023 GOOGLE_CLOUD_CPP_EXPERIMENTAL_LIBRARIES
@@ -168,6 +171,9 @@ function (google_cloud_cpp_enable_deps)
     if (experimental-storage-grpc IN_LIST GOOGLE_CLOUD_CPP_ENABLE)
         list(INSERT GOOGLE_CLOUD_CPP_ENABLE 0 storage)
     endif ()
+    if (experimental-opentelemetry IN_LIST GOOGLE_CLOUD_CPP_ENABLE)
+        list(INSERT GOOGLE_CLOUD_CPP_ENABLE 0 trace)
+    endif ()
     set(GOOGLE_CLOUD_CPP_ENABLE
         "${GOOGLE_CLOUD_CPP_ENABLE}"
         PARENT_SCOPE)
@@ -200,6 +206,7 @@ function (google_cloud_cpp_enable_cleanup)
     set(GOOGLE_CLOUD_CPP_ENABLE_REST OFF)
     if ((storage IN_LIST GOOGLE_CLOUD_CPP_ENABLE)
         OR (experimental-bigquery_rest IN_LIST GOOGLE_CLOUD_CPP_ENABLE)
+        OR (sql IN_LIST GOOGLE_CLOUD_CPP_ENABLE)
         OR (generator IN_LIST GOOGLE_CLOUD_CPP_ENABLE))
         set(GOOGLE_CLOUD_CPP_ENABLE_REST ON)
     endif ()
@@ -220,9 +227,7 @@ endfunction ()
 # additional samples that are enabled if needed.
 function (google_cloud_cpp_enable_features)
     foreach (feature ${GOOGLE_CLOUD_CPP_ENABLE})
-        if ("${feature}" STREQUAL "internal-docfx")
-            add_subdirectory(docfx)
-        elseif ("${feature}" STREQUAL "generator")
+        if ("${feature}" STREQUAL "generator")
             add_subdirectory(generator)
         elseif ("${feature}" STREQUAL "experimental-storage-grpc")
             if (NOT ("storage" IN_LIST GOOGLE_CLOUD_CPP_ENABLE))
@@ -235,7 +240,7 @@ function (google_cloud_cpp_enable_features)
         elseif ("${feature}" STREQUAL "experimental-http-transcoding")
             continue()
         elseif ("${feature}" STREQUAL "experimental-opentelemetry")
-
+            add_subdirectory(google/cloud/opentelemetry)
         else ()
             if (NOT IS_DIRECTORY
                 "${CMAKE_CURRENT_SOURCE_DIR}/google/cloud/${feature}"

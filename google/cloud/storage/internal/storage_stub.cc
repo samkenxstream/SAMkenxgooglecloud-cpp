@@ -22,7 +22,6 @@
 #include "google/cloud/internal/async_streaming_write_rpc_impl.h"
 #include "google/cloud/internal/streaming_write_rpc_impl.h"
 #include "google/cloud/status_or.h"
-#include "absl/memory/memory.h"
 #include <google/storage/v2/storage.grpc.pb.h>
 #include <memory>
 
@@ -237,10 +236,10 @@ StatusOr<google::storage::v2::Object> DefaultStorageStub::GetObject(
 std::unique_ptr<google::cloud::internal::StreamingReadRpc<
     google::storage::v2::ReadObjectResponse>>
 DefaultStorageStub::ReadObject(
-    std::unique_ptr<grpc::ClientContext> client_context,
+    std::shared_ptr<grpc::ClientContext> client_context,
     google::storage::v2::ReadObjectRequest const& request) {
   auto stream = grpc_stub_->ReadObject(client_context.get(), request);
-  return absl::make_unique<google::cloud::internal::StreamingReadRpcImpl<
+  return std::make_unique<google::cloud::internal::StreamingReadRpcImpl<
       google::storage::v2::ReadObjectResponse>>(std::move(client_context),
                                                 std::move(stream));
 }
@@ -259,10 +258,10 @@ StatusOr<google::storage::v2::Object> DefaultStorageStub::UpdateObject(
 std::unique_ptr<::google::cloud::internal::StreamingWriteRpc<
     google::storage::v2::WriteObjectRequest,
     google::storage::v2::WriteObjectResponse>>
-DefaultStorageStub::WriteObject(std::unique_ptr<grpc::ClientContext> context) {
-  auto response = absl::make_unique<google::storage::v2::WriteObjectResponse>();
+DefaultStorageStub::WriteObject(std::shared_ptr<grpc::ClientContext> context) {
+  auto response = std::make_unique<google::storage::v2::WriteObjectResponse>();
   auto stream = grpc_stub_->WriteObject(context.get(), response.get());
-  return absl::make_unique<::google::cloud::internal::StreamingWriteRpcImpl<
+  return std::make_unique<::google::cloud::internal::StreamingWriteRpcImpl<
       google::storage::v2::WriteObjectRequest,
       google::storage::v2::WriteObjectResponse>>(
       std::move(context), std::move(response), std::move(stream));
@@ -391,16 +390,17 @@ DefaultStorageStub::UpdateHmacKey(
 
 future<Status> DefaultStorageStub::AsyncDeleteObject(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::storage::v2::DeleteObjectRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::storage::v2::DeleteObjectRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return grpc_stub_->AsyncDeleteObject(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::storage::v2::DeleteObjectRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::storage::v2::DeleteObjectRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return grpc_stub_->AsyncDeleteObject(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });
@@ -410,7 +410,7 @@ std::unique_ptr<::google::cloud::internal::AsyncStreamingReadRpc<
     google::storage::v2::ReadObjectResponse>>
 DefaultStorageStub::AsyncReadObject(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::storage::v2::ReadObjectRequest const& request) {
   return google::cloud::internal::MakeStreamingReadRpc<
       google::storage::v2::ReadObjectRequest,
@@ -428,7 +428,7 @@ std::unique_ptr<::google::cloud::internal::AsyncStreamingWriteRpc<
     google::storage::v2::WriteObjectResponse>>
 DefaultStorageStub::AsyncWriteObject(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context) {
+    std::shared_ptr<grpc::ClientContext> context) {
   return google::cloud::internal::MakeStreamingWriteRpc<
       google::storage::v2::WriteObjectRequest,
       google::storage::v2::WriteObjectResponse>(
@@ -443,9 +443,12 @@ DefaultStorageStub::AsyncWriteObject(
 future<StatusOr<google::storage::v2::StartResumableWriteResponse>>
 DefaultStorageStub::AsyncStartResumableWrite(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::storage::v2::StartResumableWriteRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::storage::v2::StartResumableWriteRequest,
+      google::storage::v2::StartResumableWriteResponse>(
+      cq,
       [this](grpc::ClientContext* context,
              google::storage::v2::StartResumableWriteRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -457,9 +460,12 @@ DefaultStorageStub::AsyncStartResumableWrite(
 future<StatusOr<google::storage::v2::QueryWriteStatusResponse>>
 DefaultStorageStub::AsyncQueryWriteStatus(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::storage::v2::QueryWriteStatusRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::storage::v2::QueryWriteStatusRequest,
+      google::storage::v2::QueryWriteStatusResponse>(
+      cq,
       [this](grpc::ClientContext* context,
              google::storage::v2::QueryWriteStatusRequest const& request,
              grpc::CompletionQueue* cq) {

@@ -52,13 +52,12 @@ int main(int argc, char* argv[]) {
   auto writer = client.WriteObject(bucket_name, "quickstart.txt");
   writer << "Hello World!";
   writer.Close();
-  if (writer.metadata()) {
-    std::cout << "Successfully created object: " << *writer.metadata() << "\n";
-  } else {
+  if (!writer.metadata()) {
     std::cerr << "Error creating object: " << writer.metadata().status()
               << "\n";
     return 1;
   }
+  std::cout << "Successfully created object: " << *writer.metadata() << "\n";
 
   auto reader = client.ReadObject(bucket_name, "quickstart.txt");
   if (!reader) {
@@ -159,6 +158,9 @@ See each library's `README.md` file for more information about:
 - [Cloud Composer](google/cloud/composer/README.md)
   [\[quickstart\]](google/cloud/composer/quickstart/README.md)
   [\[reference\]](https://googleapis.dev/cpp/google-cloud-composer/latest)
+- [Confidential Computing API](google/cloud/confidentialcomputing/README.md)
+  [\[quickstart\]](google/cloud/confidentialcomputing/quickstart/README.md)
+  [\[reference\]](https://googleapis.dev/cpp/google-cloud-confidentialcomputing/latest)
 - [Connectors API](google/cloud/connectors/README.md)
   [\[quickstart\]](google/cloud/connectors/quickstart/README.md)
   [\[reference\]](https://googleapis.dev/cpp/google-cloud-connectors/latest)
@@ -339,6 +341,9 @@ See each library's `README.md` file for more information about:
 - [Google Cloud Storage](google/cloud/storage/README.md)
   [\[quickstart\]](google/cloud/storage/quickstart/README.md)
   [\[reference\]](https://googleapis.dev/cpp/google-cloud-storage/latest)
+- [Storage Insights API](google/cloud/storageinsights/README.md)
+  [\[quickstart\]](google/cloud/storageinsights/quickstart/README.md)
+  [\[reference\]](https://googleapis.dev/cpp/google-cloud-storageinsights/latest)
 - [Storage Transfer API](google/cloud/storagetransfer/README.md)
   [\[quickstart\]](google/cloud/storagetransfer/quickstart/README.md)
   [\[reference\]](https://googleapis.dev/cpp/google-cloud-storagetransfer/latest)
@@ -387,6 +392,9 @@ See each library's `README.md` file for more information about:
 - [Workflow Executions API](google/cloud/workflows/README.md)
   [\[quickstart\]](google/cloud/workflows/quickstart/README.md)
   [\[reference\]](https://googleapis.dev/cpp/google-cloud-workflows/latest)
+- [Cloud Workstations API](google/cloud/workstations/README.md)
+  [\[quickstart\]](google/cloud/workstations/quickstart/README.md)
+  [\[reference\]](https://googleapis.dev/cpp/google-cloud-workstations/latest)
 
 <!-- inject-GA-libraries-end -->
 
@@ -401,9 +409,8 @@ run the examples included with the libraries.
   fixed directory (such as `/usr/local` or `/opt`) should consult the
   [packaging guide](/doc/packaging.md).
 - Developers who prefer using a package manager such as
-  [vcpkg](https://vcpkg.io), [Conda](https://conda.io),
-  or [Conan](https://conan.io) should follow the instructions for their package
-  manager.
+  [vcpkg](https://vcpkg.io), or [Conda](https://conda.io), should follow the
+  instructions for their package manager.
 - Developers wanting to use the libraries as part of a larger CMake or Bazel
   project should consult the [quickstart guides](#quickstart) for the library
   or libraries they want to use.
@@ -414,8 +421,8 @@ run the examples included with the libraries.
 
 ### Building with Bazel
 
-This library requires Bazel >= 4.0[^bazel-version-note]. From the top-level
-directory, run the usual commands.
+This library requires Bazel >= 5.4. From the top-level directory, run the usual
+commands.
 
 ```shell
 bazel build //...
@@ -445,8 +452,8 @@ The binary artifacts, such as examples, will be placed in `cmake-out/`.
   which is summarized in the [Foundational C++ Support Matrix][support-matrix].
   - Language Version (>= C++14).
   - Operating Systems: Windows, macOS, and Linux.
-  - Build Systems: Bazel (>= 4.0)[^bazel-version-note], CMake (>= 3.10).
-  - Compilers: GCC (>= 7.3), Clang (>= 6.0), MSVC (>= 2017), Apple Clang (>= 12).
+  - Build Systems: Bazel (>= 5.4), CMake (>= 3.10).
+  - Compilers: GCC (>= 7.3), Clang (>= 6.0), MSVC (>= 2019), Apple Clang (>= 12).
 - This project uses dependencies described in [doc/packaging.md](https://github.com/googleapis/google-cloud-cpp/blob/main/doc/packaging.md).
 - This project works with or without exceptions enabled.
 - This project cuts [monthly releases](https://github.com/googleapis/google-cloud-cpp/releases) with detailed release notes.
@@ -613,10 +620,6 @@ properly format your code.
 ## Licensing
 
 Apache 2.0; see [`LICENSE`](/LICENSE) for details.
-
-[^bazel-version-note]: On some platforms (e.g. macOS with M1 processors), you
-    may need a more recent version of Bazel. Consult the
-    [Bazel Install Guide](https://bazel.build/install) for details.
 
 [breaking-change-policy]: https://opensource.google/documentation/policies/library-breaking-change
 [changelog]: /CHANGELOG.md

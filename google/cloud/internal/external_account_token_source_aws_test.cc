@@ -61,7 +61,7 @@ internal::ErrorContext MakeTestErrorContext() {
 }
 
 std::unique_ptr<RestResponse> MakeMockResponseSuccess(std::string contents) {
-  auto response = absl::make_unique<MockRestResponse>();
+  auto response = std::make_unique<MockRestResponse>();
   EXPECT_CALL(*response, StatusCode)
       .WillRepeatedly(Return(HttpStatusCode::kOk));
   EXPECT_CALL(std::move(*response), ExtractPayload)
@@ -71,7 +71,7 @@ std::unique_ptr<RestResponse> MakeMockResponseSuccess(std::string contents) {
 }
 
 std::unique_ptr<RestResponse> MakeMockResponseNotFound() {
-  auto response = absl::make_unique<MockRestResponse>();
+  auto response = std::make_unique<MockRestResponse>();
   EXPECT_CALL(*response, StatusCode)
       .WillRepeatedly(Return(HttpStatusCode::kNotFound));
   EXPECT_CALL(std::move(*response), ExtractPayload)
@@ -177,9 +177,9 @@ TEST(ExternalAccountTokenSource, SourceImdsv2Failure) {
 
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call).WillOnce([] {
-    auto mock = absl::make_unique<MockRestClient>();
+    auto mock = std::make_unique<MockRestClient>();
     auto expected_request = Property(&RestRequest::path, kTestImdsv2Url);
-    EXPECT_CALL(*mock, Put(expected_request, _))
+    EXPECT_CALL(*mock, Put(_, expected_request, _))
         .WillOnce(Return(ByMove(MakeMockResponseNotFound())));
     return mock;
   });
@@ -217,9 +217,9 @@ TEST(ExternalAccountTokenSource, SourceRegionFailure) {
 
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call).WillOnce([] {
-    auto mock = absl::make_unique<MockRestClient>();
+    auto mock = std::make_unique<MockRestClient>();
     auto expected_request = Property(&RestRequest::path, kTestRegionUrl);
-    EXPECT_CALL(*mock, Get(expected_request))
+    EXPECT_CALL(*mock, Get(_, expected_request))
         .WillOnce(Return(ByMove(MakeMockResponseNotFound())));
     return mock;
   });
@@ -254,9 +254,9 @@ TEST(ExternalAccountTokenSource, SourceSecretsFailure) {
 
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call).WillOnce([] {
-    auto mock = absl::make_unique<MockRestClient>();
+    auto mock = std::make_unique<MockRestClient>();
     auto expected_request = Property(&RestRequest::path, kTestMetadataUrl);
-    EXPECT_CALL(*mock, Get(expected_request))
+    EXPECT_CALL(*mock, Get(_, expected_request))
         .WillOnce(Return(ByMove(MakeMockResponseNotFound())));
     return mock;
   });
@@ -576,12 +576,12 @@ TEST(ExternalAccountTokenSource, FetchMetadataTokenV2) {
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call(make_expected_options())).WillOnce([] {
     using ::testing::_;
-    auto mock = absl::make_unique<MockRestClient>();
+    auto mock = std::make_unique<MockRestClient>();
     auto expected_request = AllOf(
         Property(&RestRequest::path, kTestImdsv2Url),
         Property(&RestRequest::headers,
                  Contains(Pair(kMetadataTokenTtlHeader, Not(IsEmpty())))));
-    EXPECT_CALL(*mock, Put(expected_request, _))
+    EXPECT_CALL(*mock, Put(_, expected_request, _))
         .WillOnce(
             Return(ByMove(MakeMockResponseSuccess(kTestImdsv2SessionToken))));
     return mock;
@@ -635,9 +635,9 @@ TEST(ExternalAccountTokenSource, FetchRegionFromUrlV1) {
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call(make_expected_options()))
       .WillOnce([url = info.region_url]() {
-        auto mock = absl::make_unique<MockRestClient>();
+        auto mock = std::make_unique<MockRestClient>();
         auto expected_request = Property(&RestRequest::path, url);
-        EXPECT_CALL(*mock, Get(expected_request))
+        EXPECT_CALL(*mock, Get(_, expected_request))
             .WillOnce(Return(ByMove(MakeMockResponseSuccess("test-only-1d"))));
         return mock;
       });
@@ -658,14 +658,14 @@ TEST(ExternalAccountTokenSource, FetchRegionFromUrlV2) {
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call(make_expected_options()))
       .WillOnce([url = info.region_url]() {
-        auto mock = absl::make_unique<MockRestClient>();
+        auto mock = std::make_unique<MockRestClient>();
         auto expected_request =
             AllOf(Property(&RestRequest::path, url),
                   // We expect the token returned by MakeImdsV2Client()
                   Property(&RestRequest::headers,
                            Contains(Pair(kMetadataTokenHeader,
                                          Contains(kTestImdsv2SessionToken)))));
-        EXPECT_CALL(*mock, Get(expected_request))
+        EXPECT_CALL(*mock, Get(_, expected_request))
             .WillOnce(Return(ByMove(MakeMockResponseSuccess("test-only-1d"))));
         return mock;
       });
@@ -686,9 +686,9 @@ TEST(ExternalAccountTokenSource, FetchRegionFromUrlEmpty) {
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call(make_expected_options()))
       .WillOnce([url = info.region_url]() {
-        auto mock = absl::make_unique<MockRestClient>();
+        auto mock = std::make_unique<MockRestClient>();
         auto expected_request = Property(&RestRequest::path, url);
-        EXPECT_CALL(*mock, Get(expected_request))
+        EXPECT_CALL(*mock, Get(_, expected_request))
             .WillOnce(Return(ByMove(MakeMockResponseSuccess(""))));
         return mock;
       });
@@ -753,9 +753,9 @@ TEST(ExternalAccountTokenSource, FetchSecretsFromUrlV1) {
   auto const token = ScopedEnvironment("AWS_SESSION_TOKEN", absl::nullopt);
 
   auto make_client = [](std::string const& url, std::string const& contents) {
-    auto mock = absl::make_unique<MockRestClient>();
+    auto mock = std::make_unique<MockRestClient>();
     auto expected_request = Property(&RestRequest::path, url);
-    EXPECT_CALL(*mock, Get(expected_request))
+    EXPECT_CALL(*mock, Get(_, expected_request))
         .WillOnce(Return(ByMove(MakeMockResponseSuccess(contents))));
     return mock;
   };
@@ -792,13 +792,13 @@ TEST(ExternalAccountTokenSource, FetchSecretsFromUrlV2) {
   auto const token = ScopedEnvironment("AWS_SESSION_TOKEN", absl::nullopt);
 
   auto make_client = [](std::string const& url, std::string const& contents) {
-    auto mock = absl::make_unique<MockRestClient>();
+    auto mock = std::make_unique<MockRestClient>();
     auto expected_request =
         AllOf(Property(&RestRequest::path, url),
               Property(&RestRequest::headers,
                        Contains(Pair(kMetadataTokenHeader,
                                      Contains(kTestImdsv2SessionToken)))));
-    EXPECT_CALL(*mock, Get(expected_request))
+    EXPECT_CALL(*mock, Get(_, expected_request))
         .WillOnce(Return(ByMove(MakeMockResponseSuccess(contents))));
     return mock;
   };

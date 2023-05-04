@@ -329,7 +329,7 @@ auto expect_new_object = [](std::string const& object_name, int generation) {
           generation](internal::InsertObjectMediaRequest const& request) {
     EXPECT_EQ(kBucketName, request.bucket_name());
     EXPECT_EQ(object_name, request.object_name());
-    EXPECT_EQ("", request.contents());
+    EXPECT_EQ("", request.payload());
     return make_status_or(MockObject(object_name, generation));
   };
 };
@@ -340,7 +340,7 @@ auto expect_persistent_state = [](std::string const& state_name, int generation,
           state](internal::InsertObjectMediaRequest const& request) {
     EXPECT_EQ(kBucketName, request.bucket_name());
     EXPECT_EQ(state_name, request.object_name());
-    EXPECT_EQ(state.dump(), request.contents());
+    EXPECT_EQ(state.dump(), request.payload());
     return make_status_or(MockObject(state_name, generation));
   };
 };
@@ -353,7 +353,7 @@ auto create_state_read_expectation = [](std::string const& state_object,
     EXPECT_TRUE(req.HasOption<IfGenerationMatch>());
     auto if_gen_match = req.GetOption<IfGenerationMatch>();
     EXPECT_EQ(generation, if_gen_match.value());
-    auto res = absl::make_unique<testing::MockObjectReadSource>();
+    auto res = std::make_unique<testing::MockObjectReadSource>();
     EXPECT_CALL(*res, Read)
         .WillOnce([state](char* buf, std::size_t n) {
           auto state_str = state.dump();

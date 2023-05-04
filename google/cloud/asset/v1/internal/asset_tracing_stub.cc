@@ -33,9 +33,16 @@ AssetServiceTracingStub::AssetServiceTracingStub(
 future<StatusOr<google::longrunning::Operation>>
 AssetServiceTracingStub::AsyncExportAssets(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::asset::v1::ExportAssetsRequest const& request) {
-  return child_->AsyncExportAssets(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.asset.v1.AssetService",
+                                     "ExportAssets");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncExportAssets(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::asset::v1::ListAssetsResponse>
@@ -155,11 +162,17 @@ AssetServiceTracingStub::AnalyzeIamPolicy(
 future<StatusOr<google::longrunning::Operation>>
 AssetServiceTracingStub::AsyncAnalyzeIamPolicyLongrunning(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::asset::v1::AnalyzeIamPolicyLongrunningRequest const&
         request) {
-  return child_->AsyncAnalyzeIamPolicyLongrunning(cq, std::move(context),
-                                                  request);
+  auto span = internal::MakeSpanGrpc("google.cloud.asset.v1.AssetService",
+                                     "AnalyzeIamPolicyLongrunning");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncAnalyzeIamPolicyLongrunning(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::asset::v1::AnalyzeMoveResponse>
@@ -300,16 +313,30 @@ AssetServiceTracingStub::AnalyzeOrgPolicyGovernedAssets(
 future<StatusOr<google::longrunning::Operation>>
 AssetServiceTracingStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return child_->AsyncGetOperation(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.longrunning.Operations", "GetOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncGetOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<Status> AssetServiceTracingStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return child_->AsyncCancelOperation(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.longrunning.Operations",
+                                     "CancelOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCancelOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY

@@ -15,6 +15,7 @@
 #ifndef GOOGLE_CLOUD_CPP_GOOGLE_CLOUD_INTERNAL_OPENTELEMETRY_H
 #define GOOGLE_CLOUD_CPP_GOOGLE_CLOUD_INTERNAL_OPENTELEMETRY_H
 
+#include "google/cloud/future.h"
 #include "google/cloud/options.h"
 #include "google/cloud/status.h"
 #include "google/cloud/status_or.h"
@@ -108,10 +109,23 @@ Status EndSpan(opentelemetry::trace::Span& span, Status const& status);
  * composition.
  */
 template <typename T>
-StatusOr<T> EndSpan(opentelemetry::trace::Span& span,
-                    StatusOr<T> const& value) {
+StatusOr<T> EndSpan(opentelemetry::trace::Span& span, StatusOr<T> value) {
   EndSpanImpl(span, value.status());
   return value;
+}
+
+/**
+ * Extracts information from a `future<>` and adds it to a span.
+ *
+ * The span is ended. The original value is returned, for the sake of
+ * composition.
+ */
+template <typename T>
+future<T> EndSpan(
+    opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span> span,
+    future<T> fut) {
+  return fut.then(
+      [s = std::move(span)](auto f) { return EndSpan(*s, f.get()); });
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY
@@ -121,6 +135,9 @@ bool TracingEnabled(Options const& options);
 /// Wraps the sleeper in a span, if tracing is enabled.
 std::function<void(std::chrono::milliseconds)> MakeTracedSleeper(
     std::function<void(std::chrono::milliseconds)> const& sleeper);
+
+/// Adds an attribute to the active span, if tracing is enabled.
+void AddSpanAttribute(std::string const& key, std::string const& value);
 
 }  // namespace internal
 GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_END

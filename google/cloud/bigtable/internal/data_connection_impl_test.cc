@@ -303,9 +303,9 @@ TEST(DataConnectionTest, ApplyRetryExhausted) {
             return TransientError();
           });
 
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, clone).WillOnce([]() {
-    auto clone = absl::make_unique<MockBackoffPolicy>();
+    auto clone = std::make_unique<MockBackoffPolicy>();
     EXPECT_CALL(*clone, OnCompletion).Times(kNumRetries);
     return clone;
   });
@@ -327,9 +327,9 @@ TEST(DataConnectionTest, ApplyRetryIdempotency) {
         return TransientError();
       });
 
-  auto mock_i = absl::make_unique<MockIdempotentMutationPolicy>();
+  auto mock_i = std::make_unique<MockIdempotentMutationPolicy>();
   EXPECT_CALL(*mock_i, clone).WillOnce([]() {
-    auto clone = absl::make_unique<MockIdempotentMutationPolicy>();
+    auto clone = std::make_unique<MockIdempotentMutationPolicy>();
     EXPECT_CALL(*clone, is_idempotent(An<v2::Mutation const&>()))
         .WillOnce(Return(false));
     return clone;
@@ -345,8 +345,7 @@ TEST(DataConnectionTest, ApplyRetryIdempotency) {
 TEST(DataConnectionTest, AsyncApplySuccess) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncMutateRow)
-      .WillOnce([](google::cloud::CompletionQueue&,
-                   std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](google::cloud::CompletionQueue&, auto,
                    v2::MutateRowRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
@@ -363,8 +362,7 @@ TEST(DataConnectionTest, AsyncApplySuccess) {
 TEST(DataConnectionTest, AsyncApplyPermanentFailure) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncMutateRow)
-      .WillOnce([](google::cloud::CompletionQueue&,
-                   std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](google::cloud::CompletionQueue&, auto,
                    v2::MutateRowRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
@@ -383,8 +381,7 @@ TEST(DataConnectionTest, AsyncApplyRetryExhausted) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncMutateRow)
       .Times(kNumRetries + 1)
-      .WillRepeatedly([](google::cloud::CompletionQueue&,
-                         std::unique_ptr<grpc::ClientContext>,
+      .WillRepeatedly([](google::cloud::CompletionQueue&, auto,
                          v2::MutateRowRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
@@ -393,9 +390,9 @@ TEST(DataConnectionTest, AsyncApplyRetryExhausted) {
             TransientError());
       });
 
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, clone).WillOnce([]() {
-    auto clone = absl::make_unique<MockBackoffPolicy>();
+    auto clone = std::make_unique<MockBackoffPolicy>();
     EXPECT_CALL(*clone, OnCompletion).Times(kNumRetries);
     return clone;
   });
@@ -410,8 +407,7 @@ TEST(DataConnectionTest, AsyncApplyRetryExhausted) {
 TEST(DataConnectionTest, AsyncApplyRetryIdempotency) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncMutateRow)
-      .WillOnce([](google::cloud::CompletionQueue&,
-                   std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](google::cloud::CompletionQueue&, auto,
                    v2::MutateRowRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
@@ -420,9 +416,9 @@ TEST(DataConnectionTest, AsyncApplyRetryIdempotency) {
             TransientError());
       });
 
-  auto mock_i = absl::make_unique<MockIdempotentMutationPolicy>();
+  auto mock_i = std::make_unique<MockIdempotentMutationPolicy>();
   EXPECT_CALL(*mock_i, clone).WillOnce([]() {
-    auto clone = absl::make_unique<MockIdempotentMutationPolicy>();
+    auto clone = std::make_unique<MockIdempotentMutationPolicy>();
     EXPECT_CALL(*clone, is_idempotent(An<v2::Mutation const&>()))
         .WillOnce(Return(false));
     return clone;
@@ -448,12 +444,12 @@ TEST(DataConnectionTest, BulkApplySuccess) {
 
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, MutateRows)
-      .WillOnce([](std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](auto,
                    google::bigtable::v2::MutateRowsRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
         EXPECT_THAT(request.entries(), ElementsAre(Entry("r0"), Entry("r1")));
-        auto stream = absl::make_unique<MockMutateRowsStream>();
+        auto stream = std::make_unique<MockMutateRowsStream>();
         EXPECT_CALL(*stream, Read)
             .WillOnce(Return(MakeBulkApplyResponse(
                 {{0, grpc::StatusCode::OK}, {1, grpc::StatusCode::OK}})))
@@ -478,11 +474,11 @@ TEST(DataConnectionTest, BulkApplyRetryMutationPolicy) {
 
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, MutateRows)
-      .WillOnce([](std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](auto,
                    google::bigtable::v2::MutateRowsRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
-        auto stream = absl::make_unique<MockMutateRowsStream>();
+        auto stream = std::make_unique<MockMutateRowsStream>();
         EXPECT_CALL(*stream, Read)
             .WillOnce(Return(
                 MakeBulkApplyResponse({{0, grpc::StatusCode::OK},
@@ -492,19 +488,19 @@ TEST(DataConnectionTest, BulkApplyRetryMutationPolicy) {
             .WillOnce(Return(Status()));
         return stream;
       })
-      .WillOnce([](std::unique_ptr<grpc::ClientContext>,
-                   google::bigtable::v2::MutateRowsRequest const& request) {
-        EXPECT_EQ(kAppProfile, request.app_profile_id());
-        EXPECT_EQ(kTableName, request.table_name());
-        EXPECT_THAT(request.entries(),
-                    ElementsAre(Entry("retries-transient-error")));
-        auto stream = absl::make_unique<MockMutateRowsStream>();
-        EXPECT_CALL(*stream, Read)
-            .WillOnce(
-                Return(MakeBulkApplyResponse({{0, grpc::StatusCode::OK}})))
-            .WillOnce(Return(Status()));
-        return stream;
-      });
+      .WillOnce(
+          [](auto, google::bigtable::v2::MutateRowsRequest const& request) {
+            EXPECT_EQ(kAppProfile, request.app_profile_id());
+            EXPECT_EQ(kTableName, request.table_name());
+            EXPECT_THAT(request.entries(),
+                        ElementsAre(Entry("retries-transient-error")));
+            auto stream = std::make_unique<MockMutateRowsStream>();
+            EXPECT_CALL(*stream, Read)
+                .WillOnce(
+                    Return(MakeBulkApplyResponse({{0, grpc::StatusCode::OK}})))
+                .WillOnce(Return(Status()));
+            return stream;
+          });
 
   auto conn = TestConnection(std::move(mock));
   internal::OptionsSpan span(CallOptions());
@@ -518,29 +514,29 @@ TEST(DataConnectionTest, BulkApplyIncompleteStreamRetried) {
 
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, MutateRows)
-      .WillOnce([](std::unique_ptr<grpc::ClientContext>,
-                   google::bigtable::v2::MutateRowsRequest const& request) {
-        EXPECT_EQ(kAppProfile, request.app_profile_id());
-        EXPECT_EQ(kTableName, request.table_name());
-        auto stream = absl::make_unique<MockMutateRowsStream>();
-        EXPECT_CALL(*stream, Read)
-            .WillOnce(
-                Return(MakeBulkApplyResponse({{0, grpc::StatusCode::OK}})))
-            .WillOnce(Return(Status()));
-        return stream;
-      })
-      .WillOnce([](std::unique_ptr<grpc::ClientContext>,
-                   google::bigtable::v2::MutateRowsRequest const& request) {
-        EXPECT_EQ(kAppProfile, request.app_profile_id());
-        EXPECT_EQ(kTableName, request.table_name());
-        EXPECT_THAT(request.entries(), ElementsAre(Entry("forgotten")));
-        auto stream = absl::make_unique<MockMutateRowsStream>();
-        EXPECT_CALL(*stream, Read)
-            .WillOnce(
-                Return(MakeBulkApplyResponse({{0, grpc::StatusCode::OK}})))
-            .WillOnce(Return(Status()));
-        return stream;
-      });
+      .WillOnce(
+          [](auto, google::bigtable::v2::MutateRowsRequest const& request) {
+            EXPECT_EQ(kAppProfile, request.app_profile_id());
+            EXPECT_EQ(kTableName, request.table_name());
+            auto stream = std::make_unique<MockMutateRowsStream>();
+            EXPECT_CALL(*stream, Read)
+                .WillOnce(
+                    Return(MakeBulkApplyResponse({{0, grpc::StatusCode::OK}})))
+                .WillOnce(Return(Status()));
+            return stream;
+          })
+      .WillOnce(
+          [](auto, google::bigtable::v2::MutateRowsRequest const& request) {
+            EXPECT_EQ(kAppProfile, request.app_profile_id());
+            EXPECT_EQ(kTableName, request.table_name());
+            EXPECT_THAT(request.entries(), ElementsAre(Entry("forgotten")));
+            auto stream = std::make_unique<MockMutateRowsStream>();
+            EXPECT_CALL(*stream, Read)
+                .WillOnce(
+                    Return(MakeBulkApplyResponse({{0, grpc::StatusCode::OK}})))
+                .WillOnce(Return(Status()));
+            return stream;
+          });
 
   auto conn = TestConnection(std::move(mock));
   internal::OptionsSpan span(CallOptions());
@@ -556,18 +552,17 @@ TEST(DataConnectionTest, BulkApplyStreamRetryExhausted) {
   EXPECT_CALL(*mock, MutateRows)
       .Times(kNumRetries + 1)
       .WillRepeatedly(
-          [](std::unique_ptr<grpc::ClientContext>,
-             google::bigtable::v2::MutateRowsRequest const& request) {
+          [](auto, google::bigtable::v2::MutateRowsRequest const& request) {
             EXPECT_EQ(kAppProfile, request.app_profile_id());
             EXPECT_EQ(kTableName, request.table_name());
-            auto stream = absl::make_unique<MockMutateRowsStream>();
+            auto stream = std::make_unique<MockMutateRowsStream>();
             EXPECT_CALL(*stream, Read).WillOnce(Return(TransientError()));
             return stream;
           });
 
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, clone).WillOnce([]() {
-    auto clone = absl::make_unique<MockBackoffPolicy>();
+    auto clone = std::make_unique<MockBackoffPolicy>();
     EXPECT_CALL(*clone, OnCompletion).Times(kNumRetries);
     return clone;
   });
@@ -585,14 +580,14 @@ TEST(DataConnectionTest, BulkApplyStreamPermanentError) {
 
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, MutateRows)
-      .WillOnce([](std::unique_ptr<grpc::ClientContext>,
-                   google::bigtable::v2::MutateRowsRequest const& request) {
-        EXPECT_EQ(kAppProfile, request.app_profile_id());
-        EXPECT_EQ(kTableName, request.table_name());
-        auto stream = absl::make_unique<MockMutateRowsStream>();
-        EXPECT_CALL(*stream, Read).WillOnce(Return(PermanentError()));
-        return stream;
-      });
+      .WillOnce(
+          [](auto, google::bigtable::v2::MutateRowsRequest const& request) {
+            EXPECT_EQ(kAppProfile, request.app_profile_id());
+            EXPECT_EQ(kTableName, request.table_name());
+            auto stream = std::make_unique<MockMutateRowsStream>();
+            EXPECT_CALL(*stream, Read).WillOnce(Return(PermanentError()));
+            return stream;
+          });
 
   auto conn = TestConnection(std::move(mock));
   internal::OptionsSpan span(CallOptions());
@@ -606,20 +601,20 @@ TEST(DataConnectionTest, BulkApplyNoSleepIfNoPendingMutations) {
 
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, MutateRows)
-      .WillOnce([](std::unique_ptr<grpc::ClientContext>,
-                   google::bigtable::v2::MutateRowsRequest const& request) {
-        EXPECT_EQ(kAppProfile, request.app_profile_id());
-        EXPECT_EQ(kTableName, request.table_name());
-        auto stream = absl::make_unique<MockMutateRowsStream>();
-        EXPECT_CALL(*stream, Read)
-            .WillOnce(Return(MakeBulkApplyResponse(
-                {{0, grpc::StatusCode::OK},
-                 {1, grpc::StatusCode::PERMISSION_DENIED}})))
-            .WillOnce(Return(Status()));
-        return stream;
-      });
+      .WillOnce(
+          [](auto, google::bigtable::v2::MutateRowsRequest const& request) {
+            EXPECT_EQ(kAppProfile, request.app_profile_id());
+            EXPECT_EQ(kTableName, request.table_name());
+            auto stream = std::make_unique<MockMutateRowsStream>();
+            EXPECT_CALL(*stream, Read)
+                .WillOnce(Return(MakeBulkApplyResponse(
+                    {{0, grpc::StatusCode::OK},
+                     {1, grpc::StatusCode::PERMISSION_DENIED}})))
+                .WillOnce(Return(Status()));
+            return stream;
+          });
 
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, clone).Times(0);
 
   auto conn = TestConnection(std::move(mock));
@@ -637,11 +632,10 @@ TEST(DataConnectionTest, BulkApplyRetriesOkStreamWithFailedMutations) {
   EXPECT_CALL(*mock, MutateRows)
       .Times(kNumRetries + 1)
       .WillRepeatedly(
-          [](std::unique_ptr<grpc::ClientContext>,
-             google::bigtable::v2::MutateRowsRequest const& request) {
+          [](auto, google::bigtable::v2::MutateRowsRequest const& request) {
             EXPECT_EQ(kAppProfile, request.app_profile_id());
             EXPECT_EQ(kTableName, request.table_name());
-            auto stream = absl::make_unique<MockMutateRowsStream>();
+            auto stream = std::make_unique<MockMutateRowsStream>();
             // The overall stream succeeds, but it contains failed mutations.
             // Our retry and backoff policies should take effect.
             EXPECT_CALL(*stream, Read)
@@ -651,9 +645,9 @@ TEST(DataConnectionTest, BulkApplyRetriesOkStreamWithFailedMutations) {
             return stream;
           });
 
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, clone).WillOnce([]() {
-    auto clone = absl::make_unique<MockBackoffPolicy>();
+    auto clone = std::make_unique<MockBackoffPolicy>();
     EXPECT_CALL(*clone, OnCompletion).Times(kNumRetries);
     return clone;
   });
@@ -673,13 +667,13 @@ TEST(DataConnectionTest, AsyncBulkApply) {
 
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncMutateRows)
-      .WillOnce([](CompletionQueue const&, std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](CompletionQueue const&, auto,
                    v2::MutateRowsRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
         using ErrorStream =
             internal::AsyncStreamingReadRpcError<v2::MutateRowsResponse>;
-        return absl::make_unique<ErrorStream>(PermanentError());
+        return std::make_unique<ErrorStream>(PermanentError());
       });
 
   auto conn = TestConnection(std::move(mock));
@@ -693,15 +687,14 @@ TEST(DataConnectionTest, AsyncBulkApply) {
 TEST(DataConnectionTest, ReadRows) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, ReadRows)
-      .WillOnce([](std::unique_ptr<grpc::ClientContext>,
-                   google::bigtable::v2::ReadRowsRequest const& request) {
+      .WillOnce([](auto, google::bigtable::v2::ReadRowsRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
         EXPECT_EQ(42, request.rows_limit());
         EXPECT_THAT(request, HasTestRowSet());
         EXPECT_THAT(request.filter(), IsTestFilter());
 
-        auto stream = absl::make_unique<MockReadRowsStream>();
+        auto stream = std::make_unique<MockReadRowsStream>();
         EXPECT_CALL(*stream, Read).WillOnce(Return(Status()));
         return stream;
       });
@@ -715,15 +708,14 @@ TEST(DataConnectionTest, ReadRows) {
 TEST(DataConnectionTest, ReadRowEmpty) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, ReadRows)
-      .WillOnce([](std::unique_ptr<grpc::ClientContext>,
-                   google::bigtable::v2::ReadRowsRequest const& request) {
+      .WillOnce([](auto, google::bigtable::v2::ReadRowsRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
         EXPECT_EQ(1, request.rows_limit());
         EXPECT_THAT(request.rows().row_keys(), ElementsAre("row"));
         EXPECT_THAT(request.filter(), IsTestFilter());
 
-        auto stream = absl::make_unique<MockReadRowsStream>();
+        auto stream = std::make_unique<MockReadRowsStream>();
         EXPECT_CALL(*stream, Read).WillOnce(Return(Status()));
         return stream;
       });
@@ -738,15 +730,14 @@ TEST(DataConnectionTest, ReadRowEmpty) {
 TEST(DataConnectionTest, ReadRowSuccess) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, ReadRows)
-      .WillOnce([](std::unique_ptr<grpc::ClientContext>,
-                   google::bigtable::v2::ReadRowsRequest const& request) {
+      .WillOnce([](auto, google::bigtable::v2::ReadRowsRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
         EXPECT_EQ(1, request.rows_limit());
         EXPECT_THAT(request.rows().row_keys(), ElementsAre("row"));
         EXPECT_THAT(request.filter(), IsTestFilter());
 
-        auto stream = absl::make_unique<MockReadRowsStream>();
+        auto stream = std::make_unique<MockReadRowsStream>();
         EXPECT_CALL(*stream, Read)
             .WillOnce([]() {
               v2::ReadRowsResponse r;
@@ -772,15 +763,14 @@ TEST(DataConnectionTest, ReadRowSuccess) {
 TEST(DataConnectionTest, ReadRowFailure) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, ReadRows)
-      .WillOnce([](std::unique_ptr<grpc::ClientContext>,
-                   google::bigtable::v2::ReadRowsRequest const& request) {
+      .WillOnce([](auto, google::bigtable::v2::ReadRowsRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
         EXPECT_EQ(1, request.rows_limit());
         EXPECT_THAT(request.rows().row_keys(), ElementsAre("row"));
         EXPECT_THAT(request.filter(), IsTestFilter());
 
-        auto stream = absl::make_unique<MockReadRowsStream>();
+        auto stream = std::make_unique<MockReadRowsStream>();
         EXPECT_CALL(*stream, Read).WillOnce(Return(PermanentError()));
         return stream;
       });
@@ -864,9 +854,9 @@ TEST(DataConnectionTest, CheckAndMutateRowIdempotency) {
         return TransientError();
       });
 
-  auto mock_i = absl::make_unique<MockIdempotentMutationPolicy>();
+  auto mock_i = std::make_unique<MockIdempotentMutationPolicy>();
   EXPECT_CALL(*mock_i, clone).WillOnce([]() {
-    auto clone = absl::make_unique<MockIdempotentMutationPolicy>();
+    auto clone = std::make_unique<MockIdempotentMutationPolicy>();
     EXPECT_CALL(*clone,
                 is_idempotent(An<v2::CheckAndMutateRowRequest const&>()))
         .WillOnce(Return(false));
@@ -931,9 +921,9 @@ TEST(DataConnectionTest, CheckAndMutateRowRetryExhausted) {
         return TransientError();
       });
 
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, clone).WillOnce([]() {
-    auto clone = absl::make_unique<MockBackoffPolicy>();
+    auto clone = std::make_unique<MockBackoffPolicy>();
     EXPECT_CALL(*clone, OnCompletion).Times(kNumRetries);
     return clone;
   });
@@ -957,8 +947,7 @@ TEST(DataConnectionTest, AsyncCheckAndMutateRowSuccess) {
 
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncCheckAndMutateRow)
-      .WillOnce([&](google::cloud::CompletionQueue&,
-                    std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([&](google::cloud::CompletionQueue&, auto,
                     v2::CheckAndMutateRowRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
@@ -973,8 +962,7 @@ TEST(DataConnectionTest, AsyncCheckAndMutateRowSuccess) {
         resp.set_predicate_matched(true);
         return make_ready_future(make_status_or(resp));
       })
-      .WillOnce([&](google::cloud::CompletionQueue&,
-                    std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([&](google::cloud::CompletionQueue&, auto,
                     v2::CheckAndMutateRowRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
@@ -1013,8 +1001,7 @@ TEST(DataConnectionTest, AsyncCheckAndMutateRowIdempotency) {
 
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncCheckAndMutateRow)
-      .WillOnce([&](google::cloud::CompletionQueue&,
-                    std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([&](google::cloud::CompletionQueue&, auto,
                     v2::CheckAndMutateRowRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
@@ -1028,9 +1015,9 @@ TEST(DataConnectionTest, AsyncCheckAndMutateRowIdempotency) {
             TransientError());
       });
 
-  auto mock_i = absl::make_unique<MockIdempotentMutationPolicy>();
+  auto mock_i = std::make_unique<MockIdempotentMutationPolicy>();
   EXPECT_CALL(*mock_i, clone).WillOnce([]() {
-    auto clone = absl::make_unique<MockIdempotentMutationPolicy>();
+    auto clone = std::make_unique<MockIdempotentMutationPolicy>();
     EXPECT_CALL(*clone,
                 is_idempotent(An<v2::CheckAndMutateRowRequest const&>()))
         .WillOnce(Return(false));
@@ -1053,8 +1040,7 @@ TEST(DataConnectionTest, AsyncCheckAndMutateRowPermanentError) {
 
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncCheckAndMutateRow)
-      .WillOnce([&](google::cloud::CompletionQueue&,
-                    std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([&](google::cloud::CompletionQueue&, auto,
                     v2::CheckAndMutateRowRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
@@ -1084,8 +1070,7 @@ TEST(DataConnectionTest, AsyncCheckAndMutateRowRetryExhausted) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncCheckAndMutateRow)
       .Times(kNumRetries + 1)
-      .WillRepeatedly([&](google::cloud::CompletionQueue&,
-                          std::unique_ptr<grpc::ClientContext>,
+      .WillRepeatedly([&](google::cloud::CompletionQueue&, auto,
                           v2::CheckAndMutateRowRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
@@ -1099,9 +1084,9 @@ TEST(DataConnectionTest, AsyncCheckAndMutateRowRetryExhausted) {
             TransientError());
       });
 
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, clone).WillOnce([]() {
-    auto clone = absl::make_unique<MockBackoffPolicy>();
+    auto clone = std::make_unique<MockBackoffPolicy>();
     EXPECT_CALL(*clone, OnCompletion).Times(kNumRetries);
     return clone;
   });
@@ -1120,11 +1105,10 @@ TEST(DataConnectionTest, AsyncCheckAndMutateRowRetryExhausted) {
 TEST(DataConnectionTest, SampleRowsSuccess) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, SampleRowKeys)
-      .WillOnce([](std::unique_ptr<grpc::ClientContext>,
-                   v2::SampleRowKeysRequest const& request) {
+      .WillOnce([](auto, v2::SampleRowKeysRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
-        auto stream = absl::make_unique<MockSampleRowKeysStream>();
+        auto stream = std::make_unique<MockSampleRowKeysStream>();
         EXPECT_CALL(*stream, Read)
             .WillOnce(Return(MakeSampleRowsResponse("test1", 11)))
             .WillOnce(Return(MakeSampleRowsResponse("test2", 22)))
@@ -1148,21 +1132,19 @@ TEST(DataConnectionTest, SampleRowsSuccess) {
 TEST(DataConnectionTest, SampleRowsRetryResetsSamples) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, SampleRowKeys)
-      .WillOnce([](std::unique_ptr<grpc::ClientContext>,
-                   v2::SampleRowKeysRequest const& request) {
+      .WillOnce([](auto, v2::SampleRowKeysRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
-        auto stream = absl::make_unique<MockSampleRowKeysStream>();
+        auto stream = std::make_unique<MockSampleRowKeysStream>();
         EXPECT_CALL(*stream, Read)
             .WillOnce(Return(MakeSampleRowsResponse("discarded", 11)))
             .WillOnce(Return(TransientError()));
         return stream;
       })
-      .WillOnce([](std::unique_ptr<grpc::ClientContext>,
-                   v2::SampleRowKeysRequest const& request) {
+      .WillOnce([](auto, v2::SampleRowKeysRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
-        auto stream = absl::make_unique<MockSampleRowKeysStream>();
+        auto stream = std::make_unique<MockSampleRowKeysStream>();
         EXPECT_CALL(*stream, Read)
             .WillOnce(Return(MakeSampleRowsResponse("returned", 22)))
             .WillOnce(Return(Status{}));
@@ -1186,18 +1168,17 @@ TEST(DataConnectionTest, SampleRowsRetryExhausted) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, SampleRowKeys)
       .Times(kNumRetries + 1)
-      .WillRepeatedly([](std::unique_ptr<grpc::ClientContext>,
-                         v2::SampleRowKeysRequest const& request) {
+      .WillRepeatedly([](auto, v2::SampleRowKeysRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
-        auto stream = absl::make_unique<MockSampleRowKeysStream>();
+        auto stream = std::make_unique<MockSampleRowKeysStream>();
         EXPECT_CALL(*stream, Read).WillOnce(Return(TransientError()));
         return stream;
       });
 
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, clone).WillOnce([]() {
-    auto clone = absl::make_unique<MockBackoffPolicy>();
+    auto clone = std::make_unique<MockBackoffPolicy>();
     EXPECT_CALL(*clone, OnCompletion).Times(kNumRetries);
     return clone;
   });
@@ -1216,11 +1197,10 @@ TEST(DataConnectionTest, SampleRowsRetryExhausted) {
 TEST(DataConnectionTest, SampleRowsPermanentError) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, SampleRowKeys)
-      .WillOnce([](std::unique_ptr<grpc::ClientContext>,
-                   v2::SampleRowKeysRequest const& request) {
+      .WillOnce([](auto, v2::SampleRowKeysRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
-        auto stream = absl::make_unique<MockSampleRowKeysStream>();
+        auto stream = std::make_unique<MockSampleRowKeysStream>();
         EXPECT_CALL(*stream, Read).WillOnce(Return(PermanentError()));
         return stream;
       });
@@ -1240,13 +1220,13 @@ TEST(DataConnectionTest, SampleRowsPermanentError) {
 TEST(DataConnectionTest, AsyncSampleRows) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncSampleRowKeys)
-      .WillOnce([](CompletionQueue const&, std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](CompletionQueue const&, auto,
                    v2::SampleRowKeysRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
         using ErrorStream =
             internal::AsyncStreamingReadRpcError<v2::SampleRowKeysResponse>;
-        return absl::make_unique<ErrorStream>(PermanentError());
+        return std::make_unique<ErrorStream>(PermanentError());
       });
 
   auto conn = TestConnection(std::move(mock));
@@ -1333,9 +1313,9 @@ TEST(DataConnectionTest, ReadModifyWriteRowTransientErrorNotRetried) {
   req.set_table_name(kTableName);
   req.set_row_key("row");
 
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, clone).WillOnce([]() {
-    auto clone = absl::make_unique<MockBackoffPolicy>();
+    auto clone = std::make_unique<MockBackoffPolicy>();
     EXPECT_CALL(*clone, OnCompletion).Times(0);
     return clone;
   });
@@ -1364,8 +1344,7 @@ TEST(DataConnectionTest, AsyncReadModifyWriteRowSuccess) {
 
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncReadModifyWriteRow)
-      .WillOnce([&response](google::cloud::CompletionQueue&,
-                            std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([&response](google::cloud::CompletionQueue&, auto,
                             v2::ReadModifyWriteRowRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
@@ -1391,8 +1370,7 @@ TEST(DataConnectionTest, AsyncReadModifyWriteRowSuccess) {
 TEST(DataConnectionTest, AsyncReadModifyWriteRowPermanentError) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncReadModifyWriteRow)
-      .WillOnce([](google::cloud::CompletionQueue&,
-                   std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](google::cloud::CompletionQueue&, auto,
                    v2::ReadModifyWriteRowRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
@@ -1415,8 +1393,7 @@ TEST(DataConnectionTest, AsyncReadModifyWriteRowPermanentError) {
 TEST(DataConnectionTest, AsyncReadModifyWriteRowTransientErrorNotRetried) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncReadModifyWriteRow)
-      .WillOnce([](google::cloud::CompletionQueue&,
-                   std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](google::cloud::CompletionQueue&, auto,
                    v2::ReadModifyWriteRowRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
@@ -1430,9 +1407,9 @@ TEST(DataConnectionTest, AsyncReadModifyWriteRowTransientErrorNotRetried) {
   req.set_table_name(kTableName);
   req.set_row_key("row");
 
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, clone).WillOnce([]() {
-    auto clone = absl::make_unique<MockBackoffPolicy>();
+    auto clone = std::make_unique<MockBackoffPolicy>();
     EXPECT_CALL(*clone, OnCompletion).Times(0);
     return clone;
   });
@@ -1449,17 +1426,17 @@ TEST(DataConnectionTest, AsyncReadModifyWriteRowTransientErrorNotRetried) {
 TEST(DataConnectionTest, AsyncReadRows) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncReadRows)
-      .WillOnce([](CompletionQueue const&, std::unique_ptr<grpc::ClientContext>,
-                   v2::ReadRowsRequest const& request) {
-        EXPECT_EQ(kAppProfile, request.app_profile_id());
-        EXPECT_EQ(kTableName, request.table_name());
-        EXPECT_EQ(42, request.rows_limit());
-        EXPECT_THAT(request, HasTestRowSet());
-        EXPECT_THAT(request.filter(), IsTestFilter());
-        using ErrorStream =
-            internal::AsyncStreamingReadRpcError<v2::ReadRowsResponse>;
-        return absl::make_unique<ErrorStream>(PermanentError());
-      });
+      .WillOnce(
+          [](CompletionQueue const&, auto, v2::ReadRowsRequest const& request) {
+            EXPECT_EQ(kAppProfile, request.app_profile_id());
+            EXPECT_EQ(kTableName, request.table_name());
+            EXPECT_EQ(42, request.rows_limit());
+            EXPECT_THAT(request, HasTestRowSet());
+            EXPECT_THAT(request.filter(), IsTestFilter());
+            using ErrorStream =
+                internal::AsyncStreamingReadRpcError<v2::ReadRowsResponse>;
+            return std::make_unique<ErrorStream>(PermanentError());
+          });
 
   MockFunction<future<bool>(bigtable::Row const&)> on_row;
   EXPECT_CALL(on_row, Call).Times(0);
@@ -1479,7 +1456,7 @@ TEST(DataConnectionTest, AsyncReadRows) {
 TEST(DataConnectionTest, AsyncReadRowEmpty) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncReadRows)
-      .WillOnce([](CompletionQueue const&, std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](CompletionQueue const&, auto,
                    v2::ReadRowsRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
@@ -1487,7 +1464,7 @@ TEST(DataConnectionTest, AsyncReadRowEmpty) {
         EXPECT_THAT(request.rows().row_keys(), ElementsAre("row"));
         EXPECT_THAT(request.filter(), IsTestFilter());
 
-        auto stream = absl::make_unique<MockAsyncReadRowsStream>();
+        auto stream = std::make_unique<MockAsyncReadRowsStream>();
         EXPECT_CALL(*stream, Start).WillOnce([] {
           return make_ready_future(true);
         });
@@ -1510,7 +1487,7 @@ TEST(DataConnectionTest, AsyncReadRowEmpty) {
 TEST(DataConnectionTest, AsyncReadRowSuccess) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncReadRows)
-      .WillOnce([](CompletionQueue const&, std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](CompletionQueue const&, auto,
                    v2::ReadRowsRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
@@ -1518,7 +1495,7 @@ TEST(DataConnectionTest, AsyncReadRowSuccess) {
         EXPECT_THAT(request.rows().row_keys(), ElementsAre("row"));
         EXPECT_THAT(request.filter(), IsTestFilter());
 
-        auto stream = absl::make_unique<MockAsyncReadRowsStream>();
+        auto stream = std::make_unique<MockAsyncReadRowsStream>();
         EXPECT_CALL(*stream, Start).WillOnce([] {
           return make_ready_future(true);
         });
@@ -1553,18 +1530,18 @@ TEST(DataConnectionTest, AsyncReadRowSuccess) {
 TEST(DataConnectionTest, AsyncReadRowFailure) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncReadRows)
-      .WillOnce([](CompletionQueue const&, std::unique_ptr<grpc::ClientContext>,
-                   v2::ReadRowsRequest const& request) {
-        EXPECT_EQ(kAppProfile, request.app_profile_id());
-        EXPECT_EQ(kTableName, request.table_name());
-        EXPECT_EQ(1, request.rows_limit());
-        EXPECT_THAT(request.rows().row_keys(), ElementsAre("row"));
-        EXPECT_THAT(request.filter(), IsTestFilter());
+      .WillOnce(
+          [](CompletionQueue const&, auto, v2::ReadRowsRequest const& request) {
+            EXPECT_EQ(kAppProfile, request.app_profile_id());
+            EXPECT_EQ(kTableName, request.table_name());
+            EXPECT_EQ(1, request.rows_limit());
+            EXPECT_THAT(request.rows().row_keys(), ElementsAre("row"));
+            EXPECT_THAT(request.filter(), IsTestFilter());
 
-        using ErrorStream =
-            internal::AsyncStreamingReadRpcError<v2::ReadRowsResponse>;
-        return absl::make_unique<ErrorStream>(PermanentError());
-      });
+            using ErrorStream =
+                internal::AsyncStreamingReadRpcError<v2::ReadRowsResponse>;
+            return std::make_unique<ErrorStream>(PermanentError());
+          });
 
   auto conn = TestConnection(std::move(mock));
   internal::OptionsSpan span(CallOptions());

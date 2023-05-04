@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "google/cloud/spanner/internal/session_pool.h"
+#include "google/cloud/spanner/internal/route_to_leader.h"
 #include "google/cloud/spanner/internal/session.h"
 #include "google/cloud/spanner/internal/status_utils.h"
 #include "google/cloud/spanner/options.h"
@@ -20,8 +21,8 @@
 #include "google/cloud/internal/async_retry_loop.h"
 #include "google/cloud/internal/retry_loop.h"
 #include "google/cloud/log.h"
+#include "google/cloud/options.h"
 #include "google/cloud/status.h"
-#include "absl/memory/memory.h"
 #include <grpcpp/grpcpp.h>
 #include <algorithm>
 #include <chrono>
@@ -75,10 +76,11 @@ SessionPool::SessionPool(spanner::Database db,
 }
 
 void SessionPool::Initialize() {
+  internal::OptionsSpan span(opts_);
   auto const min_sessions = opts_.get<spanner::SessionPoolMinSessionsOption>();
   if (min_sessions > 0) {
     std::unique_lock<std::mutex> lk(mu_);
-    (void)Grow(lk, min_sessions, WaitForSessionAllocation::kWait);
+    Grow(lk, min_sessions, WaitForSessionAllocation::kWait);
   }
   ScheduleBackgroundWork(std::chrono::seconds(5));
 }
@@ -199,7 +201,7 @@ Status SessionPool::Grow(std::unique_lock<std::mutex>& lk,
                          int sessions_to_create,
                          WaitForSessionAllocation wait) {
   auto create_counts = ComputeCreateCounts(sessions_to_create);
-  if (!create_counts.ok()) {
+  if (!create_counts.ok() || create_counts->empty()) {
     return create_counts.status();
   }
   create_calls_in_progress_ += static_cast<int>(create_counts->size());
@@ -286,6 +288,10 @@ Status SessionPool::CreateSessions(
 }
 
 StatusOr<SessionHolder> SessionPool::Allocate(bool dissociate_from_pool) {
+  // We choose to ignore the internal::CurrentOptions() here as it is
+  // non-deterministic when RPCs to create sessions are actually made.
+  // It is clearer if we just stick with the construction-time Options.
+  internal::OptionsSpan span(opts_);
   std::unique_lock<std::mutex> lk(mu_);
   for (;;) {
     if (!sessions_.empty()) {
@@ -397,6 +403,7 @@ Status SessionPool::CreateSessionsSync(
       google::cloud::Idempotency::kIdempotent,
       [&stub](grpc::ClientContext& context,
               google::spanner::v1::BatchCreateSessionsRequest const& request) {
+        RouteToLeader(context);  // always for BatchCreateSessions()
         return stub->BatchCreateSessions(context, request);
       },
       request, __func__);
@@ -454,8 +461,9 @@ SessionPool::AsyncBatchCreateSessions(
   return google::cloud::internal::AsyncRetryLoop(
       retry_policy_prototype_->clone(), backoff_policy_prototype_->clone(),
       Idempotency::kIdempotent, cq,
-      [stub](CompletionQueue& cq, std::unique_ptr<grpc::ClientContext> context,
+      [stub](CompletionQueue& cq, std::shared_ptr<grpc::ClientContext> context,
              google::spanner::v1::BatchCreateSessionsRequest const& request) {
+        RouteToLeader(*context);  // always for BatchCreateSessions()
         return stub->AsyncBatchCreateSessions(cq, std::move(context), request);
       },
       std::move(request), __func__);
@@ -469,7 +477,7 @@ future<Status> SessionPool::AsyncDeleteSession(
   return google::cloud::internal::AsyncRetryLoop(
       retry_policy_prototype_->clone(), backoff_policy_prototype_->clone(),
       Idempotency::kIdempotent, cq,
-      [stub](CompletionQueue& cq, std::unique_ptr<grpc::ClientContext> context,
+      [stub](CompletionQueue& cq, std::shared_ptr<grpc::ClientContext> context,
              google::spanner::v1::DeleteSessionRequest const& request) {
         return stub->AsyncDeleteSession(cq, std::move(context), request);
       },
@@ -490,8 +498,9 @@ SessionPool::AsyncRefreshSession(CompletionQueue& cq,
   return google::cloud::internal::AsyncRetryLoop(
       retry_policy_prototype_->clone(), backoff_policy_prototype_->clone(),
       Idempotency::kIdempotent, cq,
-      [stub](CompletionQueue& cq, std::unique_ptr<grpc::ClientContext> context,
+      [stub](CompletionQueue& cq, std::shared_ptr<grpc::ClientContext> context,
              google::spanner::v1::ExecuteSqlRequest const& request) {
+        // Read-only transaction, so no route-to-leader.
         return stub->AsyncExecuteSql(cq, std::move(context), request);
       },
       std::move(request), __func__);
@@ -511,7 +520,7 @@ Status SessionPool::HandleBatchCreateSessionsDone(
   total_sessions_ += sessions_created;
   sessions_.reserve(sessions_.size() + sessions_created);
   for (auto& session : *response->mutable_session()) {
-    sessions_.push_back(absl::make_unique<Session>(
+    sessions_.push_back(std::make_unique<Session>(
         std::move(*session.mutable_name()), channel, clock_));
   }
   // Shuffle the pool so we distribute returned sessions across channels.

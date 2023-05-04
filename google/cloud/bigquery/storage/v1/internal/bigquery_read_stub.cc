@@ -19,7 +19,6 @@
 #include "google/cloud/bigquery/storage/v1/internal/bigquery_read_stub.h"
 #include "google/cloud/grpc_error_delegate.h"
 #include "google/cloud/status_or.h"
-#include "absl/memory/memory.h"
 #include <google/cloud/bigquery/storage/v1/storage.grpc.pb.h>
 #include <memory>
 
@@ -47,10 +46,10 @@ DefaultBigQueryReadStub::CreateReadSession(
 std::unique_ptr<google::cloud::internal::StreamingReadRpc<
     google::cloud::bigquery::storage::v1::ReadRowsResponse>>
 DefaultBigQueryReadStub::ReadRows(
-    std::unique_ptr<grpc::ClientContext> client_context,
+    std::shared_ptr<grpc::ClientContext> client_context,
     google::cloud::bigquery::storage::v1::ReadRowsRequest const& request) {
   auto stream = grpc_stub_->ReadRows(client_context.get(), request);
-  return absl::make_unique<google::cloud::internal::StreamingReadRpcImpl<
+  return std::make_unique<google::cloud::internal::StreamingReadRpcImpl<
       google::cloud::bigquery::storage::v1::ReadRowsResponse>>(
       std::move(client_context), std::move(stream));
 }

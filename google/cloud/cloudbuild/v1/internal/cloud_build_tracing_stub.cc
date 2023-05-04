@@ -33,9 +33,16 @@ CloudBuildTracingStub::CloudBuildTracingStub(
 future<StatusOr<google::longrunning::Operation>>
 CloudBuildTracingStub::AsyncCreateBuild(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::devtools::cloudbuild::v1::CreateBuildRequest const& request) {
-  return child_->AsyncCreateBuild(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.devtools.cloudbuild.v1.CloudBuild",
+                                     "CreateBuild");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateBuild(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::devtools::cloudbuild::v1::Build>
@@ -76,17 +83,31 @@ CloudBuildTracingStub::CancelBuild(
 future<StatusOr<google::longrunning::Operation>>
 CloudBuildTracingStub::AsyncRetryBuild(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::devtools::cloudbuild::v1::RetryBuildRequest const& request) {
-  return child_->AsyncRetryBuild(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.devtools.cloudbuild.v1.CloudBuild",
+                                     "RetryBuild");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncRetryBuild(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 CloudBuildTracingStub::AsyncApproveBuild(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::devtools::cloudbuild::v1::ApproveBuildRequest const& request) {
-  return child_->AsyncApproveBuild(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.devtools.cloudbuild.v1.CloudBuild",
+                                     "ApproveBuild");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncApproveBuild(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::devtools::cloudbuild::v1::BuildTrigger>
@@ -154,9 +175,16 @@ CloudBuildTracingStub::UpdateBuildTrigger(
 future<StatusOr<google::longrunning::Operation>>
 CloudBuildTracingStub::AsyncRunBuildTrigger(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::devtools::cloudbuild::v1::RunBuildTriggerRequest const& request) {
-  return child_->AsyncRunBuildTrigger(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.devtools.cloudbuild.v1.CloudBuild",
+                                     "RunBuildTrigger");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncRunBuildTrigger(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::devtools::cloudbuild::v1::ReceiveTriggerWebhookResponse>
@@ -175,9 +203,16 @@ CloudBuildTracingStub::ReceiveTriggerWebhook(
 future<StatusOr<google::longrunning::Operation>>
 CloudBuildTracingStub::AsyncCreateWorkerPool(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::devtools::cloudbuild::v1::CreateWorkerPoolRequest const& request) {
-  return child_->AsyncCreateWorkerPool(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.devtools.cloudbuild.v1.CloudBuild",
+                                     "CreateWorkerPool");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateWorkerPool(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::devtools::cloudbuild::v1::WorkerPool>
@@ -195,17 +230,31 @@ CloudBuildTracingStub::GetWorkerPool(
 future<StatusOr<google::longrunning::Operation>>
 CloudBuildTracingStub::AsyncDeleteWorkerPool(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::devtools::cloudbuild::v1::DeleteWorkerPoolRequest const& request) {
-  return child_->AsyncDeleteWorkerPool(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.devtools.cloudbuild.v1.CloudBuild",
+                                     "DeleteWorkerPool");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDeleteWorkerPool(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 CloudBuildTracingStub::AsyncUpdateWorkerPool(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::devtools::cloudbuild::v1::UpdateWorkerPoolRequest const& request) {
-  return child_->AsyncUpdateWorkerPool(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.devtools.cloudbuild.v1.CloudBuild",
+                                     "UpdateWorkerPool");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateWorkerPool(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::devtools::cloudbuild::v1::ListWorkerPoolsResponse>
@@ -223,16 +272,30 @@ CloudBuildTracingStub::ListWorkerPools(
 future<StatusOr<google::longrunning::Operation>>
 CloudBuildTracingStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return child_->AsyncGetOperation(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.longrunning.Operations", "GetOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncGetOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<Status> CloudBuildTracingStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return child_->AsyncCancelOperation(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.longrunning.Operations",
+                                     "CancelOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCancelOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY

@@ -15,10 +15,10 @@
 #include "generator/internal/idempotency_policy_generator.h"
 #include "generator/internal/codegen_utils.h"
 #include "generator/internal/descriptor_utils.h"
+#include "generator/internal/pagination.h"
 #include "generator/internal/predicate_utils.h"
 #include "generator/internal/printer.h"
 #include "google/cloud/internal/absl_str_cat_quiet.h"
-#include "absl/memory/memory.h"
 #include <google/protobuf/descriptor.h>
 
 namespace google {
@@ -124,8 +124,7 @@ Status IdempotencyPolicyGenerator::GenerateCc() {
 
   // includes
   CcPrint("\n");
-  CcLocalIncludes(
-      {vars("idempotency_policy_header_path"), "absl/memory/memory.h"});
+  CcLocalIncludes({vars("idempotency_policy_header_path")});
   CcSystemIncludes({"memory"});
 
   auto result = CcOpenNamespaces();
@@ -143,7 +142,7 @@ $idempotency_class_name$::~$idempotency_class_name$() = default;
 
 std::unique_ptr<$idempotency_class_name$>
 $idempotency_class_name$::clone() const {
-  return absl::make_unique<$idempotency_class_name$>(*this);
+  return std::make_unique<$idempotency_class_name$>(*this);
 }
 )""");
 
@@ -187,7 +186,7 @@ Idempotency $idempotency_class_name$::$method_name$($request_type$ const&) {
       "\n"
       "std::unique_ptr<$idempotency_class_name$>\n"
       "    MakeDefault$idempotency_class_name$() {\n"
-      "  return absl::make_unique<$idempotency_class_name$>();\n"
+      "  return std::make_unique<$idempotency_class_name$>();\n"
       "}\n");
   // clang-format on
 

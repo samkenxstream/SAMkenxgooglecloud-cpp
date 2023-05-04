@@ -75,7 +75,7 @@ ENV PATH=/usr/local/bin:${PATH}
 
 # ```bash
 WORKDIR /var/tmp/build/abseil-cpp
-RUN curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.1.tar.gz | \
+RUN curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.3.tar.gz | \
     tar -xzf - --strip-components=1 && \
     sed -i 's/^#define ABSL_OPTION_USE_\(.*\) 2/#define ABSL_OPTION_USE_\1 1/' "absl/base/options.h" && \
     cmake \
@@ -137,7 +137,7 @@ RUN curl -sSL https://github.com/google/re2/archive/2023-03-01.tar.gz | \
 
 # ```bash
 WORKDIR /var/tmp/build/grpc
-RUN curl -sSL https://github.com/grpc/grpc/archive/v1.52.1.tar.gz | \
+RUN curl -sSL https://github.com/grpc/grpc/archive/v1.54.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_CXX_STANDARD=17 \

@@ -60,10 +60,13 @@ DefaultCertificateManagerStub::GetCertificate(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCertificateManagerStub::AsyncCreateCertificate(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::CreateCertificateRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::certificatemanager::v1::CreateCertificateRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::certificatemanager::v1::CreateCertificateRequest const&
@@ -77,10 +80,13 @@ DefaultCertificateManagerStub::AsyncCreateCertificate(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCertificateManagerStub::AsyncUpdateCertificate(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::UpdateCertificateRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::certificatemanager::v1::UpdateCertificateRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::certificatemanager::v1::UpdateCertificateRequest const&
@@ -94,10 +100,13 @@ DefaultCertificateManagerStub::AsyncUpdateCertificate(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCertificateManagerStub::AsyncDeleteCertificate(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::DeleteCertificateRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::certificatemanager::v1::DeleteCertificateRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::certificatemanager::v1::DeleteCertificateRequest const&
@@ -139,10 +148,13 @@ DefaultCertificateManagerStub::GetCertificateMap(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCertificateManagerStub::AsyncCreateCertificateMap(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::CreateCertificateMapRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::certificatemanager::v1::CreateCertificateMapRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::certificatemanager::v1::
                  CreateCertificateMapRequest const& request,
@@ -155,10 +167,13 @@ DefaultCertificateManagerStub::AsyncCreateCertificateMap(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCertificateManagerStub::AsyncUpdateCertificateMap(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::UpdateCertificateMapRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::certificatemanager::v1::UpdateCertificateMapRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::certificatemanager::v1::
                  UpdateCertificateMapRequest const& request,
@@ -171,10 +186,13 @@ DefaultCertificateManagerStub::AsyncUpdateCertificateMap(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCertificateManagerStub::AsyncDeleteCertificateMap(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::DeleteCertificateMapRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::certificatemanager::v1::DeleteCertificateMapRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::certificatemanager::v1::
                  DeleteCertificateMapRequest const& request,
@@ -217,10 +235,13 @@ DefaultCertificateManagerStub::GetCertificateMapEntry(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCertificateManagerStub::AsyncCreateCertificateMapEntry(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::
         CreateCertificateMapEntryRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::certificatemanager::v1::CreateCertificateMapEntryRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::certificatemanager::v1::
                  CreateCertificateMapEntryRequest const& request,
@@ -233,10 +254,13 @@ DefaultCertificateManagerStub::AsyncCreateCertificateMapEntry(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCertificateManagerStub::AsyncUpdateCertificateMapEntry(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::
         UpdateCertificateMapEntryRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::certificatemanager::v1::UpdateCertificateMapEntryRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::certificatemanager::v1::
                  UpdateCertificateMapEntryRequest const& request,
@@ -249,10 +273,13 @@ DefaultCertificateManagerStub::AsyncUpdateCertificateMapEntry(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCertificateManagerStub::AsyncDeleteCertificateMapEntry(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::
         DeleteCertificateMapEntryRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::certificatemanager::v1::DeleteCertificateMapEntryRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::certificatemanager::v1::
                  DeleteCertificateMapEntryRequest const& request,
@@ -293,10 +320,13 @@ DefaultCertificateManagerStub::GetDnsAuthorization(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCertificateManagerStub::AsyncCreateDnsAuthorization(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::CreateDnsAuthorizationRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::certificatemanager::v1::CreateDnsAuthorizationRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::certificatemanager::v1::
                  CreateDnsAuthorizationRequest const& request,
@@ -309,10 +339,13 @@ DefaultCertificateManagerStub::AsyncCreateDnsAuthorization(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCertificateManagerStub::AsyncUpdateDnsAuthorization(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::UpdateDnsAuthorizationRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::certificatemanager::v1::UpdateDnsAuthorizationRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::certificatemanager::v1::
                  UpdateDnsAuthorizationRequest const& request,
@@ -325,10 +358,13 @@ DefaultCertificateManagerStub::AsyncUpdateDnsAuthorization(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCertificateManagerStub::AsyncDeleteDnsAuthorization(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::DeleteDnsAuthorizationRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::certificatemanager::v1::DeleteDnsAuthorizationRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::certificatemanager::v1::
                  DeleteDnsAuthorizationRequest const& request,
@@ -371,10 +407,13 @@ DefaultCertificateManagerStub::GetCertificateIssuanceConfig(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCertificateManagerStub::AsyncCreateCertificateIssuanceConfig(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::
         CreateCertificateIssuanceConfigRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::cloud::certificatemanager::v1::
+                                        CreateCertificateIssuanceConfigRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::certificatemanager::v1::
                  CreateCertificateIssuanceConfigRequest const& request,
@@ -388,10 +427,13 @@ DefaultCertificateManagerStub::AsyncCreateCertificateIssuanceConfig(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCertificateManagerStub::AsyncDeleteCertificateIssuanceConfig(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::
         DeleteCertificateIssuanceConfigRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::cloud::certificatemanager::v1::
+                                        DeleteCertificateIssuanceConfigRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::certificatemanager::v1::
                  DeleteCertificateIssuanceConfigRequest const& request,
@@ -405,9 +447,11 @@ DefaultCertificateManagerStub::AsyncDeleteCertificateIssuanceConfig(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCertificateManagerStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -418,16 +462,17 @@ DefaultCertificateManagerStub::AsyncGetOperation(
 
 future<Status> DefaultCertificateManagerStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

@@ -13,11 +13,13 @@
 // limitations under the License.
 
 #include "google/cloud/storage/internal/grpc_client.h"
+#include "google/cloud/storage/internal/crc32c.h"
 #include "google/cloud/storage/internal/grpc_bucket_access_control_parser.h"
 #include "google/cloud/storage/internal/grpc_bucket_metadata_parser.h"
 #include "google/cloud/storage/internal/grpc_bucket_name.h"
 #include "google/cloud/storage/internal/grpc_bucket_request_parser.h"
 #include "google/cloud/storage/internal/grpc_configure_client_context.h"
+#include "google/cloud/storage/internal/grpc_ctype_cord_workaround.h"
 #include "google/cloud/storage/internal/grpc_hmac_key_metadata_parser.h"
 #include "google/cloud/storage/internal/grpc_hmac_key_request_parser.h"
 #include "google/cloud/storage/internal/grpc_notification_metadata_parser.h"
@@ -37,7 +39,6 @@
 #include "google/cloud/internal/invoke_result.h"
 #include "google/cloud/log.h"
 #include "absl/strings/match.h"
-#include <crc32c/crc32c.h>
 #include <grpcpp/grpcpp.h>
 #include <algorithm>
 #include <cinttypes>
@@ -108,41 +109,6 @@ StatusOr<storage::ObjectAccessControl> FindDefaultObjectAccessControl(
   return Status(
       StatusCode::kNotFound,
       "cannot find entity <" + entity + "> in bucket " + response->bucket_id());
-}
-
-// If this is the last `Write()` call of the last `InsertObjectMedia()` set the
-// flags to finalize the request
-void MaybeFinalize(
-    google::storage::v2::WriteObjectRequest& write_request,
-    grpc::WriteOptions& options,
-    storage::internal::InsertObjectMediaRequest const& /*request*/,
-    bool chunk_has_more) {
-  if (!chunk_has_more) options.set_last_message();
-  write_request.set_finish_write(!chunk_has_more);
-}
-
-// If this is the last `Write()` call of the last `UploadChunk()` set the flags
-// to finalize the request
-void MaybeFinalize(google::storage::v2::WriteObjectRequest& write_request,
-                   grpc::WriteOptions& options,
-                   storage::internal::UploadChunkRequest const& request,
-                   bool chunk_has_more) {
-  if (!chunk_has_more) options.set_last_message();
-  if (!request.last_chunk() || chunk_has_more) return;
-  write_request.set_finish_write(true);
-  auto const& hashes = request.full_object_hashes();
-  if (!hashes.md5.empty()) {
-    auto md5 = MD5ToProto(hashes.md5);
-    if (md5) {
-      write_request.mutable_object_checksums()->set_md5_hash(*std::move(md5));
-    }
-  }
-  if (!hashes.crc32c.empty()) {
-    auto crc32c = Crc32cToProto(hashes.crc32c);
-    if (crc32c) {
-      write_request.mutable_object_checksums()->set_crc32c(*std::move(crc32c));
-    }
-  }
 }
 
 std::chrono::milliseconds ScaleStallTimeout(std::chrono::milliseconds timeout,
@@ -240,7 +206,12 @@ int DefaultGrpcNumChannels(std::string const& endpoint) {
 
 Options DefaultOptionsGrpc(Options options) {
   using ::google::cloud::internal::GetEnv;
-
+  // Experiments show that gRPC gets better upload throughput when the upload
+  // buffer is at least 32MiB.
+  auto constexpr kDefaultGrpcUploadBufferSize = 32 * 1024 * 1024L;
+  options = google::cloud::internal::MergeOptions(
+      std::move(options), Options{}.set<storage::UploadBufferSizeOption>(
+                              kDefaultGrpcUploadBufferSize));
   options =
       storage::internal::DefaultOptionsWithCredentials(std::move(options));
   if (!options.has<UnifiedCredentialsOption>() &&
@@ -256,17 +227,17 @@ Options DefaultOptionsGrpc(Options options) {
     // (sometimes called "anonymous") credentials, which disable SSL.
     options.set<UnifiedCredentialsOption>(MakeInsecureCredentials());
   }
-  if (!options.has<EndpointOption>()) {
-    options.set<EndpointOption>("storage.googleapis.com");
-  }
-  if (!options.has<AuthorityOption>()) {
-    options.set<AuthorityOption>("storage.googleapis.com");
-  }
-  if (!options.has<GrpcNumChannelsOption>()) {
-    options.set<GrpcNumChannelsOption>(
-        DefaultGrpcNumChannels(options.get<EndpointOption>()));
-  }
-  return options;
+
+  options = google::cloud::internal::MergeOptions(
+      std::move(options), Options{}
+                              .set<EndpointOption>("storage.googleapis.com")
+                              .set<AuthorityOption>("storage.googleapis.com"));
+  // We can only compute this once the endpoint is known, so take an additional
+  // step.
+  auto const num_channels =
+      DefaultGrpcNumChannels(options.get<EndpointOption>());
+  return google::cloud::internal::MergeOptions(
+      std::move(options), Options{}.set<GrpcNumChannelsOption>(num_channels));
 }
 
 std::shared_ptr<GrpcClient> GrpcClient::Create(Options opts) {
@@ -437,7 +408,7 @@ StatusOr<storage::ObjectMetadata> GrpcClient::InsertObjectMedia(
         [](auto f) { return f.get().ok(); });
   };
 
-  auto context = absl::make_unique<grpc::ClientContext>();
+  auto context = std::make_shared<grpc::ClientContext>();
   // The REST response is just the object metadata (aka the "resource"). In the
   // gRPC response the object metadata is in a "resource" field. Passing an
   // extra prefix to ApplyQueryParameters sends the right
@@ -446,10 +417,7 @@ StatusOr<storage::ObjectMetadata> GrpcClient::InsertObjectMedia(
   ApplyRoutingHeaders(*context, request);
   auto stream = stub_->WriteObject(std::move(context));
 
-  using ContentType = std::remove_const_t<std::remove_reference_t<
-      decltype(std::declval<google::storage::v2::ChecksummedData>()
-                   .content())>>;
-  auto splitter = SplitObjectWriteData<ContentType>(request.contents());
+  auto splitter = SplitObjectWriteData<ContentType>(request.payload());
   std::int64_t offset = 0;
 
   // This loop must run at least once because we need to send at least one
@@ -457,12 +425,14 @@ StatusOr<storage::ObjectMetadata> GrpcClient::InsertObjectMedia(
   do {
     proto_request.set_write_offset(offset);
     auto& data = *proto_request.mutable_checksummed_data();
-    data.set_content(splitter.Next());
-    data.set_crc32c(crc32c::Crc32c(data.content()));
-    offset += data.content().size();
+    SetMutableContent(data, splitter.Next());
+    data.set_crc32c(Crc32c(GetContent(data)));
+    request.hash_function().Update(offset, GetContent(data), data.crc32c());
+    offset += GetContent(data).size();
 
     auto options = grpc::WriteOptions{};
     MaybeFinalize(proto_request, options, request, !splitter.Done());
+
     auto watchdog = create_watchdog().then([&stream](auto f) {
       if (!f.get()) return false;
       stream->Cancel();
@@ -529,7 +499,7 @@ GrpcClient::ReadObject(
         StatusCode::kOutOfRange,
         "ReadLast(0) is invalid in REST and produces incorrect output in gRPC");
   }
-  auto context = absl::make_unique<grpc::ClientContext>();
+  auto context = std::make_shared<grpc::ClientContext>();
   ApplyQueryParameters(*context, request);
   auto proto_request = ToProto(request);
   if (!proto_request) return std::move(proto_request).status();
@@ -552,8 +522,8 @@ GrpcClient::ReadObject(
   }
 
   return std::unique_ptr<storage::internal::ObjectReadSource>(
-      absl::make_unique<GrpcObjectReadSource>(std::move(timer_source),
-                                              std::move(stream)));
+      std::make_unique<GrpcObjectReadSource>(std::move(timer_source),
+                                             std::move(stream)));
 }
 
 StatusOr<storage::internal::ListObjectsResponse> GrpcClient::ListObjects(
@@ -684,7 +654,7 @@ GrpcClient::UploadChunk(storage::internal::UploadChunkRequest const& request) {
         [](auto f) { return f.get().ok(); });
   };
 
-  auto context = absl::make_unique<grpc::ClientContext>();
+  auto context = std::make_shared<grpc::ClientContext>();
   // The REST response is just the object metadata (aka the "resource"). In the
   // gRPC response the object metadata is in a "resource" field. Passing an
   // extra prefix to ApplyQueryParameters sends the right
@@ -693,9 +663,6 @@ GrpcClient::UploadChunk(storage::internal::UploadChunkRequest const& request) {
   ApplyRoutingHeaders(*context, request);
   auto stream = stub_->WriteObject(std::move(context));
 
-  using ContentType = std::remove_const_t<std::remove_reference_t<
-      decltype(std::declval<google::storage::v2::ChecksummedData>()
-                   .content())>>;
   auto splitter = SplitObjectWriteData<ContentType>(request.payload());
   auto offset = request.offset();
 
@@ -704,9 +671,10 @@ GrpcClient::UploadChunk(storage::internal::UploadChunkRequest const& request) {
   do {
     proto_request.set_write_offset(offset);
     auto& data = *proto_request.mutable_checksummed_data();
-    data.set_content(splitter.Next());
-    data.set_crc32c(crc32c::Crc32c(data.content()));
-    offset += data.content().size();
+    SetMutableContent(data, splitter.Next());
+    data.set_crc32c(Crc32c(GetContent(data)));
+    request.hash_function().Update(offset, GetContent(data), data.crc32c());
+    offset += GetContent(data).size();
 
     auto options = grpc::WriteOptions();
     MaybeFinalize(proto_request, options, request, !splitter.Done());

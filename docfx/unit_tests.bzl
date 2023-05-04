@@ -17,8 +17,17 @@
 """Automatically generated unit tests list - DO NOT EDIT."""
 
 unit_tests = [
+    "doxygen2children_test.cc",
     "doxygen2markdown_test.cc",
+    "doxygen2references_test.cc",
+    "doxygen2syntax_test.cc",
     "doxygen2toc_test.cc",
+    "doxygen2yaml_test.cc",
+    "doxygen_groups_test.cc",
     "doxygen_pages_test.cc",
+    "function_classifiers_test.cc",
+    "generate_metadata_test.cc",
     "parse_arguments_test.cc",
+    "public_docs_test.cc",
+    "yaml_context_test.cc",
 ]

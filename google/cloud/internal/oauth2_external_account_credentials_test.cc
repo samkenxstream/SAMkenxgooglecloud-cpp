@@ -60,7 +60,7 @@ using MockClientFactory =
 
 std::unique_ptr<RestResponse> MakeMockResponse(HttpStatusCode code,
                                                std::string contents) {
-  auto response = absl::make_unique<MockRestResponse>();
+  auto response = std::make_unique<MockRestResponse>();
   EXPECT_CALL(*response, StatusCode).WillRepeatedly(Return(code));
   EXPECT_CALL(std::move(*response), ExtractPayload)
       .Times(AtMost(1))
@@ -101,13 +101,13 @@ std::unique_ptr<RestResponse> MakeMockResponseError() {
 
 std::unique_ptr<RestResponse> MakeMockResponsePartialError(
     std::string partial) {
-  auto response = absl::make_unique<MockRestResponse>();
+  auto response = std::make_unique<MockRestResponse>();
   EXPECT_CALL(*response, StatusCode)
       .WillRepeatedly(Return(HttpStatusCode::kOk));
   EXPECT_CALL(std::move(*response), ExtractPayload)
       .Times(AtMost(1))
       .WillRepeatedly([partial = std::move(partial)]() mutable {
-        auto payload = absl::make_unique<MockHttpPayload>();
+        auto payload = std::make_unique<MockHttpPayload>();
         // This is shared by the next two mocking functions.
         auto c = std::make_shared<std::string>();
         EXPECT_CALL(*payload, HasUnreadData).WillRepeatedly([c] {
@@ -602,7 +602,7 @@ TEST(ExternalAccount, Working) {
 
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call(make_expected_options())).WillOnce([&]() {
-    auto mock = absl::make_unique<MockRestClient>();
+    auto mock = std::make_unique<MockRestClient>();
     auto expected_request = make_expected_token_exchange_request(test_url);
     auto expected_payload =
         MatcherCast<FormDataType const&>(UnorderedElementsAre(
@@ -614,7 +614,7 @@ TEST(ExternalAccount, Working) {
             Pair("audience", "test-audience"),
             Pair("subject_token_type", "test-subject-token-type"),
             Pair("subject_token", "test-subject-token")));
-    EXPECT_CALL(*mock, Post(expected_request, expected_payload))
+    EXPECT_CALL(*mock, Post(_, expected_request, expected_payload))
         .WillOnce(
             Return(ByMove(MakeMockResponseSuccess(json_response.dump()))));
     return mock;
@@ -683,8 +683,8 @@ TEST(ExternalAccount, WorkingWithImpersonation) {
             Pair("subject_token_type", "test-subject-token-type"),
             Pair("subject_token", "test-subject-token")));
     auto sts_response = MakeMockResponseSuccess(sts_payload.dump());
-    auto mock = absl::make_unique<MockRestClient>();
-    EXPECT_CALL(*mock, Post(expected_sts_request, expected_form_data))
+    auto mock = std::make_unique<MockRestClient>();
+    EXPECT_CALL(*mock, Post(_, expected_sts_request, expected_form_data))
         .WillOnce(Return(ByMove(std::move(sts_response))));
     return mock;
   }();
@@ -702,9 +702,9 @@ TEST(ExternalAccount, WorkingWithImpersonation) {
             absl::Span<char const>(impersonate_request_payload_dump)));
     auto impersonate_response =
         MakeMockResponseSuccess(impersonate_response_payload.dump());
-    auto mock = absl::make_unique<MockRestClient>();
-    EXPECT_CALL(
-        *mock, Post(expected_impersonate_request, expected_impersonate_payload))
+    auto mock = std::make_unique<MockRestClient>();
+    EXPECT_CALL(*mock, Post(_, expected_impersonate_request,
+                            expected_impersonate_payload))
         .WillOnce(Return(ByMove(std::move(impersonate_response))));
     return mock;
   }();
@@ -741,7 +741,7 @@ TEST(ExternalAccount, HandleHttpError) {
                           mock_source, absl::nullopt};
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call).WillOnce([&]() {
-    auto mock = absl::make_unique<MockRestClient>();
+    auto mock = std::make_unique<MockRestClient>();
     auto expected_request = make_expected_token_exchange_request(test_url);
     auto expected_form_data =
         MatcherCast<FormDataType const&>(UnorderedElementsAre(
@@ -754,7 +754,7 @@ TEST(ExternalAccount, HandleHttpError) {
             Pair("subject_token_type", "test-subject-token-type"),
             Pair("subject_token", "test-subject-token")));
 
-    EXPECT_CALL(*mock, Post(expected_request, expected_form_data))
+    EXPECT_CALL(*mock, Post(_, expected_request, expected_form_data))
         .WillOnce(Return(ByMove(MakeMockResponseError())));
     return mock;
   });
@@ -778,7 +778,7 @@ TEST(ExternalAccount, HandleHttpPartialError) {
                           mock_source, absl::nullopt};
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call).WillOnce([&]() {
-    auto mock = absl::make_unique<MockRestClient>();
+    auto mock = std::make_unique<MockRestClient>();
     auto expected_request = make_expected_token_exchange_request(test_url);
     auto expected_form_data =
         MatcherCast<FormDataType const&>(UnorderedElementsAre(
@@ -791,7 +791,7 @@ TEST(ExternalAccount, HandleHttpPartialError) {
             Pair("subject_token_type", "test-subject-token-type"),
             Pair("subject_token", "test-subject-token")));
 
-    EXPECT_CALL(*mock, Post(expected_request, expected_form_data))
+    EXPECT_CALL(*mock, Post(_, expected_request, expected_form_data))
         .WillOnce(Return(ByMove(MakeMockResponsePartialError(response))));
     return mock;
   });
@@ -816,7 +816,7 @@ TEST(ExternalAccount, HandleNotJson) {
                           mock_source, absl::nullopt};
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call).WillOnce([&]() {
-    auto mock = absl::make_unique<MockRestClient>();
+    auto mock = std::make_unique<MockRestClient>();
     auto expected_request = make_expected_token_exchange_request(test_url);
     auto expected_payload =
         MatcherCast<FormDataType const&>(UnorderedElementsAre(
@@ -828,7 +828,7 @@ TEST(ExternalAccount, HandleNotJson) {
             Pair("audience", "test-audience"),
             Pair("subject_token_type", "test-subject-token-type"),
             Pair("subject_token", "test-subject-token")));
-    EXPECT_CALL(*mock, Post(expected_request, expected_payload))
+    EXPECT_CALL(*mock, Post(_, expected_request, expected_payload))
         .WillOnce(Return(ByMove(MakeMockResponseSuccess(payload))));
     return mock;
   });
@@ -854,7 +854,7 @@ TEST(ExternalAccount, HandleNotJsonObject) {
                           mock_source, absl::nullopt};
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call).WillOnce([&]() {
-    auto mock = absl::make_unique<MockRestClient>();
+    auto mock = std::make_unique<MockRestClient>();
     auto expected_request = make_expected_token_exchange_request(test_url);
     auto expected_payload =
         MatcherCast<FormDataType const&>(UnorderedElementsAre(
@@ -866,7 +866,7 @@ TEST(ExternalAccount, HandleNotJsonObject) {
             Pair("audience", "test-audience"),
             Pair("subject_token_type", "test-subject-token-type"),
             Pair("subject_token", "test-subject-token")));
-    EXPECT_CALL(*mock, Post(expected_request, expected_payload))
+    EXPECT_CALL(*mock, Post(_, expected_request, expected_payload))
         .WillOnce(Return(ByMove(MakeMockResponseSuccess(payload))));
     return mock;
   });
@@ -898,8 +898,8 @@ TEST(ExternalAccount, MissingToken) {
                           mock_source, absl::nullopt};
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call).WillOnce([&]() {
-    auto mock = absl::make_unique<MockRestClient>();
-    EXPECT_CALL(*mock, Post(_, An<FormDataType const&>()))
+    auto mock = std::make_unique<MockRestClient>();
+    EXPECT_CALL(*mock, Post(_, _, An<FormDataType const&>()))
         .WillOnce(
             Return(ByMove(MakeMockResponseSuccess(json_response.dump()))));
     return mock;
@@ -931,8 +931,8 @@ TEST(ExternalAccount, MissingIssuedTokenType) {
                           mock_source, absl::nullopt};
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call).WillOnce([&]() {
-    auto mock = absl::make_unique<MockRestClient>();
-    EXPECT_CALL(*mock, Post(_, An<FormDataType const&>()))
+    auto mock = std::make_unique<MockRestClient>();
+    EXPECT_CALL(*mock, Post(_, _, An<FormDataType const&>()))
         .WillOnce(
             Return(ByMove(MakeMockResponseSuccess(json_response.dump()))));
     return mock;
@@ -964,8 +964,8 @@ TEST(ExternalAccount, MissingTokenType) {
                           mock_source, absl::nullopt};
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call).WillOnce([&]() {
-    auto mock = absl::make_unique<MockRestClient>();
-    EXPECT_CALL(*mock, Post(_, An<FormDataType const&>()))
+    auto mock = std::make_unique<MockRestClient>();
+    EXPECT_CALL(*mock, Post(_, _, An<FormDataType const&>()))
         .WillOnce(
             Return(ByMove(MakeMockResponseSuccess(json_response.dump()))));
     return mock;
@@ -997,8 +997,8 @@ TEST(ExternalAccount, InvalidIssuedTokenType) {
                           mock_source, absl::nullopt};
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call).WillOnce([&]() {
-    auto mock = absl::make_unique<MockRestClient>();
-    EXPECT_CALL(*mock, Post(_, An<FormDataType const&>()))
+    auto mock = std::make_unique<MockRestClient>();
+    EXPECT_CALL(*mock, Post(_, _, An<FormDataType const&>()))
         .WillOnce(
             Return(ByMove(MakeMockResponseSuccess(json_response.dump()))));
     return mock;
@@ -1032,8 +1032,8 @@ TEST(ExternalAccount, InvalidTokenType) {
                           mock_source, absl::nullopt};
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call).WillOnce([&]() {
-    auto mock = absl::make_unique<MockRestClient>();
-    EXPECT_CALL(*mock, Post(_, An<FormDataType const&>()))
+    auto mock = std::make_unique<MockRestClient>();
+    EXPECT_CALL(*mock, Post(_, _, An<FormDataType const&>()))
         .WillOnce(
             Return(ByMove(MakeMockResponseSuccess(json_response.dump()))));
     return mock;
@@ -1068,8 +1068,8 @@ TEST(ExternalAccount, MissingExpiresIn) {
                           mock_source, absl::nullopt};
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call).WillOnce([&]() {
-    auto mock = absl::make_unique<MockRestClient>();
-    EXPECT_CALL(*mock, Post(_, An<FormDataType const&>()))
+    auto mock = std::make_unique<MockRestClient>();
+    EXPECT_CALL(*mock, Post(_, _, An<FormDataType const&>()))
         .WillOnce(
             Return(ByMove(MakeMockResponseSuccess(json_response.dump()))));
     return mock;
@@ -1102,8 +1102,8 @@ TEST(ExternalAccount, InvalidExpiresIn) {
                           mock_source, absl::nullopt};
   MockClientFactory client_factory;
   EXPECT_CALL(client_factory, Call).WillOnce([&]() {
-    auto mock = absl::make_unique<MockRestClient>();
-    EXPECT_CALL(*mock, Post(_, An<FormDataType const&>()))
+    auto mock = std::make_unique<MockRestClient>();
+    EXPECT_CALL(*mock, Post(_, _, An<FormDataType const&>()))
         .WillOnce(
             Return(ByMove(MakeMockResponseSuccess(json_response.dump()))));
     return mock;

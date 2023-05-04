@@ -92,18 +92,32 @@ TestCasesTracingStub::UpdateTestCase(
 future<StatusOr<google::longrunning::Operation>>
 TestCasesTracingStub::AsyncRunTestCase(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::dialogflow::cx::v3::RunTestCaseRequest const& request) {
-  return child_->AsyncRunTestCase(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.dialogflow.cx.v3.TestCases",
+                                     "RunTestCase");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncRunTestCase(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 TestCasesTracingStub::AsyncBatchRunTestCases(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::dialogflow::cx::v3::BatchRunTestCasesRequest const&
         request) {
-  return child_->AsyncBatchRunTestCases(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.dialogflow.cx.v3.TestCases",
+                                     "BatchRunTestCases");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncBatchRunTestCases(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::dialogflow::cx::v3::CalculateCoverageResponse>
@@ -122,17 +136,31 @@ TestCasesTracingStub::CalculateCoverage(
 future<StatusOr<google::longrunning::Operation>>
 TestCasesTracingStub::AsyncImportTestCases(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::dialogflow::cx::v3::ImportTestCasesRequest const& request) {
-  return child_->AsyncImportTestCases(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.dialogflow.cx.v3.TestCases",
+                                     "ImportTestCases");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncImportTestCases(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 TestCasesTracingStub::AsyncExportTestCases(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::dialogflow::cx::v3::ExportTestCasesRequest const& request) {
-  return child_->AsyncExportTestCases(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.dialogflow.cx.v3.TestCases",
+                                     "ExportTestCases");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncExportTestCases(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::dialogflow::cx::v3::ListTestCaseResultsResponse>
@@ -164,16 +192,30 @@ TestCasesTracingStub::GetTestCaseResult(
 future<StatusOr<google::longrunning::Operation>>
 TestCasesTracingStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return child_->AsyncGetOperation(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.longrunning.Operations", "GetOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncGetOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<Status> TestCasesTracingStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return child_->AsyncCancelOperation(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.longrunning.Operations",
+                                     "CancelOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCancelOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY

@@ -37,16 +37,32 @@ SecurityCenterLogging::SecurityCenterLogging(
 future<StatusOr<google::longrunning::Operation>>
 SecurityCenterLogging::AsyncBulkMuteFindings(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::securitycenter::v1::BulkMuteFindingsRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::securitycenter::v1::BulkMuteFindingsRequest const&
                  request) {
         return child_->AsyncBulkMuteFindings(cq, std::move(context), request);
       },
       cq, std::move(context), request, __func__, tracing_options_);
+}
+
+StatusOr<google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+SecurityCenterLogging::CreateSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        CreateSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  return google::cloud::internal::LogWrapper(
+      [this](
+          grpc::ClientContext& context,
+          google::cloud::securitycenter::v1::
+              CreateSecurityHealthAnalyticsCustomModuleRequest const& request) {
+        return child_->CreateSecurityHealthAnalyticsCustomModule(context,
+                                                                 request);
+      },
+      context, request, __func__, tracing_options_);
 }
 
 StatusOr<google::cloud::securitycenter::v1::Source>
@@ -123,6 +139,21 @@ Status SecurityCenterLogging::DeleteNotificationConfig(
       context, request, __func__, tracing_options_);
 }
 
+Status SecurityCenterLogging::DeleteSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        DeleteSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  return google::cloud::internal::LogWrapper(
+      [this](
+          grpc::ClientContext& context,
+          google::cloud::securitycenter::v1::
+              DeleteSecurityHealthAnalyticsCustomModuleRequest const& request) {
+        return child_->DeleteSecurityHealthAnalyticsCustomModule(context,
+                                                                 request);
+      },
+      context, request, __func__, tracing_options_);
+}
+
 StatusOr<google::cloud::securitycenter::v1::BigQueryExport>
 SecurityCenterLogging::GetBigQueryExport(
     grpc::ClientContext& context,
@@ -188,6 +219,37 @@ SecurityCenterLogging::GetOrganizationSettings(
       context, request, __func__, tracing_options_);
 }
 
+StatusOr<google::cloud::securitycenter::v1::
+             EffectiveSecurityHealthAnalyticsCustomModule>
+SecurityCenterLogging::GetEffectiveSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        GetEffectiveSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  return google::cloud::internal::LogWrapper(
+      [this](grpc::ClientContext& context,
+             google::cloud::securitycenter::v1::
+                 GetEffectiveSecurityHealthAnalyticsCustomModuleRequest const&
+                     request) {
+        return child_->GetEffectiveSecurityHealthAnalyticsCustomModule(context,
+                                                                       request);
+      },
+      context, request, __func__, tracing_options_);
+}
+
+StatusOr<google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+SecurityCenterLogging::GetSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        GetSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  return google::cloud::internal::LogWrapper(
+      [this](grpc::ClientContext& context,
+             google::cloud::securitycenter::v1::
+                 GetSecurityHealthAnalyticsCustomModuleRequest const& request) {
+        return child_->GetSecurityHealthAnalyticsCustomModule(context, request);
+      },
+      context, request, __func__, tracing_options_);
+}
+
 StatusOr<google::cloud::securitycenter::v1::Source>
 SecurityCenterLogging::GetSource(
     grpc::ClientContext& context,
@@ -236,6 +298,25 @@ SecurityCenterLogging::ListAssets(
       context, request, __func__, tracing_options_);
 }
 
+StatusOr<google::cloud::securitycenter::v1::
+             ListDescendantSecurityHealthAnalyticsCustomModulesResponse>
+SecurityCenterLogging::ListDescendantSecurityHealthAnalyticsCustomModules(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        ListDescendantSecurityHealthAnalyticsCustomModulesRequest const&
+            request) {
+  return google::cloud::internal::LogWrapper(
+      [this](
+          grpc::ClientContext& context,
+          google::cloud::securitycenter::v1::
+              ListDescendantSecurityHealthAnalyticsCustomModulesRequest const&
+                  request) {
+        return child_->ListDescendantSecurityHealthAnalyticsCustomModules(
+            context, request);
+      },
+      context, request, __func__, tracing_options_);
+}
+
 StatusOr<google::cloud::securitycenter::v1::ListFindingsResponse>
 SecurityCenterLogging::ListFindings(
     grpc::ClientContext& context,
@@ -272,6 +353,41 @@ SecurityCenterLogging::ListNotificationConfigs(
       context, request, __func__, tracing_options_);
 }
 
+StatusOr<google::cloud::securitycenter::v1::
+             ListEffectiveSecurityHealthAnalyticsCustomModulesResponse>
+SecurityCenterLogging::ListEffectiveSecurityHealthAnalyticsCustomModules(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        ListEffectiveSecurityHealthAnalyticsCustomModulesRequest const&
+            request) {
+  return google::cloud::internal::LogWrapper(
+      [this](grpc::ClientContext& context,
+             google::cloud::securitycenter::v1::
+                 ListEffectiveSecurityHealthAnalyticsCustomModulesRequest const&
+                     request) {
+        return child_->ListEffectiveSecurityHealthAnalyticsCustomModules(
+            context, request);
+      },
+      context, request, __func__, tracing_options_);
+}
+
+StatusOr<google::cloud::securitycenter::v1::
+             ListSecurityHealthAnalyticsCustomModulesResponse>
+SecurityCenterLogging::ListSecurityHealthAnalyticsCustomModules(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        ListSecurityHealthAnalyticsCustomModulesRequest const& request) {
+  return google::cloud::internal::LogWrapper(
+      [this](
+          grpc::ClientContext& context,
+          google::cloud::securitycenter::v1::
+              ListSecurityHealthAnalyticsCustomModulesRequest const& request) {
+        return child_->ListSecurityHealthAnalyticsCustomModules(context,
+                                                                request);
+      },
+      context, request, __func__, tracing_options_);
+}
+
 StatusOr<google::cloud::securitycenter::v1::ListSourcesResponse>
 SecurityCenterLogging::ListSources(
     grpc::ClientContext& context,
@@ -286,12 +402,12 @@ SecurityCenterLogging::ListSources(
 future<StatusOr<google::longrunning::Operation>>
 SecurityCenterLogging::AsyncRunAssetDiscovery(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::securitycenter::v1::RunAssetDiscoveryRequest const&
         request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::securitycenter::v1::RunAssetDiscoveryRequest const&
                  request) {
         return child_->AsyncRunAssetDiscovery(cq, std::move(context), request);
@@ -412,6 +528,22 @@ SecurityCenterLogging::UpdateOrganizationSettings(
       context, request, __func__, tracing_options_);
 }
 
+StatusOr<google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+SecurityCenterLogging::UpdateSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        UpdateSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  return google::cloud::internal::LogWrapper(
+      [this](
+          grpc::ClientContext& context,
+          google::cloud::securitycenter::v1::
+              UpdateSecurityHealthAnalyticsCustomModuleRequest const& request) {
+        return child_->UpdateSecurityHealthAnalyticsCustomModule(context,
+                                                                 request);
+      },
+      context, request, __func__, tracing_options_);
+}
+
 StatusOr<google::cloud::securitycenter::v1::Source>
 SecurityCenterLogging::UpdateSource(
     grpc::ClientContext& context,
@@ -500,11 +632,11 @@ SecurityCenterLogging::ListBigQueryExports(
 future<StatusOr<google::longrunning::Operation>>
 SecurityCenterLogging::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::GetOperationRequest const& request) {
         return child_->AsyncGetOperation(cq, std::move(context), request);
       },
@@ -513,11 +645,11 @@ SecurityCenterLogging::AsyncGetOperation(
 
 future<Status> SecurityCenterLogging::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::CancelOperationRequest const& request) {
         return child_->AsyncCancelOperation(cq, std::move(context), request);
       },

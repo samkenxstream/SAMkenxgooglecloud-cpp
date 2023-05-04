@@ -37,7 +37,8 @@ function features::always_build() {
     bigquery
     iam
     logging
-    # By default, build the library with OpenTelemetry in our CI.
+    # Build our code with OpenTelemetry. This feature includes both the client
+    # library instrumentation, and the GCP exporters.
     experimental-opentelemetry
   )
   printf "%s\n" "${list[@]}" | sort -u

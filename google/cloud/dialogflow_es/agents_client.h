@@ -60,7 +60,7 @@ GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_BEGIN
 /// such a copy when using this class from multiple threads.
 ///
 /// [google.cloud.dialogflow.v2.Agent]:
-/// @googleapis_link_reference{google/cloud/dialogflow/v2/agent.proto#L259}
+/// @googleapis_reference_link{google/cloud/dialogflow/v2/agent.proto#L259}
 ///
 class AgentsClient {
  public:
@@ -207,7 +207,7 @@ class AgentsClient {
   /// Sub-Collections](https://cloud.google.com/apis/design/design_patterns#list_sub-collections).
   ///
   /// @param parent  Required. The project to list agents from.
-  ///  Format: `projects/<Project ID or '-'>`.
+  ///  Format: ``projects/<Project ID or '-'>``.
   /// @param opts Optional. Override the class-level options, such as retry and
   ///     backoff policies.
   /// @return

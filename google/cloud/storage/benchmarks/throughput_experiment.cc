@@ -15,8 +15,8 @@
 #include "google/cloud/storage/benchmarks/throughput_experiment.h"
 #include "google/cloud/storage/benchmarks/benchmark_utils.h"
 #include "google/cloud/storage/client.h"
+#include "google/cloud/storage/internal/grpc_ctype_cord_workaround.h"
 #include "google/cloud/grpc_error_delegate.h"
-#include "absl/memory/memory.h"
 #include <google/storage/v2/storage.grpc.pb.h>
 #include <curl/curl.h>
 #include <iterator>
@@ -140,10 +140,10 @@ class SimpleUpload : public ThroughputExperiment {
     // truncate the object to the right size.
     auto const start = std::chrono::system_clock::now();
     auto timer = Timer::PerThread();
-    std::string data =
-        random_data_->substr(0, static_cast<std::size_t>(config.object_size));
+    auto data = absl::string_view{*random_data_}.substr(
+        0, static_cast<std::size_t>(config.object_size));
     auto object_metadata =
-        client_.InsertObject(bucket_name, object_name, std::move(data),
+        client_.InsertObject(bucket_name, object_name, data,
                              gcs::DisableCrc32cChecksum(!config.enable_crc32c),
                              gcs::DisableMD5Hash(!config.enable_md5));
     auto const usage = timer.Sample();
@@ -373,7 +373,8 @@ class DownloadObjectRawGrpc : public ThroughputExperiment {
     std::string generation = "[generation-N/A]";
     while (stream->Read(&response)) {
       if (response.has_checksummed_data()) {
-        bytes_received += response.checksummed_data().content().size();
+        bytes_received +=
+            storage_internal::GetContent(response.checksummed_data()).size();
       }
       if (response.has_metadata()) {
         generation = std::to_string(response.metadata().generation());
@@ -424,10 +425,10 @@ std::vector<std::unique_ptr<ThroughputExperiment>> CreateUploadExperiments(
       for (auto const& function : options.upload_functions) {
         if (function == "InsertObject") {
           result.push_back(
-              absl::make_unique<SimpleUpload>(provider(t), t, contents));
+              std::make_unique<SimpleUpload>(provider(t), t, contents));
         } else /* if (function == "WriteObject") */ {
           result.push_back(
-              absl::make_unique<ResumableUpload>(provider(t), t, contents));
+              std::make_unique<ResumableUpload>(provider(t), t, contents));
         }
       }
     }
@@ -442,17 +443,17 @@ std::vector<std::unique_ptr<ThroughputExperiment>> CreateDownloadExperiments(
   for (auto l : options.libs) {
     if (l != ExperimentLibrary::kRaw) {
       for (auto t : options.transports) {
-        result.push_back(absl::make_unique<DownloadObject>(provider(t), t));
+        result.push_back(std::make_unique<DownloadObject>(provider(t), t));
       }
       continue;
     }
     for (auto t : options.transports) {
       if (t != ExperimentTransport::kGrpc &&
           t != ExperimentTransport::kDirectPath) {
-        result.push_back(absl::make_unique<DownloadObjectLibcurl>(options));
+        result.push_back(std::make_unique<DownloadObjectLibcurl>(options));
       } else {
         result.push_back(
-            absl::make_unique<DownloadObjectRawGrpc>(options, thread_id, t));
+            std::make_unique<DownloadObjectRawGrpc>(options, thread_id, t));
       }
     }
   }

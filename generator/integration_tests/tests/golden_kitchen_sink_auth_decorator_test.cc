@@ -19,7 +19,6 @@
 #include "google/cloud/internal/streaming_read_rpc.h"
 #include "google/cloud/testing_util/mock_grpc_authentication_strategy.h"
 #include "google/cloud/testing_util/status_matchers.h"
-#include "absl/memory/memory.h"
 #include <gmock/gmock.h>
 #include <memory>
 
@@ -121,7 +120,7 @@ TEST(GoldenKitchenSinkAuthDecoratorTest, StreamingRead) {
   auto mock = std::make_shared<MockGoldenKitchenSinkStub>();
   EXPECT_CALL(*mock, StreamingRead)
       .WillOnce([](::testing::Unused, ::testing::Unused) {
-        return absl::make_unique<StreamingReadRpcError<Response>>(
+        return std::make_unique<StreamingReadRpcError<Response>>(
             Status(StatusCode::kPermissionDenied, "uh-oh"));
       });
 
@@ -129,13 +128,13 @@ TEST(GoldenKitchenSinkAuthDecoratorTest, StreamingRead) {
   ::google::test::admin::database::v1::Request request;
   grpc::ClientContext ctx;
   auto auth_failure = under_test.StreamingRead(
-      absl::make_unique<grpc::ClientContext>(), request);
+      std::make_shared<grpc::ClientContext>(), request);
   auto v = auth_failure->Read();
   ASSERT_TRUE(absl::holds_alternative<Status>(v));
   EXPECT_THAT(absl::get<Status>(v), StatusIs(StatusCode::kInvalidArgument));
 
   auto auth_success = under_test.StreamingRead(
-      absl::make_unique<grpc::ClientContext>(), request);
+      std::make_shared<grpc::ClientContext>(), request);
   v = auth_success->Read();
   ASSERT_TRUE(absl::holds_alternative<Status>(v));
   EXPECT_THAT(absl::get<Status>(v), StatusIs(StatusCode::kPermissionDenied));
@@ -161,26 +160,23 @@ TEST(GoldenKitchenSinkAuthDecoratorTest, ListServiceAccountKeys) {
 
 TEST(GoldenKitchenSinkAuthDecoratorTest, StreamingWrite) {
   auto mock = std::make_shared<MockGoldenKitchenSinkStub>();
-  EXPECT_CALL(*mock, StreamingWrite)
-      .WillOnce([](std::unique_ptr<grpc::ClientContext>) {
-        auto stream = absl::make_unique<MockStreamingWriteRpc>();
-        EXPECT_CALL(*stream, Write)
-            .WillOnce(Return(true))
-            .WillOnce(Return(false));
-        EXPECT_CALL(*stream, Close)
-            .WillOnce(Return(StatusOr<Response>(
-                Status(StatusCode::kPermissionDenied, "uh-oh"))));
-        return stream;
-      });
+  EXPECT_CALL(*mock, StreamingWrite).WillOnce([](auto) {
+    auto stream = std::make_unique<MockStreamingWriteRpc>();
+    EXPECT_CALL(*stream, Write).WillOnce(Return(true)).WillOnce(Return(false));
+    EXPECT_CALL(*stream, Close)
+        .WillOnce(Return(StatusOr<Response>(
+            Status(StatusCode::kPermissionDenied, "uh-oh"))));
+    return stream;
+  });
 
   auto under_test = GoldenKitchenSinkAuth(MakeTypicalMockAuth(), mock);
   auto stream =
-      under_test.StreamingWrite(absl::make_unique<grpc::ClientContext>());
+      under_test.StreamingWrite(std::make_shared<grpc::ClientContext>());
   EXPECT_FALSE(stream->Write(Request{}, grpc::WriteOptions()));
   auto response = stream->Close();
   EXPECT_THAT(response, StatusIs(StatusCode::kInvalidArgument));
 
-  stream = under_test.StreamingWrite(absl::make_unique<grpc::ClientContext>());
+  stream = under_test.StreamingWrite(std::make_shared<grpc::ClientContext>());
   EXPECT_TRUE(stream->Write(Request{}, grpc::WriteOptions()));
   EXPECT_FALSE(stream->Write(Request{}, grpc::WriteOptions()));
   response = stream->Close();
@@ -192,7 +188,7 @@ TEST(GoldenKitchenSinkAuthDecoratorTest, AsyncStreamingRead) {
   using ErrorStream =
       ::google::cloud::internal::AsyncStreamingReadRpcError<Response>;
   EXPECT_CALL(*mock, AsyncStreamingRead)
-      .WillOnce(Return(ByMove(absl::make_unique<ErrorStream>(
+      .WillOnce(Return(ByMove(std::make_unique<ErrorStream>(
           Status(StatusCode::kAborted, "uh-oh")))));
 
   google::cloud::CompletionQueue cq;
@@ -200,14 +196,14 @@ TEST(GoldenKitchenSinkAuthDecoratorTest, AsyncStreamingRead) {
   ::google::test::admin::database::v1::Request request;
 
   auto auth_failure = under_test.AsyncStreamingRead(
-      cq, absl::make_unique<grpc::ClientContext>(), request);
+      cq, std::make_shared<grpc::ClientContext>(), request);
   auto start = auth_failure->Start().get();
   EXPECT_FALSE(start);
   auto finish = auth_failure->Finish().get();
   EXPECT_THAT(finish, StatusIs(StatusCode::kInvalidArgument));
 
   auto auth_success = under_test.AsyncStreamingRead(
-      cq, absl::make_unique<grpc::ClientContext>(), request);
+      cq, std::make_shared<grpc::ClientContext>(), request);
   start = auth_success->Start().get();
   EXPECT_FALSE(start);
   finish = auth_success->Finish().get();
@@ -219,21 +215,21 @@ TEST(GoldenKitchenSinkAuthDecoratorTest, AsyncStreamingWrite) {
   using ErrorStream =
       ::google::cloud::internal::AsyncStreamingWriteRpcError<Request, Response>;
   EXPECT_CALL(*mock, AsyncStreamingWrite)
-      .WillOnce(Return(ByMove(absl::make_unique<ErrorStream>(
+      .WillOnce(Return(ByMove(std::make_unique<ErrorStream>(
           Status(StatusCode::kAborted, "uh-oh")))));
 
   google::cloud::CompletionQueue cq;
   auto under_test = GoldenKitchenSinkAuth(MakeTypicalAsyncMockAuth(), mock);
 
   auto auth_failure = under_test.AsyncStreamingWrite(
-      cq, absl::make_unique<grpc::ClientContext>());
+      cq, std::make_shared<grpc::ClientContext>());
   auto start = auth_failure->Start().get();
   EXPECT_FALSE(start);
   auto finish = auth_failure->Finish().get();
   EXPECT_THAT(finish, StatusIs(StatusCode::kInvalidArgument));
 
   auto auth_success = under_test.AsyncStreamingWrite(
-      cq, absl::make_unique<grpc::ClientContext>());
+      cq, std::make_shared<grpc::ClientContext>());
   start = auth_success->Start().get();
   EXPECT_FALSE(start);
   finish = auth_success->Finish().get();

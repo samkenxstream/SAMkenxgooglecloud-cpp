@@ -13,8 +13,12 @@
 // limitations under the License.
 
 #include "docfx/doxygen2toc.h"
+#include "docfx/doxygen2yaml.h"
+#include "docfx/doxygen_groups.h"
 #include "docfx/doxygen_pages.h"
+#include "docfx/generate_metadata.h"
 #include "docfx/parse_arguments.h"
+#include "docfx/public_docs.h"
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -25,11 +29,34 @@ int main(int argc, char* argv[]) try {
   auto load = doc.load_file(config.input_filename.c_str());
   if (!load) throw std::runtime_error("Error loading XML input file");
 
+  std::ofstream("docs.metadata.json") << docfx::GenerateMetadata(config);
+
   std::ofstream("toc.yml") << docfx::Doxygen2Toc(config, doc);
-  for (auto const& i : doc.select_nodes("//*[@kind='page']")) {
-    auto const& page = i.node();
-    auto const filename = std::string{page.attribute("id").as_string()} + ".md";
-    std::ofstream(filename) << docfx::Page2Markdown(page);
+
+  for (auto const& i : doc.select_nodes("//compounddef")) {
+    auto const node = i.node();
+    if (!docfx::IncludeInPublicDocuments(config, node)) continue;
+    auto const kind = std::string_view{node.attribute("kind").as_string()};
+    auto const id = std::string{node.attribute("id").as_string()};
+    if (kind == "page") {
+      auto filename = (id == "indexpage" ? "index" : id) + ".md";
+      std::ofstream(filename) << docfx::Page2Markdown(node);
+      continue;
+    }
+    if (kind == "group") {
+      std::ofstream(id + ".yml") << docfx::Group2Yaml(node);
+      continue;
+    }
+    std::ofstream(id + ".yml") << docfx::Compound2Yaml(config, node);
+  }
+
+  // Enums need to be generated in their own file or DocFX cannot create links
+  // to them.
+  for (auto const& i : doc.select_nodes("//memberdef[@kind='enum']")) {
+    auto const node = i.node();
+    if (!docfx::IncludeInPublicDocuments(config, node)) continue;
+    auto const id = std::string{node.attribute("id").as_string()};
+    std::ofstream(id + ".yml") << docfx::Compound2Yaml(config, node);
   }
 
   return 0;

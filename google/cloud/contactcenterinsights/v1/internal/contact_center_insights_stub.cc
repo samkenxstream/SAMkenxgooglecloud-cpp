@@ -44,6 +44,25 @@ DefaultContactCenterInsightsStub::CreateConversation(
   return response;
 }
 
+future<StatusOr<google::longrunning::Operation>>
+DefaultContactCenterInsightsStub::AsyncUploadConversation(
+    google::cloud::CompletionQueue& cq,
+    std::shared_ptr<grpc::ClientContext> context,
+    google::cloud::contactcenterinsights::v1::UploadConversationRequest const&
+        request) {
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::contactcenterinsights::v1::UploadConversationRequest,
+      google::longrunning::Operation>(
+      cq,
+      [this](grpc::ClientContext* context,
+             google::cloud::contactcenterinsights::v1::
+                 UploadConversationRequest const& request,
+             grpc::CompletionQueue* cq) {
+        return grpc_stub_->AsyncUploadConversation(context, request, cq);
+      },
+      request, std::move(context));
+}
+
 StatusOr<google::cloud::contactcenterinsights::v1::Conversation>
 DefaultContactCenterInsightsStub::UpdateConversation(
     grpc::ClientContext& client_context,
@@ -102,10 +121,13 @@ Status DefaultContactCenterInsightsStub::DeleteConversation(
 future<StatusOr<google::longrunning::Operation>>
 DefaultContactCenterInsightsStub::AsyncCreateAnalysis(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::contactcenterinsights::v1::CreateAnalysisRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::contactcenterinsights::v1::CreateAnalysisRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::contactcenterinsights::v1::CreateAnalysisRequest const&
@@ -157,10 +179,13 @@ Status DefaultContactCenterInsightsStub::DeleteAnalysis(
 future<StatusOr<google::longrunning::Operation>>
 DefaultContactCenterInsightsStub::AsyncBulkAnalyzeConversations(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::contactcenterinsights::v1::
         BulkAnalyzeConversationsRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::contactcenterinsights::v1::BulkAnalyzeConversationsRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::contactcenterinsights::v1::
                  BulkAnalyzeConversationsRequest const& request,
@@ -173,10 +198,13 @@ DefaultContactCenterInsightsStub::AsyncBulkAnalyzeConversations(
 future<StatusOr<google::longrunning::Operation>>
 DefaultContactCenterInsightsStub::AsyncIngestConversations(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::contactcenterinsights::v1::IngestConversationsRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::contactcenterinsights::v1::IngestConversationsRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::contactcenterinsights::v1::
                  IngestConversationsRequest const& request,
@@ -189,10 +217,13 @@ DefaultContactCenterInsightsStub::AsyncIngestConversations(
 future<StatusOr<google::longrunning::Operation>>
 DefaultContactCenterInsightsStub::AsyncExportInsightsData(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::contactcenterinsights::v1::ExportInsightsDataRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::contactcenterinsights::v1::ExportInsightsDataRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::contactcenterinsights::v1::
                  ExportInsightsDataRequest const& request,
@@ -205,10 +236,13 @@ DefaultContactCenterInsightsStub::AsyncExportInsightsData(
 future<StatusOr<google::longrunning::Operation>>
 DefaultContactCenterInsightsStub::AsyncCreateIssueModel(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::contactcenterinsights::v1::CreateIssueModelRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::contactcenterinsights::v1::CreateIssueModelRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::contactcenterinsights::v1::
                  CreateIssueModelRequest const& request,
@@ -262,10 +296,13 @@ DefaultContactCenterInsightsStub::ListIssueModels(
 future<StatusOr<google::longrunning::Operation>>
 DefaultContactCenterInsightsStub::AsyncDeleteIssueModel(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::contactcenterinsights::v1::DeleteIssueModelRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::contactcenterinsights::v1::DeleteIssueModelRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::contactcenterinsights::v1::
                  DeleteIssueModelRequest const& request,
@@ -278,10 +315,13 @@ DefaultContactCenterInsightsStub::AsyncDeleteIssueModel(
 future<StatusOr<google::longrunning::Operation>>
 DefaultContactCenterInsightsStub::AsyncDeployIssueModel(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::contactcenterinsights::v1::DeployIssueModelRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::contactcenterinsights::v1::DeployIssueModelRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::contactcenterinsights::v1::
                  DeployIssueModelRequest const& request,
@@ -294,10 +334,13 @@ DefaultContactCenterInsightsStub::AsyncDeployIssueModel(
 future<StatusOr<google::longrunning::Operation>>
 DefaultContactCenterInsightsStub::AsyncUndeployIssueModel(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::contactcenterinsights::v1::UndeployIssueModelRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::contactcenterinsights::v1::UndeployIssueModelRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::contactcenterinsights::v1::
                  UndeployIssueModelRequest const& request,
@@ -546,9 +589,11 @@ Status DefaultContactCenterInsightsStub::DeleteView(
 future<StatusOr<google::longrunning::Operation>>
 DefaultContactCenterInsightsStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -559,16 +604,17 @@ DefaultContactCenterInsightsStub::AsyncGetOperation(
 
 future<Status> DefaultContactCenterInsightsStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

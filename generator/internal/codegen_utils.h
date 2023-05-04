@@ -66,27 +66,16 @@ std::string ProtoNameToCppName(absl::string_view proto_name);
 enum class NamespaceType { kNormal, kInternal, kMocks };
 
 /**
- * Builds namespace hierarchy.
+ * Returns the namespace given a product path, and namespace type.
  *
- * Typically used with a product_path like to 'google/cloud/product/' and
- * returns {"google", "cloud", "product", "PRODUCT_CLIENT_NS"}.
+ * Typically used with a product_path like 'google/cloud/product/v1' and
+ * returns "product_v1".
  *
- * If the path contains fewer than two directories, they will be concatenated
- * to form the product value, e.g. 'unusual/product/' returns
- * {"google", "cloud", "unusual_product", "UNUSUAL_PRODUCT_CLIENT_NS"}.
- *
- * If the path contains more than three directories the third and subsequent
- * directories will be concatenated, e.g. 'google/cloud/foo/bar/baz/' returns
- * {"google", "cloud", "foo_bar_baz", "FOO_BAR_BAZ_CLIENT_NS"}.
- *
- * If ns_type is `NamespaceType::kInternal`, "_internal" is appended to the
- * product, e.g. 'google/cloud/product/' returns
- * {"google", "cloud", "product_internal", "PRODUCT_CLIENT_NS"}.
- *
+ * Depending on the NamespaceType, a suffix will be appended. e.g.
+ * "product_v1_mocks" or "product_v1_internal".
  */
-std::vector<std::string> BuildNamespaces(
-    std::string const& product_path,
-    NamespaceType ns_type = NamespaceType::kNormal);
+std::string Namespace(std::string const& product_path,
+                      NamespaceType ns_type = NamespaceType::kNormal);
 
 /**
  * Validates command line arguments passed to the microgenerator.
@@ -120,6 +109,23 @@ std::string CopyrightLicenseFileHeader();
  * Current year for copyright boilerplate purposes.
  */
 std::string CurrentCopyrightYear();
+
+// Returns a copy of the input string with the first letter capitalized.
+std::string CapitalizeFirstLetter(std::string str);
+
+// Creates a formatted comment block from the provided string.
+std::string FormatCommentBlock(std::string const& comment,
+                               std::size_t indent_level,
+                               std::string const& comment_introducer = "// ",
+                               std::size_t indent_width = 2,
+                               std::size_t line_length = 80);
+
+// Creates a formatted comment block from the list of key/value pairs.
+std::string FormatCommentKeyValueList(
+    std::vector<std::pair<std::string, std::string>> const& comment,
+    std::size_t indent_level, std::string const& separator = ":",
+    std::string const& comment_introducer = "// ", std::size_t indent_width = 2,
+    std::size_t line_length = 80);
 
 }  // namespace generator_internal
 }  // namespace cloud

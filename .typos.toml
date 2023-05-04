@@ -9,6 +9,7 @@ extend-exclude = [
     # The source proto files have one or more typos in their comments
     "google/cloud/asset/v1/asset_client.h",
     "google/cloud/channel/v1/cloud_channel_client.h",
+    "google/cloud/cloudbuild/v2/repository_manager_client.h",
     "google/cloud/gameservices/v1/game_server_deployments_client.h",
     "google/cloud/managedidentities/v1/managed_identities_client.h",
     "google/cloud/monitoring/v3/uptime_check_client.h",
@@ -30,4 +31,9 @@ extend-exclude = [
     "google/cloud/storage/testing/constants.h",
     "google/cloud/storage/tests/unified_credentials_integration_test.cc",
     "google/cloud/storage/tools/make_jwt_assertion_for_test_data.py",
+    # Input data for DocFX tests. It contains many long hex strings that confuse
+    # the spell checker.
+    "docfx/testing/inputs.cc",
+    # Some of the tests also contain the same long hex strings.
+    "docfx/doxygen2toc_test.cc",
 ]

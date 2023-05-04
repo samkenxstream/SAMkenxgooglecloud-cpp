@@ -81,6 +81,8 @@ add_library(
     internal/compute_engine_util.h
     internal/const_buffer.cc
     internal/const_buffer.h
+    internal/crc32c.cc
+    internal/crc32c.h
     internal/curl_client.cc
     internal/curl_client.h
     internal/curl_download_request.cc
@@ -182,6 +184,8 @@ add_library(
     internal/sign_blob_requests.h
     internal/signed_url_requests.cc
     internal/signed_url_requests.h
+    internal/tracing_client.cc
+    internal/tracing_client.h
     internal/tuple_filter.h
     internal/unified_rest_credentials.cc
     internal/unified_rest_credentials.h
@@ -254,7 +258,8 @@ add_library(
     well_known_parameters.h)
 target_link_libraries(
     google_cloud_cpp_storage
-    PUBLIC absl::memory
+    PUBLIC absl::cord
+           absl::memory
            absl::strings
            absl::str_format
            absl::time
@@ -353,7 +358,7 @@ string(
            "google_cloud_cpp_common"
            " google_cloud_cpp_rest_internal"
            " libcurl openssl"
-           " absl_memory"
+           " absl_cord"
            " absl_strings"
            " absl_str_format"
            " absl_time"
@@ -411,6 +416,8 @@ if (BUILD_TESTING)
         testing/random_names.h
         testing/remove_stale_buckets.cc
         testing/remove_stale_buckets.h
+        testing/retry_http_request.cc
+        testing/retry_http_request.h
         testing/retry_tests.h
         testing/storage_integration_test.cc
         testing/storage_integration_test.h
@@ -469,6 +476,7 @@ if (BUILD_TESTING)
         internal/complex_option_test.cc
         internal/compute_engine_util_test.cc
         internal/const_buffer_test.cc
+        internal/crc32c_test.cc
         internal/curl_client_test.cc
         internal/curl_download_request_test.cc
         internal/curl_handle_test.cc
@@ -502,6 +510,7 @@ if (BUILD_TESTING)
         internal/service_account_requests_test.cc
         internal/sign_blob_requests_test.cc
         internal/signed_url_requests_test.cc
+        internal/tracing_client_test.cc
         internal/tuple_filter_test.cc
         internal/unified_rest_credentials_test.cc
         internal/xml_node_test.cc
@@ -558,6 +567,26 @@ if (BUILD_TESTING)
     # Export the list of unit tests so the Bazel BUILD file can pick it up.
     export_list_to_bazel("storage_client_unit_tests.bzl"
                          "storage_client_unit_tests" YEAR "2018")
+
+    include(FindBenchmarkWithWorkarounds)
+
+    set(storage_client_benchmarks # cmake-format: sort
+                                  internal/crc32c_benchmark.cc)
+
+    # Export the list of benchmarks to a .bzl file so we do not need to maintain
+    # the list in two places.
+    export_list_to_bazel("storage_client_benchmarks.bzl"
+                         "storage_client_benchmarks" YEAR "2023")
+
+    # Generate a target for each benchmark.
+    foreach (fname IN LISTS storage_client_benchmarks)
+        google_cloud_cpp_add_executable(target "storage" "${fname}")
+        add_test(NAME ${target} COMMAND ${target})
+        target_link_libraries(
+            ${target} PRIVATE google-cloud-cpp::storage storage_client_testing
+                              benchmark::benchmark_main)
+        google_cloud_cpp_add_common_options(${target})
+    endforeach ()
 
     add_subdirectory(tests)
     add_subdirectory(benchmarks)

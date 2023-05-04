@@ -17,7 +17,6 @@
 // source: google/iam/credentials/v1/iamcredentials.proto
 
 #include "google/cloud/iam/credentials/v1/iam_credentials_connection_idempotency_policy.h"
-#include "absl/memory/memory.h"
 #include <memory>
 
 namespace google {
@@ -32,32 +31,32 @@ IAMCredentialsConnectionIdempotencyPolicy::
 
 std::unique_ptr<IAMCredentialsConnectionIdempotencyPolicy>
 IAMCredentialsConnectionIdempotencyPolicy::clone() const {
-  return absl::make_unique<IAMCredentialsConnectionIdempotencyPolicy>(*this);
+  return std::make_unique<IAMCredentialsConnectionIdempotencyPolicy>(*this);
 }
 
 Idempotency IAMCredentialsConnectionIdempotencyPolicy::GenerateAccessToken(
     google::iam::credentials::v1::GenerateAccessTokenRequest const&) {
-  return Idempotency::kNonIdempotent;
+  return Idempotency::kIdempotent;
 }
 
 Idempotency IAMCredentialsConnectionIdempotencyPolicy::GenerateIdToken(
     google::iam::credentials::v1::GenerateIdTokenRequest const&) {
-  return Idempotency::kNonIdempotent;
+  return Idempotency::kIdempotent;
 }
 
 Idempotency IAMCredentialsConnectionIdempotencyPolicy::SignBlob(
     google::iam::credentials::v1::SignBlobRequest const&) {
-  return Idempotency::kNonIdempotent;
+  return Idempotency::kIdempotent;
 }
 
 Idempotency IAMCredentialsConnectionIdempotencyPolicy::SignJwt(
     google::iam::credentials::v1::SignJwtRequest const&) {
-  return Idempotency::kNonIdempotent;
+  return Idempotency::kIdempotent;
 }
 
 std::unique_ptr<IAMCredentialsConnectionIdempotencyPolicy>
 MakeDefaultIAMCredentialsConnectionIdempotencyPolicy() {
-  return absl::make_unique<IAMCredentialsConnectionIdempotencyPolicy>();
+  return std::make_unique<IAMCredentialsConnectionIdempotencyPolicy>();
 }
 
 GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_END

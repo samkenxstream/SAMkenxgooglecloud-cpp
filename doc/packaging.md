@@ -13,9 +13,8 @@ This document does not cover all cases for building `google-cloud-cpp`. The
 following are out of scope:
 
 - Developers who prefer using a package manager such as
-  [vcpkg](https://vcpkg.io), [Conda](https://conda.io),
-  or [Conan](https://conan.io) should follow the instructions for their package
-  manager.
+  [vcpkg](https://vcpkg.io), or [Conda](https://conda.io), should follow the
+  instructions for their package manager.
 - Developers wanting to use the libraries as part of a larger CMake or Bazel
   project should consult the [quickstart guides](/README.md#quickstart) for the
   library or libraries they want to use.
@@ -358,7 +357,7 @@ use `absl::any`, `absl::string_view`, and `absl::variant`. See
 
 ```bash
 mkdir -p $HOME/Downloads/abseil-cpp && cd $HOME/Downloads/abseil-cpp
-curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.1.tar.gz | \
+curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.3.tar.gz | \
     tar -xzf - --strip-components=1 && \
     sed -i 's/^#define ABSL_OPTION_USE_\(.*\) 2/#define ABSL_OPTION_USE_\1 0/' "absl/base/options.h" && \
     cmake \
@@ -412,7 +411,7 @@ Cloud Platform proto files. We manually install it using:
 
 ```bash
 mkdir -p $HOME/Downloads/grpc && cd $HOME/Downloads/grpc
-curl -sSL https://github.com/grpc/grpc/archive/v1.52.1.tar.gz | \
+curl -sSL https://github.com/grpc/grpc/archive/v1.54.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
@@ -523,7 +522,7 @@ for more information.
 
 ```bash
 mkdir -p $HOME/Downloads/abseil-cpp && cd $HOME/Downloads/abseil-cpp
-curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.1.tar.gz | \
+curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.3.tar.gz | \
     tar -xzf - --strip-components=1 && \
     sed -i 's/^#define ABSL_OPTION_USE_\(.*\) 2/#define ABSL_OPTION_USE_\1 0/' "absl/base/options.h" && \
     cmake \
@@ -563,7 +562,7 @@ Cloud Platform proto files. We install it using:
 
 ```bash
 mkdir -p $HOME/Downloads/grpc && cd $HOME/Downloads/grpc
-curl -sSL https://github.com/grpc/grpc/archive/v1.52.1.tar.gz | \
+curl -sSL https://github.com/grpc/grpc/archive/v1.54.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
@@ -673,7 +672,7 @@ use `absl::any`, `absl::string_view`, and `absl::variant`. See
 
 ```bash
 mkdir -p $HOME/Downloads/abseil-cpp && cd $HOME/Downloads/abseil-cpp
-curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.1.tar.gz | \
+curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.3.tar.gz | \
     tar -xzf - --strip-components=1 && \
     sed -i 's/^#define ABSL_OPTION_USE_\(.*\) 2/#define ABSL_OPTION_USE_\1 0/' "absl/base/options.h" && \
     cmake \
@@ -732,7 +731,7 @@ Cloud Platform proto files. We install it using:
 
 ```bash
 mkdir -p $HOME/Downloads/grpc && cd $HOME/Downloads/grpc
-curl -sSL https://github.com/grpc/grpc/archive/v1.52.1.tar.gz | \
+curl -sSL https://github.com/grpc/grpc/archive/v1.54.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
@@ -841,7 +840,7 @@ use `absl::any`, `absl::string_view`, and `absl::variant`. See
 
 ```bash
 mkdir -p $HOME/Downloads/abseil-cpp && cd $HOME/Downloads/abseil-cpp
-curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.1.tar.gz | \
+curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.3.tar.gz | \
     tar -xzf - --strip-components=1 && \
     sed -i 's/^#define ABSL_OPTION_USE_\(.*\) 2/#define ABSL_OPTION_USE_\1 0/' "absl/base/options.h" && \
     cmake \
@@ -898,7 +897,7 @@ Cloud Platform proto files. We install it using:
 
 ```bash
 mkdir -p $HOME/Downloads/grpc && cd $HOME/Downloads/grpc
-curl -sSL https://github.com/grpc/grpc/archive/v1.52.1.tar.gz | \
+curl -sSL https://github.com/grpc/grpc/archive/v1.54.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
@@ -1008,7 +1007,7 @@ use `absl::any`, `absl::string_view`, and `absl::variant`. See
 
 ```bash
 mkdir -p $HOME/Downloads/abseil-cpp && cd $HOME/Downloads/abseil-cpp
-curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.1.tar.gz | \
+curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.3.tar.gz | \
     tar -xzf - --strip-components=1 && \
     sed -i 's/^#define ABSL_OPTION_USE_\(.*\) 2/#define ABSL_OPTION_USE_\1 0/' "absl/base/options.h" && \
     cmake \
@@ -1097,7 +1096,7 @@ Finally, we build gRPC from source:
 
 ```bash
 mkdir -p $HOME/Downloads/grpc && cd $HOME/Downloads/grpc
-curl -sSL https://github.com/grpc/grpc/archive/v1.52.1.tar.gz | \
+curl -sSL https://github.com/grpc/grpc/archive/v1.54.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
@@ -1163,7 +1162,7 @@ use `absl::any`, `absl::string_view`, and `absl::variant`. See
 
 ```bash
 mkdir -p $HOME/Downloads/abseil-cpp && cd $HOME/Downloads/abseil-cpp
-curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.1.tar.gz | \
+curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.3.tar.gz | \
     tar -xzf - --strip-components=1 && \
     sed -i 's/^#define ABSL_OPTION_USE_\(.*\) 2/#define ABSL_OPTION_USE_\1 0/' "absl/base/options.h" && \
     cmake \
@@ -1264,7 +1263,7 @@ Finally, we build gRPC from source:
 
 ```bash
 mkdir -p $HOME/Downloads/grpc && cd $HOME/Downloads/grpc
-curl -sSL https://github.com/grpc/grpc/archive/v1.52.1.tar.gz | \
+curl -sSL https://github.com/grpc/grpc/archive/v1.54.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
@@ -1360,7 +1359,7 @@ use `absl::any`, `absl::string_view`, and `absl::variant`. See
 
 ```bash
 mkdir -p $HOME/Downloads/abseil-cpp && cd $HOME/Downloads/abseil-cpp
-curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.1.tar.gz | \
+curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.3.tar.gz | \
     tar -xzf - --strip-components=1 && \
     sed -i 's/^#define ABSL_OPTION_USE_\(.*\) 2/#define ABSL_OPTION_USE_\1 0/' "absl/base/options.h" && \
     cmake \
@@ -1419,7 +1418,7 @@ Cloud Platform proto files. We manually install it using:
 
 ```bash
 mkdir -p $HOME/Downloads/grpc && cd $HOME/Downloads/grpc
-curl -sSL https://github.com/grpc/grpc/archive/v1.52.1.tar.gz | \
+curl -sSL https://github.com/grpc/grpc/archive/v1.54.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
@@ -1560,7 +1559,7 @@ compiler defaults to C++17. Therefore, we change `absl/base/options.h` to
 
 ```bash
 mkdir -p $HOME/Downloads/abseil-cpp && cd $HOME/Downloads/abseil-cpp
-curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.1.tar.gz | \
+curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.3.tar.gz | \
     tar -xzf - --strip-components=1 && \
     sed -i 's/^#define ABSL_OPTION_USE_\(.*\) 2/#define ABSL_OPTION_USE_\1 1/' "absl/base/options.h" && \
     cmake \
@@ -1622,7 +1621,7 @@ manually install it using:
 
 ```bash
 mkdir -p $HOME/Downloads/grpc && cd $HOME/Downloads/grpc
-curl -sSL https://github.com/grpc/grpc/archive/v1.52.1.tar.gz | \
+curl -sSL https://github.com/grpc/grpc/archive/v1.54.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_CXX_STANDARD=17 \
@@ -1774,7 +1773,7 @@ use `absl::any`, `absl::string_view`, and `absl::variant`. See
 
 ```bash
 mkdir -p $HOME/Downloads/abseil-cpp && cd $HOME/Downloads/abseil-cpp
-curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.1.tar.gz | \
+curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.3.tar.gz | \
     tar -xzf - --strip-components=1 && \
     sed -i 's/^#define ABSL_OPTION_USE_\(.*\) 2/#define ABSL_OPTION_USE_\1 0/' "absl/base/options.h" && \
     cmake \
@@ -1828,7 +1827,7 @@ Cloud Platform proto files. We manually install it using:
 
 ```bash
 mkdir -p $HOME/Downloads/grpc && cd $HOME/Downloads/grpc
-curl -sSL https://github.com/grpc/grpc/archive/v1.52.1.tar.gz | \
+curl -sSL https://github.com/grpc/grpc/archive/v1.54.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \

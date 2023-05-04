@@ -57,9 +57,12 @@ DefaultCloudFilestoreManagerStub::GetInstance(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCloudFilestoreManagerStub::AsyncCreateInstance(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::CreateInstanceRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::filestore::v1::CreateInstanceRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::filestore::v1::CreateInstanceRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -71,9 +74,12 @@ DefaultCloudFilestoreManagerStub::AsyncCreateInstance(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCloudFilestoreManagerStub::AsyncUpdateInstance(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::UpdateInstanceRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::filestore::v1::UpdateInstanceRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::filestore::v1::UpdateInstanceRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -85,9 +91,12 @@ DefaultCloudFilestoreManagerStub::AsyncUpdateInstance(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCloudFilestoreManagerStub::AsyncRestoreInstance(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::RestoreInstanceRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::filestore::v1::RestoreInstanceRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::cloud::filestore::v1::RestoreInstanceRequest const& request,
@@ -100,13 +109,91 @@ DefaultCloudFilestoreManagerStub::AsyncRestoreInstance(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCloudFilestoreManagerStub::AsyncDeleteInstance(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::DeleteInstanceRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::filestore::v1::DeleteInstanceRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::filestore::v1::DeleteInstanceRequest const& request,
              grpc::CompletionQueue* cq) {
         return grpc_stub_->AsyncDeleteInstance(context, request, cq);
+      },
+      request, std::move(context));
+}
+
+StatusOr<google::cloud::filestore::v1::ListSnapshotsResponse>
+DefaultCloudFilestoreManagerStub::ListSnapshots(
+    grpc::ClientContext& client_context,
+    google::cloud::filestore::v1::ListSnapshotsRequest const& request) {
+  google::cloud::filestore::v1::ListSnapshotsResponse response;
+  auto status = grpc_stub_->ListSnapshots(&client_context, request, &response);
+  if (!status.ok()) {
+    return google::cloud::MakeStatusFromRpcError(status);
+  }
+  return response;
+}
+
+StatusOr<google::cloud::filestore::v1::Snapshot>
+DefaultCloudFilestoreManagerStub::GetSnapshot(
+    grpc::ClientContext& client_context,
+    google::cloud::filestore::v1::GetSnapshotRequest const& request) {
+  google::cloud::filestore::v1::Snapshot response;
+  auto status = grpc_stub_->GetSnapshot(&client_context, request, &response);
+  if (!status.ok()) {
+    return google::cloud::MakeStatusFromRpcError(status);
+  }
+  return response;
+}
+
+future<StatusOr<google::longrunning::Operation>>
+DefaultCloudFilestoreManagerStub::AsyncCreateSnapshot(
+    google::cloud::CompletionQueue& cq,
+    std::shared_ptr<grpc::ClientContext> context,
+    google::cloud::filestore::v1::CreateSnapshotRequest const& request) {
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::filestore::v1::CreateSnapshotRequest,
+      google::longrunning::Operation>(
+      cq,
+      [this](grpc::ClientContext* context,
+             google::cloud::filestore::v1::CreateSnapshotRequest const& request,
+             grpc::CompletionQueue* cq) {
+        return grpc_stub_->AsyncCreateSnapshot(context, request, cq);
+      },
+      request, std::move(context));
+}
+
+future<StatusOr<google::longrunning::Operation>>
+DefaultCloudFilestoreManagerStub::AsyncDeleteSnapshot(
+    google::cloud::CompletionQueue& cq,
+    std::shared_ptr<grpc::ClientContext> context,
+    google::cloud::filestore::v1::DeleteSnapshotRequest const& request) {
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::filestore::v1::DeleteSnapshotRequest,
+      google::longrunning::Operation>(
+      cq,
+      [this](grpc::ClientContext* context,
+             google::cloud::filestore::v1::DeleteSnapshotRequest const& request,
+             grpc::CompletionQueue* cq) {
+        return grpc_stub_->AsyncDeleteSnapshot(context, request, cq);
+      },
+      request, std::move(context));
+}
+
+future<StatusOr<google::longrunning::Operation>>
+DefaultCloudFilestoreManagerStub::AsyncUpdateSnapshot(
+    google::cloud::CompletionQueue& cq,
+    std::shared_ptr<grpc::ClientContext> context,
+    google::cloud::filestore::v1::UpdateSnapshotRequest const& request) {
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::filestore::v1::UpdateSnapshotRequest,
+      google::longrunning::Operation>(
+      cq,
+      [this](grpc::ClientContext* context,
+             google::cloud::filestore::v1::UpdateSnapshotRequest const& request,
+             grpc::CompletionQueue* cq) {
+        return grpc_stub_->AsyncUpdateSnapshot(context, request, cq);
       },
       request, std::move(context));
 }
@@ -138,9 +225,12 @@ DefaultCloudFilestoreManagerStub::GetBackup(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCloudFilestoreManagerStub::AsyncCreateBackup(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::CreateBackupRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::filestore::v1::CreateBackupRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::filestore::v1::CreateBackupRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -152,9 +242,12 @@ DefaultCloudFilestoreManagerStub::AsyncCreateBackup(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCloudFilestoreManagerStub::AsyncDeleteBackup(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::DeleteBackupRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::filestore::v1::DeleteBackupRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::filestore::v1::DeleteBackupRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -166,9 +259,12 @@ DefaultCloudFilestoreManagerStub::AsyncDeleteBackup(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCloudFilestoreManagerStub::AsyncUpdateBackup(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::filestore::v1::UpdateBackupRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::filestore::v1::UpdateBackupRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::filestore::v1::UpdateBackupRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -180,9 +276,11 @@ DefaultCloudFilestoreManagerStub::AsyncUpdateBackup(
 future<StatusOr<google::longrunning::Operation>>
 DefaultCloudFilestoreManagerStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -193,16 +291,17 @@ DefaultCloudFilestoreManagerStub::AsyncGetOperation(
 
 future<Status> DefaultCloudFilestoreManagerStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

@@ -2,71 +2,27 @@
 
 ## FUTURE BREAKING CHANGES:
 
-<!-- Keep these sorted by estimated date -->
-
 <details>
-<summary>2022-10-01: retiring legacy Spanner admin APIs</summary>
+<summary>2023-05-31: remove the Cloud Debugger Library</summary>
 <br>
 
-On 2022-10-01 (or shortly after) we are planning to remove the hand-written
-versions of the Spanner admin APIs. These have been superseded by versions
-generated automatically from the service definitions. The new APIs can be
-found in the [`google/cloud/spanner/admin`](https://github.com/googleapis/google-cloud-cpp/tree/main/google/cloud/spanner/admin)
-tree and within the `google::cloud::spanner_admin` namespace. Starting with
-the v1.32.0 release, and depending on your compiler settings, using the old
-classes/functions may elicit a deprecation warning. See [#7356] for more
-details.
+Sometime after 2023-05-31 the Cloud Debugger service (aka Stackdriver Debugger
+API) will be [shutdown][cloud-debugger-deprecated]. Once the service is shutdown
+the corresponding [library][cloud-debugger-library] cannot be of any use, and we
+plan to remove it without changing the major version number.
 
 </details>
 
-<details>
-<summary>2022-11-01: remove `v1` and `gcpcxxV1` backward compatibility aliases</summary>
-<br>
-
-On 2022-11-01 (or shortly after) we will remove the inline namespace aliases
-of `v1` and `gcpcxxV1` that are declared in `google/cloud/version.h`. These
-aliases exist because we changed the format of our inline namespace name to
-include the major, minor, and patch numbers for each release, and we didn't
-want to break users. Our Doxygen documentation was mistakenly recommending
-that users include the inline namespace names in their code, but this was
-also fixed to now recommend against doing so. Users should generally omit the
-name of our versioned inline namespace name because that will tightly couple
-their code to a specific release, and will make upgrading to newer versions
-more difficult. Instead, users should simply omit the inline namespace name,
-for example, instead of ~`google::cloud::v1::Status`~ use
-`google::cloud::Status`. Please update your code to avoid naming the `v1` and
-`gcpcxxV1` inline namespace names before 2022-11-01. For more info, see
-[#7463] and [#5976].
-
-</details>
+The following breaking changes will be included in our next major release, which
+is scheduled for no sooner than 2023-07.
 
 <details>
-<summary>2022-12-01: remove the `GOOGLE_CLOUD_CPP_STORAGE_USE_LEGACY_HTTP` env var.</summary>
-<br>
-Support for the `GOOGLE_CLOUD_CPP_STORAGE_USE_LEGACY_HTTP` env var is scheduled
-to be removed ([9659](https://github.com/googleapis/google-cloud-cpp/issues/9659)).
-The legacy http implementation will also be removed.
-</details>
-
-<details>
-<summary>2023-02-01: remove `BigQueryReadReadRowsStreamingUpdater` from
-`google::cloud::bigquery` namespace</summary>
+<summary>Bigtable: mark <code>bigtable::DataClient</code> as <code>final</code>
+</summary>
 <br>
 
-On 2023-02-01 (or shortly after) we will remove
-`BigQueryReadReadRowsStreamingUpdater` from its declaration in
-`google/cloud/bigquery/read_connection.h` and from the `google::cloud::bigquery`
-namespace. The function continues to exist but in an internal file and
-namespace. For status on this see [#8234].
-
-</details>
-
-<details>
-<summary>2023-05-01: mark `bigtable::DataClient` as `final`</summary>
-<br>
-
-On 2023-05-01 (or shortly after) we will mark `bigtable::DataClient` as `final`
-and remove the following member functions:
+We will mark `bigtable::DataClient` as `final` and remove the following member
+functions:
 
 - `DataClient::Channel()`
 - `DataClient::reset()`
@@ -80,11 +36,12 @@ background threads. More details can be found in [#8800].
 </details>
 
 <details>
-<summary>2023-05-01: remove `bigtable::RowReader` constructors</summary>
+<summary>Bigtable: remove <code>bigtable::RowReader</code> constructors
+</summary>
 <br>
 
-On 2023-05-01 (or shortly after) we will remove `bigtable::RowReader`
-constructors which accept `DataClient` as an argument.
+We will remove `bigtable::RowReader` constructors which accept `DataClient` as
+an argument.
 
 Application developers who read rows by directly constructing a `RowReader`
 object should instead construct a `Table` object and call `Table::ReadRows(...)`
@@ -95,28 +52,160 @@ For status on this, see [#8854].
 </details>
 
 <details>
-<summary>2023-06-01: remove the Cloud Debugger Library</summary>
+<summary>BigQuery: remove <code>BigQueryReadReadRowsStreamingUpdater</code> from
+<code>google::cloud::bigquery</code> namespace</summary>
 <br>
 
-Sometime after 2023-05-31 the Cloud Debugger service (aka Stackdriver Debugger
-API) will be [shutdown][cloud-debugger-deprecated]. Once the service is shutdown
-the corresponding [library][cloud-debugger-library] cannot be of any use, and we
-plan to remove it without changing the major version number.
+We will remove `BigQueryReadReadRowsStreamingUpdater` from its declaration in
+`google/cloud/bigquery/read_connection.h` and from the `google::cloud::bigquery`
+namespace. The function continues to exist but in an internal file and
+namespace. For status on this see [#8234].
 
 </details>
 
 <details>
-<summary>2023-06-01: remove `spanner::MakeTestRow()`</summary>
+<summary>Spanner: remove legacy admin APIs</summary>
 <br>
 
-On 2023-06-01 (or shortly after) we will remove `spanner::MakeTestRow()`, which
-has been replaced by `spanner_mocks::MakeRow()`. Starting with the v1.41.0
-release, and depending on your compiler settings, using `spanner::MakeTestRow()`
-may elicit a deprecation warning. See [#9086] for more details.
+We will remove the hand-written versions of the Spanner admin APIs. These have
+been superseded by versions generated automatically from the service
+definitions. The new APIs can be found in the
+[`google/cloud/spanner/admin`](https://github.com/googleapis/google-cloud-cpp/tree/main/google/cloud/spanner/admin)
+tree and within the `google::cloud::spanner_admin` namespace. Starting with
+the v1.32.0 release, and depending on your compiler settings, using the old
+classes/functions may elicit a deprecation warning. See [#7356] for more
+details.
 
 </details>
 
-## v2.9.0 - TBD
+<details>
+<summary>Spanner: remove <code>spanner::MakeTestRow()</code></summary>
+<br>
+
+We will remove `spanner::MakeTestRow()`, which has been replaced by
+`spanner_mocks::MakeRow()`. Starting with the v1.41.0 release, and depending on
+your compiler settings, using `spanner::MakeTestRow()` may elicit a deprecation
+warning. See [#9086] for more details.
+
+</details>
+
+<details>
+<summary>Storage: remove the
+<code>GOOGLE_CLOUD_CPP_STORAGE_USE_LEGACY_HTTP</code> env var</summary>
+<br>
+Support for the `GOOGLE_CLOUD_CPP_STORAGE_USE_LEGACY_HTTP` env var is scheduled
+to be removed ([9659](https://github.com/googleapis/google-cloud-cpp/issues/9659)).
+The legacy http implementation will also be removed.
+</details>
+
+<details>
+<summary>Common Libraries: remove <code>v1</code> and <code>gcpcxxV1</code>
+backward compatibility aliases</summary>
+<br>
+
+We will remove the inline namespace aliases of `v1` and `gcpcxxV1` that are
+declared in `google/cloud/version.h`. These aliases exist because we changed the
+format of our inline namespace name to include the major, minor, and patch
+numbers for each release, and we didn't want to break users. Our Doxygen
+documentation was mistakenly recommending that users include the inline
+namespace names in their code, but this was also fixed to now recommend against
+doing so. Users should generally omit the name of our versioned inline namespace
+name because that will tightly couple their code to a specific release, and will
+make upgrading to newer versions more difficult. Instead, users should simply
+omit the inline namespace name, for example, instead of
+~`google::cloud::v1::Status`~ use `google::cloud::Status`. Please update your
+code to avoid naming the `v1` and `gcpcxxV1` inline namespace names. For more
+info, see [#7463] and [#5976].
+
+</details>
+
+## v2.11.0 - TBD
+
+## v2.10.0 - 2023-05
+
+### New Libraries
+
+We are happy to announce the following GA libraries.  Unless specifically noted,
+the APIs in these libraries are stable, and are ready for production use.
+
+- [ConfidentialComputing API](/google/cloud/confidentialcomputing/README.md)
+- [Storage Insights API](/google/cloud/storageinsights/README.md)
+- [Workstations API](/google/cloud/workstations/README.md)
+
+The following experimental libraries are now available:
+
+- [Cloud SQL Admin API](/google/cloud/sql/README.md)
+
+### [Bigquery](/google/cloud/bigquery/README.md)
+
+- Removed bigquery/v2/model\*. There are no plans to implement gRPC endpoints for
+  this service. Therefore the generated code will never be usable and never has
+  been.
+
+### [Service Control](/google/cloud/servicecontrol/README.md)
+
+The library has been expanded to include the v2 service.
+
+### [Spanner](/google/cloud/spanner/README.md)
+
+- fix(spanner): propagate Options through SessionPool callbacks ([#11344](https://github.com/googleapis/google-cloud-cpp/pull/11344))
+
+### [Storage](/google/cloud/storage/README.md)
+
+- fix(storage): cache legacy credentials ([#11271](https://github.com/googleapis/google-cloud-cpp/pull/11271))
+- fix(storage): support per-request options ([#11445](https://github.com/googleapis/google-cloud-cpp/pull/11445))
+- fix(storage): cache all credential types ([#11447](https://github.com/googleapis/google-cloud-cpp/pull/11447))
+
+### [Common Libraries](/google/cloud/README.md)
+
+- doc: declutter main.dox pages ([#11405](https://github.com/googleapis/google-cloud-cpp/pull/11405))
+- doc(common): documentation improvements ([#11376](https://github.com/googleapis/google-cloud-cpp/pull/11376))
+
+### Other Changes
+
+**Bazel Testing**: after v2.10.0 we will only test with Bazel >= 5.4.0. We
+do not consider this a breaking change, as Bazel 4.x has been in maintenance
+mode for several months.
+
+## v2.9.0 - 2023-04
+
+### [Cloud Build](/google/cloud/cloudbuild/README.md)
+
+The library has been expanded to include the Cloud Build repositories (2nd gen)
+API. Note that the client is tagged as experimental, because the service is
+still in [preview][product-launch-stages].
+
+### [Cloud Trace](/google/cloud/trace/README.md)
+
+The library has been expanded to include the v1 service.
+
+### [IAM](/google/cloud/iam/README.md)
+
+- fix(iam): override idempotency on idempotent POST methods ([#11045](https://github.com/googleapis/google-cloud-cpp/pull/11045))
+
+### [Spanner](/google/cloud/spanner/README.md)
+
+- feat(spanner): add the final pieces for the RouteToLeaderOption ([#11112](https://github.com/googleapis/google-cloud-cpp/pull/11112))
+- feat(spanner): support "data boost" on partitioned queries and reads ([#10998](https://github.com/googleapis/google-cloud-cpp/pull/10998))
+
+### [Storage](/google/cloud/storage/README.md)
+
+- feat(storage): reduce copies in `InsertObject()` ([#11014](https://github.com/googleapis/google-cloud-cpp/pull/11014))
+
+### [Common Libraries](/google/cloud/README.md)
+
+- feat: consume less entropy for PRNG ([#11102](https://github.com/googleapis/google-cloud-cpp/pull/11102))
+- feat(mocks): provide access to call options in client tests ([#11050](https://github.com/googleapis/google-cloud-cpp/pull/11050))
+
+### Testing
+
+We have stopped testing with MSVC 2017. Microsoft stopped mainstream support for
+MSVC 2017 in [2022-04](https://learn.microsoft.com/en-us/lifecycle/products/visual-studio-2017).
+We continue to test with MSVC 2022 and MSVC 2019. We recommend that you update
+to one of these versions to use more recent versions of the `google-cloud-cpp`
+libraries. Note that, in accordance with Google's
+[Foundational C++ support policy][oss-cxx-support], the other Google libraries
+have stopped (or shortly will stop) testing with MSVC 2017.
 
 ## v2.8.0 - 2023-03
 
@@ -3462,6 +3551,8 @@ releases.  The relevant notes are:
 [issue-2567]: https://github.com/googleapis/google-cloud-cpp/issues/2567
 [modern-table-ctor]: https://github.com/googleapis/google-cloud-cpp/blob/62740c8e9180056db77d4dd3e80a6fa7ae71295a/google/cloud/bigtable/table.h#L182-L214
 [nlohmann-json-gh]: https://github.com/nlohmann/json.git
+[oss-cxx-support]: https://opensource.google/documentation/policies/cplusplus-support
+[product-launch-stages]: https://cloud.google.com/products/#product-launch-stages
 [pub/sub lite]: /google/cloud/pubsublite/README.md
 [resource-types-with-policies]: https://cloud.google.com/iam/docs/resource-types-with-policies
 [secret manager]: /google/cloud/secretmanager/README.md

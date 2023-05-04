@@ -69,11 +69,11 @@ absl::optional<v2::SampleRowKeysResponse> MakeResponse(std::string row_key,
 TEST(AsyncSampleRowKeysTest, Simple) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncSampleRowKeys)
-      .WillOnce([](CompletionQueue const&, std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](CompletionQueue const&, auto,
                    v2::SampleRowKeysRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
-        auto stream = absl::make_unique<MockAsyncSampleRowKeysStream>();
+        auto stream = std::make_unique<MockAsyncSampleRowKeysStream>();
         EXPECT_CALL(*stream, Start).WillOnce([] {
           return make_ready_future(true);
         });
@@ -96,7 +96,7 @@ TEST(AsyncSampleRowKeysTest, Simple) {
   CompletionQueue cq(mock_cq);
 
   auto retry = DataLimitedErrorCountRetryPolicy(kNumRetries).clone();
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, OnCompletion).Times(0);
 
   MockFunction<void(grpc::ClientContext&)> mock_setup;
@@ -117,11 +117,11 @@ TEST(AsyncSampleRowKeysTest, Simple) {
 TEST(AsyncSampleRowKeysTest, RetryResetsSamples) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncSampleRowKeys)
-      .WillOnce([](CompletionQueue const&, std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](CompletionQueue const&, auto,
                    v2::SampleRowKeysRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
-        auto stream = absl::make_unique<MockAsyncSampleRowKeysStream>();
+        auto stream = std::make_unique<MockAsyncSampleRowKeysStream>();
         EXPECT_CALL(*stream, Start).WillOnce([] {
           return make_ready_future(true);
         });
@@ -138,11 +138,11 @@ TEST(AsyncSampleRowKeysTest, RetryResetsSamples) {
         });
         return stream;
       })
-      .WillOnce([](CompletionQueue const&, std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](CompletionQueue const&, auto,
                    v2::SampleRowKeysRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
-        auto stream = absl::make_unique<MockAsyncSampleRowKeysStream>();
+        auto stream = std::make_unique<MockAsyncSampleRowKeysStream>();
         EXPECT_CALL(*stream, Start).WillOnce([] {
           return make_ready_future(true);
         });
@@ -166,7 +166,7 @@ TEST(AsyncSampleRowKeysTest, RetryResetsSamples) {
   CompletionQueue cq(mock_cq);
 
   auto retry = DataLimitedErrorCountRetryPolicy(kNumRetries).clone();
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, OnCompletion).Times(1);
 
   MockFunction<void(grpc::ClientContext&)> mock_setup;
@@ -188,12 +188,11 @@ TEST(AsyncSampleRowKeysTest, TooManyFailures) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncSampleRowKeys)
       .Times(kNumRetries + 1)
-      .WillRepeatedly([](CompletionQueue const&,
-                         std::unique_ptr<grpc::ClientContext>,
+      .WillRepeatedly([](CompletionQueue const&, auto,
                          v2::SampleRowKeysRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
-        auto stream = absl::make_unique<MockAsyncSampleRowKeysStream>();
+        auto stream = std::make_unique<MockAsyncSampleRowKeysStream>();
         EXPECT_CALL(*stream, Start).WillOnce([] {
           return make_ready_future(false);
         });
@@ -214,7 +213,7 @@ TEST(AsyncSampleRowKeysTest, TooManyFailures) {
   CompletionQueue cq(mock_cq);
 
   auto retry = DataLimitedErrorCountRetryPolicy(kNumRetries).clone();
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, OnCompletion).Times(kNumRetries);
 
   MockFunction<void(grpc::ClientContext&)> mock_setup;
@@ -232,11 +231,11 @@ TEST(AsyncSampleRowKeysTest, TooManyFailures) {
 TEST(AsyncSampleRowKeysTest, TimerError) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncSampleRowKeys)
-      .WillOnce([](CompletionQueue const&, std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([](CompletionQueue const&, auto,
                    v2::SampleRowKeysRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
-        auto stream = absl::make_unique<MockAsyncSampleRowKeysStream>();
+        auto stream = std::make_unique<MockAsyncSampleRowKeysStream>();
         EXPECT_CALL(*stream, Start).WillOnce([] {
           return make_ready_future(false);
         });
@@ -255,7 +254,7 @@ TEST(AsyncSampleRowKeysTest, TimerError) {
   CompletionQueue cq(mock_cq);
 
   auto retry = DataLimitedErrorCountRetryPolicy(kNumRetries).clone();
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, OnCompletion).Times(1);
 
   MockFunction<void(grpc::ClientContext&)> mock_setup;
@@ -278,12 +277,11 @@ TEST(AsyncSampleRowKeysTest, CancelAfterSuccess) {
 
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncSampleRowKeys)
-      .WillOnce([&p](CompletionQueue const&,
-                     std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([&p](CompletionQueue const&, auto,
                      v2::SampleRowKeysRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
-        auto stream = absl::make_unique<MockAsyncSampleRowKeysStream>();
+        auto stream = std::make_unique<MockAsyncSampleRowKeysStream>();
         EXPECT_CALL(*stream, Start).WillOnce([] {
           return make_ready_future(true);
         });
@@ -303,7 +301,7 @@ TEST(AsyncSampleRowKeysTest, CancelAfterSuccess) {
   CompletionQueue cq(mock_cq);
 
   auto retry = DataLimitedErrorCountRetryPolicy(kNumRetries).clone();
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, OnCompletion).Times(0);
 
   MockFunction<void(grpc::ClientContext&)> mock_setup;
@@ -330,12 +328,11 @@ TEST(AsyncSampleRowKeysTest, CancelMidStream) {
 
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncSampleRowKeys)
-      .WillOnce([&p](CompletionQueue const&,
-                     std::unique_ptr<grpc::ClientContext>,
+      .WillOnce([&p](CompletionQueue const&, auto,
                      v2::SampleRowKeysRequest const& request) {
         EXPECT_EQ(kAppProfile, request.app_profile_id());
         EXPECT_EQ(kTableName, request.table_name());
-        auto stream = absl::make_unique<MockAsyncSampleRowKeysStream>();
+        auto stream = std::make_unique<MockAsyncSampleRowKeysStream>();
         ::testing::InSequence s;
         EXPECT_CALL(*stream, Start).WillOnce([] {
           return make_ready_future(true);
@@ -367,7 +364,7 @@ TEST(AsyncSampleRowKeysTest, CancelMidStream) {
   CompletionQueue cq(mock_cq);
 
   auto retry = DataLimitedErrorCountRetryPolicy(kNumRetries).clone();
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, OnCompletion).Times(0);
 
   MockFunction<void(grpc::ClientContext&)> mock_setup;
@@ -395,20 +392,19 @@ TEST(AsyncSampleRowKeysTest, CurrentOptionsContinuedOnRetries) {
   auto mock = std::make_shared<MockBigtableStub>();
   EXPECT_CALL(*mock, AsyncSampleRowKeys)
       .Times(2)
-      .WillRepeatedly([](CompletionQueue const&,
-                         std::unique_ptr<grpc::ClientContext>,
-                         v2::SampleRowKeysRequest const&) {
-        EXPECT_EQ(5, internal::CurrentOptions().get<TestOption>());
-        auto stream = absl::make_unique<MockAsyncSampleRowKeysStream>();
-        EXPECT_CALL(*stream, Start).WillOnce([] {
-          return make_ready_future(false);
-        });
-        EXPECT_CALL(*stream, Finish).WillOnce([] {
-          return make_ready_future(
-              Status(StatusCode::kUnavailable, "try again"));
-        });
-        return stream;
-      });
+      .WillRepeatedly(
+          [](CompletionQueue const&, auto, v2::SampleRowKeysRequest const&) {
+            EXPECT_EQ(5, internal::CurrentOptions().get<TestOption>());
+            auto stream = std::make_unique<MockAsyncSampleRowKeysStream>();
+            EXPECT_CALL(*stream, Start).WillOnce([] {
+              return make_ready_future(false);
+            });
+            EXPECT_CALL(*stream, Finish).WillOnce([] {
+              return make_ready_future(
+                  Status(StatusCode::kUnavailable, "try again"));
+            });
+            return stream;
+          });
 
   promise<StatusOr<std::chrono::system_clock::time_point>> timer_promise;
   auto mock_cq = std::make_shared<MockCompletionQueueImpl>();
@@ -418,7 +414,7 @@ TEST(AsyncSampleRowKeysTest, CurrentOptionsContinuedOnRetries) {
   CompletionQueue cq(mock_cq);
 
   auto retry = DataLimitedErrorCountRetryPolicy(1).clone();
-  auto mock_b = absl::make_unique<MockBackoffPolicy>();
+  auto mock_b = std::make_unique<MockBackoffPolicy>();
   EXPECT_CALL(*mock_b, OnCompletion).Times(1);
 
   MockFunction<void(grpc::ClientContext&)> mock_setup;

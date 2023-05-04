@@ -19,7 +19,6 @@
 #include "google/cloud/testing_util/mock_rest_client.h"
 #include "google/cloud/testing_util/mock_rest_response.h"
 #include "google/cloud/testing_util/status_matchers.h"
-#include "absl/memory/memory.h"
 #include <gmock/gmock.h>
 #include <nlohmann/json.hpp>
 
@@ -35,6 +34,7 @@ using ::google::cloud::testing_util::MakeMockHttpPayloadSuccess;
 using ::google::cloud::testing_util::MockRestClient;
 using ::google::cloud::testing_util::MockRestResponse;
 using ::google::cloud::testing_util::StatusIs;
+using ::testing::_;
 using ::testing::AllOf;
 using ::testing::ByMove;
 using ::testing::HasSubstr;
@@ -52,7 +52,7 @@ using MockHttpClientFactory =
 class AuthorizedUserCredentialsTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    mock_rest_client_ = absl::make_unique<MockRestClient>();
+    mock_rest_client_ = std::make_unique<MockRestClient>();
   }
   std::unique_ptr<MockRestClient> mock_rest_client_;
 };
@@ -67,13 +67,13 @@ TEST_F(AuthorizedUserCredentialsTest, Simple) {
 })""";
 
   auto client = [&]() {
-    auto response = absl::make_unique<MockRestResponse>();
+    auto response = std::make_unique<MockRestResponse>();
     EXPECT_CALL(*response, StatusCode)
         .WillRepeatedly(Return(rest_internal::HttpStatusCode::kOk));
     EXPECT_CALL(std::move(*response), ExtractPayload)
         .WillOnce(Return(ByMove(MakeMockHttpPayloadSuccess(response_payload))));
 
-    auto client = absl::make_unique<MockRestClient>();
+    auto client = std::make_unique<MockRestClient>();
     using FormDataType = std::vector<std::pair<std::string, std::string>>;
     auto expected_request =
         Property(&RestRequest::path, GoogleOAuthRefreshEndpoint());
@@ -83,7 +83,7 @@ TEST_F(AuthorizedUserCredentialsTest, Simple) {
         Pair("client_secret", "a-123456ABCDEF"),
         Pair("refresh_token", "1/THETOKEN"),
     }));
-    EXPECT_CALL(*client, Post(expected_request, expected_form_data))
+    EXPECT_CALL(*client, Post(_, expected_request, expected_form_data))
         .WillOnce(
             Return(ByMove(std::unique_ptr<RestResponse>(std::move(response)))));
     return client;
@@ -227,14 +227,14 @@ TEST_F(AuthorizedUserCredentialsTest,
     "expires_in": 1000
 })""";
 
-  auto mock_response1 = absl::make_unique<MockRestResponse>();
+  auto mock_response1 = std::make_unique<MockRestResponse>();
   EXPECT_CALL(*mock_response1, StatusCode)
       .WillRepeatedly(Return(rest_internal::HttpStatusCode::kBadRequest));
   EXPECT_CALL(std::move(*mock_response1), ExtractPayload).WillOnce([&] {
     return MakeMockHttpPayloadSuccess(r1);
   });
 
-  auto mock_response2 = absl::make_unique<MockRestResponse>();
+  auto mock_response2 = std::make_unique<MockRestResponse>();
   //  EXPECT_CALL(*mock_response2, Headers).WillOnce(Return(headers_));
   EXPECT_CALL(*mock_response2, StatusCode)
       .WillRepeatedly(Return(rest_internal::HttpStatusCode::kBadRequest));
@@ -264,7 +264,7 @@ TEST_F(AuthorizedUserCredentialsTest, ParseAuthorizedUserRefreshResponse) {
     "expires_in": 1000
 })""";
 
-  auto mock_response = absl::make_unique<MockRestResponse>();
+  auto mock_response = std::make_unique<MockRestResponse>();
   EXPECT_CALL(*mock_response, StatusCode)
       .WillRepeatedly(Return(rest_internal::HttpStatusCode::kOk));
   EXPECT_CALL(std::move(*mock_response), ExtractPayload).WillOnce([&] {

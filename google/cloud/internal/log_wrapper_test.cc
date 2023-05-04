@@ -126,8 +126,7 @@ TEST(LogWrapper, FutureStatusOrError) {
 /// @test the overload for functions returning FutureStatusOr and using
 /// CompletionQueue as input
 TEST(LogWrapper, FutureStatusOrValueWithContextAndCQ) {
-  auto mock = [](google::cloud::CompletionQueue&,
-                 std::unique_ptr<grpc::ClientContext>,
+  auto mock = [](google::cloud::CompletionQueue&, auto,
                  google::spanner::v1::Mutation m) {
     return make_ready_future(make_status_or(std::move(m)));
   };
@@ -135,7 +134,7 @@ TEST(LogWrapper, FutureStatusOrValueWithContextAndCQ) {
   testing_util::ScopedLog log;
 
   CompletionQueue cq;
-  std::unique_ptr<grpc::ClientContext> context;
+  std::shared_ptr<grpc::ClientContext> context;
   LogWrapper(mock, cq, std::move(context), MakeMutation(), "in-test", {});
 
   auto const log_lines = log.ExtractLines();
@@ -150,8 +149,7 @@ TEST(LogWrapper, FutureStatusOrValueWithContextAndCQ) {
 /// @test the overload for functions returning FutureStatusOr and using
 /// CompletionQueue as input
 TEST(LogWrapper, FutureStatusOrErrorWithContextAndCQ) {
-  auto mock = [](google::cloud::CompletionQueue&,
-                 std::unique_ptr<grpc::ClientContext>,
+  auto mock = [](google::cloud::CompletionQueue&, auto,
                  google::spanner::v1::Mutation const&) {
     return make_ready_future(StatusOr<google::spanner::v1::Mutation>(
         Status(StatusCode::kPermissionDenied, "uh-oh")));
@@ -160,7 +158,7 @@ TEST(LogWrapper, FutureStatusOrErrorWithContextAndCQ) {
   testing_util::ScopedLog log;
 
   CompletionQueue cq;
-  std::unique_ptr<grpc::ClientContext> context;
+  std::shared_ptr<grpc::ClientContext> context;
   LogWrapper(mock, cq, std::move(context), MakeMutation(), "in-test", {});
 
   auto const log_lines = log.ExtractLines();
@@ -178,8 +176,7 @@ TEST(LogWrapper, FutureStatusOrErrorWithContextAndCQ) {
 /// CompletionQueue as input
 TEST(LogWrapper, FutureStatusWithContextAndCQ) {
   auto const status = Status(StatusCode::kPermissionDenied, "uh-oh");
-  auto mock = [&](google::cloud::CompletionQueue&,
-                  std::unique_ptr<grpc::ClientContext>,
+  auto mock = [&](google::cloud::CompletionQueue&, auto,
                   google::spanner::v1::Mutation const&) {
     return make_ready_future(status);
   };
@@ -187,7 +184,7 @@ TEST(LogWrapper, FutureStatusWithContextAndCQ) {
   testing_util::ScopedLog log;
 
   CompletionQueue cq;
-  std::unique_ptr<grpc::ClientContext> context;
+  std::shared_ptr<grpc::ClientContext> context;
   LogWrapper(mock, cq, std::move(context), MakeMutation(), "in-test", {});
 
   std::ostringstream os;
@@ -216,7 +213,7 @@ TEST(LogWrapper, FutureStatusOrValueWithTestContextAndCQ) {
 
   testing_util::ScopedLog log;
   CompletionQueue cq;
-  auto context = absl::make_unique<TestContext>();
+  auto context = std::make_unique<TestContext>();
   LogWrapper(mock, cq, std::move(context), MakeMutation(), "in-test", {});
 
   auto const log_lines = log.ExtractLines();
@@ -239,7 +236,7 @@ TEST(LogWrapper, FutureStatusOrErrorWithTestContextAndCQ) {
 
   testing_util::ScopedLog log;
   CompletionQueue cq;
-  auto context = absl::make_unique<TestContext>();
+  auto context = std::make_unique<TestContext>();
   LogWrapper(mock, cq, std::move(context), MakeMutation(), "in-test", {});
 
   auto const log_lines = log.ExtractLines();
@@ -264,7 +261,7 @@ TEST(LogWrapper, FutureStatusWithTestContextAndCQ) {
 
   testing_util::ScopedLog log;
   CompletionQueue cq;
-  auto context = absl::make_unique<TestContext>();
+  auto context = std::make_unique<TestContext>();
   LogWrapper(mock, cq, std::move(context), MakeMutation(), "in-test", {});
 
   std::ostringstream os;

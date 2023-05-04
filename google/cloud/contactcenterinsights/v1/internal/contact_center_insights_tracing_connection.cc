@@ -44,6 +44,18 @@ ContactCenterInsightsTracingConnection::CreateConversation(
   return internal::EndSpan(*span, child_->CreateConversation(request));
 }
 
+future<StatusOr<google::cloud::contactcenterinsights::v1::Conversation>>
+ContactCenterInsightsTracingConnection::UploadConversation(
+    google::cloud::contactcenterinsights::v1::UploadConversationRequest const&
+        request) {
+  auto span = internal::MakeSpan(
+      "contactcenterinsights_v1::ContactCenterInsightsConnection::"
+      "UploadConversation");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(std::move(span),
+                           child_->UploadConversation(request));
+}
+
 StatusOr<google::cloud::contactcenterinsights::v1::Conversation>
 ContactCenterInsightsTracingConnection::UpdateConversation(
     google::cloud::contactcenterinsights::v1::UpdateConversationRequest const&
@@ -94,7 +106,11 @@ future<StatusOr<google::cloud::contactcenterinsights::v1::Analysis>>
 ContactCenterInsightsTracingConnection::CreateAnalysis(
     google::cloud::contactcenterinsights::v1::CreateAnalysisRequest const&
         request) {
-  return child_->CreateAnalysis(request);
+  auto span = internal::MakeSpan(
+      "contactcenterinsights_v1::ContactCenterInsightsConnection::"
+      "CreateAnalysis");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(std::move(span), child_->CreateAnalysis(request));
 }
 
 StatusOr<google::cloud::contactcenterinsights::v1::Analysis>
@@ -135,7 +151,12 @@ future<StatusOr<
 ContactCenterInsightsTracingConnection::BulkAnalyzeConversations(
     google::cloud::contactcenterinsights::v1::
         BulkAnalyzeConversationsRequest const& request) {
-  return child_->BulkAnalyzeConversations(request);
+  auto span = internal::MakeSpan(
+      "contactcenterinsights_v1::ContactCenterInsightsConnection::"
+      "BulkAnalyzeConversations");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(std::move(span),
+                           child_->BulkAnalyzeConversations(request));
 }
 
 future<StatusOr<
@@ -143,7 +164,12 @@ future<StatusOr<
 ContactCenterInsightsTracingConnection::IngestConversations(
     google::cloud::contactcenterinsights::v1::IngestConversationsRequest const&
         request) {
-  return child_->IngestConversations(request);
+  auto span = internal::MakeSpan(
+      "contactcenterinsights_v1::ContactCenterInsightsConnection::"
+      "IngestConversations");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(std::move(span),
+                           child_->IngestConversations(request));
 }
 
 future<StatusOr<
@@ -151,14 +177,23 @@ future<StatusOr<
 ContactCenterInsightsTracingConnection::ExportInsightsData(
     google::cloud::contactcenterinsights::v1::ExportInsightsDataRequest const&
         request) {
-  return child_->ExportInsightsData(request);
+  auto span = internal::MakeSpan(
+      "contactcenterinsights_v1::ContactCenterInsightsConnection::"
+      "ExportInsightsData");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(std::move(span),
+                           child_->ExportInsightsData(request));
 }
 
 future<StatusOr<google::cloud::contactcenterinsights::v1::IssueModel>>
 ContactCenterInsightsTracingConnection::CreateIssueModel(
     google::cloud::contactcenterinsights::v1::CreateIssueModelRequest const&
         request) {
-  return child_->CreateIssueModel(request);
+  auto span = internal::MakeSpan(
+      "contactcenterinsights_v1::ContactCenterInsightsConnection::"
+      "CreateIssueModel");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(std::move(span), child_->CreateIssueModel(request));
 }
 
 StatusOr<google::cloud::contactcenterinsights::v1::IssueModel>
@@ -199,7 +234,11 @@ future<StatusOr<
 ContactCenterInsightsTracingConnection::DeleteIssueModel(
     google::cloud::contactcenterinsights::v1::DeleteIssueModelRequest const&
         request) {
-  return child_->DeleteIssueModel(request);
+  auto span = internal::MakeSpan(
+      "contactcenterinsights_v1::ContactCenterInsightsConnection::"
+      "DeleteIssueModel");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(std::move(span), child_->DeleteIssueModel(request));
 }
 
 future<StatusOr<
@@ -207,7 +246,11 @@ future<StatusOr<
 ContactCenterInsightsTracingConnection::DeployIssueModel(
     google::cloud::contactcenterinsights::v1::DeployIssueModelRequest const&
         request) {
-  return child_->DeployIssueModel(request);
+  auto span = internal::MakeSpan(
+      "contactcenterinsights_v1::ContactCenterInsightsConnection::"
+      "DeployIssueModel");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(std::move(span), child_->DeployIssueModel(request));
 }
 
 future<StatusOr<
@@ -215,7 +258,12 @@ future<StatusOr<
 ContactCenterInsightsTracingConnection::UndeployIssueModel(
     google::cloud::contactcenterinsights::v1::UndeployIssueModelRequest const&
         request) {
-  return child_->UndeployIssueModel(request);
+  auto span = internal::MakeSpan(
+      "contactcenterinsights_v1::ContactCenterInsightsConnection::"
+      "UndeployIssueModel");
+  auto scope = opentelemetry::trace::Scope(span);
+  return internal::EndSpan(std::move(span),
+                           child_->UndeployIssueModel(request));
 }
 
 StatusOr<google::cloud::contactcenterinsights::v1::Issue>

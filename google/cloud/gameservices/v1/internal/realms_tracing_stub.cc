@@ -55,25 +55,46 @@ StatusOr<google::cloud::gaming::v1::Realm> RealmsServiceTracingStub::GetRealm(
 future<StatusOr<google::longrunning::Operation>>
 RealmsServiceTracingStub::AsyncCreateRealm(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::gaming::v1::CreateRealmRequest const& request) {
-  return child_->AsyncCreateRealm(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.gaming.v1.RealmsService",
+                                     "CreateRealm");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateRealm(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 RealmsServiceTracingStub::AsyncDeleteRealm(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::gaming::v1::DeleteRealmRequest const& request) {
-  return child_->AsyncDeleteRealm(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.gaming.v1.RealmsService",
+                                     "DeleteRealm");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDeleteRealm(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 RealmsServiceTracingStub::AsyncUpdateRealm(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::gaming::v1::UpdateRealmRequest const& request) {
-  return child_->AsyncUpdateRealm(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.cloud.gaming.v1.RealmsService",
+                                     "UpdateRealm");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateRealm(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::gaming::v1::PreviewRealmUpdateResponse>
@@ -91,16 +112,30 @@ RealmsServiceTracingStub::PreviewRealmUpdate(
 future<StatusOr<google::longrunning::Operation>>
 RealmsServiceTracingStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return child_->AsyncGetOperation(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.longrunning.Operations", "GetOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncGetOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<Status> RealmsServiceTracingStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return child_->AsyncCancelOperation(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.longrunning.Operations",
+                                     "CancelOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCancelOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY

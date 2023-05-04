@@ -17,7 +17,6 @@
 // source: generator/integration_tests/test.proto
 
 #include "generator/integration_tests/golden/v1/internal/golden_kitchen_sink_stub.h"
-#include "absl/memory/memory.h"
 #include "google/cloud/grpc_error_delegate.h"
 #include "google/cloud/internal/async_read_write_stream_impl.h"
 #include "google/cloud/internal/async_streaming_read_rpc_impl.h"
@@ -127,10 +126,10 @@ DefaultGoldenKitchenSinkStub::Deprecated2(
 
 std::unique_ptr<google::cloud::internal::StreamingReadRpc<google::test::admin::database::v1::Response>>
 DefaultGoldenKitchenSinkStub::StreamingRead(
-    std::unique_ptr<grpc::ClientContext> client_context,
+    std::shared_ptr<grpc::ClientContext> client_context,
     google::test::admin::database::v1::Request const& request) {
   auto stream = grpc_stub_->StreamingRead(client_context.get(), request);
-  return absl::make_unique<google::cloud::internal::StreamingReadRpcImpl<
+  return std::make_unique<google::cloud::internal::StreamingReadRpcImpl<
       google::test::admin::database::v1::Response>>(
       std::move(client_context), std::move(stream));
 }
@@ -139,10 +138,10 @@ std::unique_ptr<::google::cloud::internal::StreamingWriteRpc<
     google::test::admin::database::v1::Request,
     google::test::admin::database::v1::Response>>
 DefaultGoldenKitchenSinkStub::StreamingWrite(
-    std::unique_ptr<grpc::ClientContext> context) {
-  auto response = absl::make_unique<google::test::admin::database::v1::Response>();
+    std::shared_ptr<grpc::ClientContext> context) {
+  auto response = std::make_unique<google::test::admin::database::v1::Response>();
   auto stream = grpc_stub_->StreamingWrite(context.get(), response.get());
-  return absl::make_unique<::google::cloud::internal::StreamingWriteRpcImpl<
+  return std::make_unique<::google::cloud::internal::StreamingWriteRpcImpl<
       google::test::admin::database::v1::Request, google::test::admin::database::v1::Response>>(
     std::move(context), std::move(response), std::move(stream));
 }
@@ -152,7 +151,7 @@ std::unique_ptr<::google::cloud::AsyncStreamingReadWriteRpc<
     google::test::admin::database::v1::Response>>
 DefaultGoldenKitchenSinkStub::AsyncStreamingReadWrite(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context) {
+    std::shared_ptr<grpc::ClientContext> context) {
   return google::cloud::internal::MakeStreamingReadWriteRpc<google::test::admin::database::v1::Request, google::test::admin::database::v1::Response>(
       cq, std::move(context),
       [this](grpc::ClientContext* context, grpc::CompletionQueue* cq) {
@@ -190,7 +189,7 @@ std::unique_ptr<::google::cloud::internal::AsyncStreamingReadRpc<
     google::test::admin::database::v1::Response>>
 DefaultGoldenKitchenSinkStub::AsyncStreamingRead(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::test::admin::database::v1::Request const& request) {
   return google::cloud::internal::MakeStreamingReadRpc<google::test::admin::database::v1::Request, google::test::admin::database::v1::Response>(
     cq, std::move(context), request,
@@ -203,7 +202,7 @@ std::unique_ptr<::google::cloud::internal::AsyncStreamingWriteRpc<
     google::test::admin::database::v1::Request, google::test::admin::database::v1::Response>>
 DefaultGoldenKitchenSinkStub::AsyncStreamingWrite(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context) {
+    std::shared_ptr<grpc::ClientContext> context) {
   return google::cloud::internal::MakeStreamingWriteRpc<google::test::admin::database::v1::Request, google::test::admin::database::v1::Response>(
     cq, std::move(context),
     [this](grpc::ClientContext* context, google::test::admin::database::v1::Response* response, grpc::CompletionQueue* cq) {

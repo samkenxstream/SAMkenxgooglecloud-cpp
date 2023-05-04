@@ -18,6 +18,7 @@
 
 GOOGLE_CLOUD_CPP_EXPERIMENTAL_LIBRARIES = [
     "pubsublite",
+    "sql",
 ]
 
 GOOGLE_CLOUD_CPP_TRANSITION_LIBRARIES = [
@@ -47,6 +48,7 @@ GOOGLE_CLOUD_CPP_GA_LIBRARIES = [
     "channel",
     "cloudbuild",
     "composer",
+    "confidentialcomputing",
     "connectors",
     "contactcenterinsights",
     "container",
@@ -107,6 +109,7 @@ GOOGLE_CLOUD_CPP_GA_LIBRARIES = [
     "spanner",
     "speech",
     "storage",
+    "storageinsights",
     "storagetransfer",
     "talent",
     "tasks",
@@ -123,4 +126,5 @@ GOOGLE_CLOUD_CPP_GA_LIBRARIES = [
     "webrisk",
     "websecurityscanner",
     "workflows",
+    "workstations",
 ]

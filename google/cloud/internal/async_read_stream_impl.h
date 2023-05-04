@@ -16,8 +16,8 @@
 #define GOOGLE_CLOUD_CPP_GOOGLE_CLOUD_INTERNAL_ASYNC_READ_STREAM_IMPL_H
 
 #include "google/cloud/grpc_error_delegate.h"
+#include "google/cloud/internal/call_context.h"
 #include "google/cloud/internal/completion_queue_impl.h"
-#include "google/cloud/options.h"
 #include "google/cloud/version.h"
 #include <grpcpp/support/async_stream.h>
 #include <memory>
@@ -140,7 +140,7 @@ class AsyncReadStreamImpl
    */
   template <typename AsyncFunctionType, typename Request>
   void Start(AsyncFunctionType&& async_call, Request const& request,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              std::shared_ptr<CompletionQueueImpl> cq) {
     // An adapter to call OnStart() via the completion queue.
     class NotifyStart final : public AsyncGrpcOperation {
@@ -151,12 +151,12 @@ class AsyncReadStreamImpl
      private:
       void Cancel() override {}  // LCOV_EXCL_LINE
       bool Notify(bool ok) override {
-        OptionsSpan span(options_);
+        ScopedCallContext scope(call_context_);
         control_->OnStart(ok);
         return true;
       }
       std::shared_ptr<AsyncReadStreamImpl> control_;
-      Options options_ = CurrentOptions();
+      CallContext call_context_;
     };
 
     context_ = std::move(context);
@@ -198,12 +198,12 @@ class AsyncReadStreamImpl
      private:
       void Cancel() override {}  // LCOV_EXCL_LINE
       bool Notify(bool ok) override {
-        OptionsSpan span(options_);
+        ScopedCallContext scope(call_context_);
         control_->OnRead(ok, std::move(response));
         return true;
       }
       std::shared_ptr<AsyncReadStreamImpl> control_;
-      Options options_ = CurrentOptions();
+      CallContext call_context_;
     };
 
     auto callback = std::make_shared<NotifyRead>(this->shared_from_this());
@@ -248,12 +248,12 @@ class AsyncReadStreamImpl
      private:
       void Cancel() override {}  // LCOV_EXCL_LINE
       bool Notify(bool ok) override {
-        OptionsSpan span(options_);
+        ScopedCallContext scope(call_context_);
         control_->OnFinish(ok, MakeStatusFromRpcError(status));
         return true;
       }
       std::shared_ptr<AsyncReadStreamImpl> control_;
-      Options options_ = CurrentOptions();
+      CallContext call_context_;
     };
 
     auto callback = std::make_shared<NotifyFinish>(this->shared_from_this());
@@ -288,12 +288,12 @@ class AsyncReadStreamImpl
      private:
       void Cancel() override {}  // LCOV_EXCL_LINE
       bool Notify(bool ok) override {
-        OptionsSpan span(options_);
+        ScopedCallContext scope(call_context_);
         control_->OnDiscard(ok, std::move(response));
         return true;
       }
       std::shared_ptr<AsyncReadStreamImpl> control_;
-      Options options_ = CurrentOptions();
+      CallContext call_context_;
     };
 
     auto callback = std::make_shared<NotifyDiscard>(this->shared_from_this());
@@ -317,7 +317,7 @@ class AsyncReadStreamImpl
 
   typename std::decay<OnReadHandler>::type on_read_;
   typename std::decay<OnFinishHandler>::type on_finish_;
-  std::unique_ptr<grpc::ClientContext> context_;
+  std::shared_ptr<grpc::ClientContext> context_;
   std::shared_ptr<CompletionQueueImpl> cq_;
   std::unique_ptr<grpc::ClientAsyncReaderInterface<Response>> reader_;
 };

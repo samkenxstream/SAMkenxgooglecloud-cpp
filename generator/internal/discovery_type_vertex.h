@@ -15,6 +15,7 @@
 #ifndef GOOGLE_CLOUD_CPP_GENERATOR_INTERNAL_DISCOVERY_TYPE_VERTEX_H
 #define GOOGLE_CLOUD_CPP_GENERATOR_INTERNAL_DISCOVERY_TYPE_VERTEX_H
 
+#include "google/cloud/status_or.h"
 #include <nlohmann/json.hpp>
 #include <set>
 #include <string>
@@ -33,10 +34,14 @@ namespace generator_internal {
 class DiscoveryTypeVertex {
  public:
   DiscoveryTypeVertex();
-  DiscoveryTypeVertex(std::string name, nlohmann::json json);
+  DiscoveryTypeVertex(std::string name, std::string package_name,
+                      nlohmann::json json);
 
   std::string const& name() const { return name_; }
+  std::string const& package_name() const { return package_name_; }
   nlohmann::json const& json() const { return json_; }
+
+  bool IsSynthesizedRequestType() const;
 
   // Adds edge to this vertex for a type name that exists as a field in this
   // type.
@@ -46,10 +51,57 @@ class DiscoveryTypeVertex {
   // field.
   void AddNeededByTypeName(std::string type_name);
 
+  // Returns "optional ", "repeated ", or an empty string depending on the
+  // field type.
+  static std::string DetermineIntroducer(nlohmann::json const& field);
+
+  struct TypeInfo {
+    std::string name;
+    bool compare_package_name;
+    // Non-owning pointer to the properties JSON block of the type to be
+    // synthesized.
+    nlohmann::json const* properties;
+    bool is_map;
+  };
+  // Determines the type of the field and if a definition of that nested type
+  // needs to be defined in the message.
+  // Returns a pair containing the name of the type and possibly the json
+  // that defines the type.
+  static StatusOr<TypeInfo> DetermineTypeAndSynthesis(
+      nlohmann::json const& v, std::string const& field_name);
+
+  // Formats the properties of the json into proto message fields.
+  StatusOr<std::vector<std::string>> FormatProperties(
+      std::map<std::string, DiscoveryTypeVertex> const& types,
+      std::string const& message_name, std::string const& file_package_name,
+      nlohmann::json const& json, int indent_level) const;
+
+  StatusOr<std::string> FormatMessage(
+      std::map<std::string, DiscoveryTypeVertex> const& types,
+      std::string const& name, std::string const& package_name,
+
+      nlohmann::json const& json, int indent_level) const;
+
+  // Formats any field options as indicated by the field_json.
+  static std::string FormatFieldOptions(std::string const& field_name,
+                                        nlohmann::json const& field_json);
+
+  // Determines the correct field_number to use for the specified field.
+  static StatusOr<int> GetFieldNumber(std::string const& message_name,
+                                      std::string const& field_name,
+                                      std::string const& field_type,
+                                      int field_number);
+
+  // Emits the protobuf message definition for this type.
+  StatusOr<std::string> JsonToProtobufMessage(
+      std::map<std::string, DiscoveryTypeVertex> const& types,
+      std::string const& file_package_name) const;
+
   std::string DebugString() const;
 
  private:
   std::string name_;
+  std::string package_name_;
   nlohmann::json json_;
   std::set<std::string> needs_;
   std::set<std::string> needed_by_;

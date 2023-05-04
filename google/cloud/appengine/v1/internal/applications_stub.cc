@@ -45,9 +45,12 @@ DefaultApplicationsStub::GetApplication(
 future<StatusOr<google::longrunning::Operation>>
 DefaultApplicationsStub::AsyncCreateApplication(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::appengine::v1::CreateApplicationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::appengine::v1::CreateApplicationRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::appengine::v1::CreateApplicationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -59,9 +62,12 @@ DefaultApplicationsStub::AsyncCreateApplication(
 future<StatusOr<google::longrunning::Operation>>
 DefaultApplicationsStub::AsyncUpdateApplication(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::appengine::v1::UpdateApplicationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::appengine::v1::UpdateApplicationRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::appengine::v1::UpdateApplicationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -73,9 +79,12 @@ DefaultApplicationsStub::AsyncUpdateApplication(
 future<StatusOr<google::longrunning::Operation>>
 DefaultApplicationsStub::AsyncRepairApplication(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::appengine::v1::RepairApplicationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::appengine::v1::RepairApplicationRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::appengine::v1::RepairApplicationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -87,9 +96,11 @@ DefaultApplicationsStub::AsyncRepairApplication(
 future<StatusOr<google::longrunning::Operation>>
 DefaultApplicationsStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -100,16 +111,17 @@ DefaultApplicationsStub::AsyncGetOperation(
 
 future<Status> DefaultApplicationsStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

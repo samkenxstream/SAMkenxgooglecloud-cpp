@@ -18,8 +18,8 @@
 #include "google/cloud/completion_queue.h"
 #include "google/cloud/grpc_error_delegate.h"
 #include "google/cloud/internal/async_streaming_write_rpc.h"
+#include "google/cloud/internal/call_context.h"
 #include "google/cloud/internal/completion_queue_impl.h"
-#include "google/cloud/options.h"
 #include "google/cloud/version.h"
 #include "absl/functional/function_ref.h"
 #include "absl/types/optional.h"
@@ -44,7 +44,7 @@ class AsyncStreamingWriteRpcImpl
  public:
   AsyncStreamingWriteRpcImpl(
       std::shared_ptr<CompletionQueueImpl> cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       std::unique_ptr<Response> response,
       std::unique_ptr<grpc::ClientAsyncWriterInterface<Request>> stream)
       : cq_(std::move(cq)),
@@ -57,9 +57,9 @@ class AsyncStreamingWriteRpcImpl
   future<bool> Start() override {
     struct OnStart : public AsyncGrpcOperation {
       promise<bool> p;
-      Options options = CurrentOptions();
+      CallContext call_context;
       bool Notify(bool ok) override {
-        OptionsSpan span(options);
+        ScopedCallContext scope(call_context);
         p.set_value(ok);
         return true;
       }
@@ -74,9 +74,9 @@ class AsyncStreamingWriteRpcImpl
                      grpc::WriteOptions write_options) override {
     struct OnWrite : public AsyncGrpcOperation {
       promise<bool> p;
-      Options options = CurrentOptions();
+      CallContext call_context;
       bool Notify(bool ok) override {
-        OptionsSpan span(options);
+        ScopedCallContext scope(call_context);
         p.set_value(ok);
         return true;
       }
@@ -92,9 +92,9 @@ class AsyncStreamingWriteRpcImpl
   future<bool> WritesDone() override {
     struct OnWritesDone : public AsyncGrpcOperation {
       promise<bool> p;
-      Options options = CurrentOptions();
+      CallContext call_context;
       bool Notify(bool ok) override {
-        OptionsSpan span(options);
+        ScopedCallContext scope(call_context);
         p.set_value(ok);
         return true;
       }
@@ -109,10 +109,10 @@ class AsyncStreamingWriteRpcImpl
     struct OnFinish : public AsyncGrpcOperation {
       std::unique_ptr<Response> response;
       promise<StatusOr<Response>> p;
-      Options options = CurrentOptions();
+      CallContext call_context;
       grpc::Status status;
       bool Notify(bool /*ok*/) override {
-        OptionsSpan span(options);
+        ScopedCallContext scope(call_context);
         if (status.ok()) {
           p.set_value(std::move(*response));
           return true;
@@ -135,7 +135,7 @@ class AsyncStreamingWriteRpcImpl
 
  private:
   std::shared_ptr<CompletionQueueImpl> cq_;
-  std::unique_ptr<grpc::ClientContext> context_;
+  std::shared_ptr<grpc::ClientContext> context_;
   std::unique_ptr<Response> response_;
   std::unique_ptr<grpc::ClientAsyncWriterInterface<Request>> stream_;
 };
@@ -158,12 +158,12 @@ using PrepareAsyncWriteRpc = absl::FunctionRef<
 template <typename Request, typename Response>
 std::unique_ptr<AsyncStreamingWriteRpc<Request, Response>>
 MakeStreamingWriteRpc(CompletionQueue const& cq,
-                      std::unique_ptr<grpc::ClientContext> context,
+                      std::shared_ptr<grpc::ClientContext> context,
                       PrepareAsyncWriteRpc<Request, Response> async_call) {
   auto cq_impl = GetCompletionQueueImpl(cq);
-  auto response = absl::make_unique<Response>();
+  auto response = std::make_unique<Response>();
   auto stream = async_call(context.get(), response.get(), cq_impl->cq());
-  return absl::make_unique<AsyncStreamingWriteRpcImpl<Request, Response>>(
+  return std::make_unique<AsyncStreamingWriteRpcImpl<Request, Response>>(
       std::move(cq_impl), std::move(context), std::move(response),
       std::move(stream));
 }

@@ -15,6 +15,7 @@
 #ifndef GOOGLE_CLOUD_CPP_GOOGLE_CLOUD_INTERNAL_GRPC_OPENTELEMETRY_H
 #define GOOGLE_CLOUD_CPP_GOOGLE_CLOUD_INTERNAL_GRPC_OPENTELEMETRY_H
 
+#include "google/cloud/completion_queue.h"
 #include "google/cloud/internal/opentelemetry.h"
 #include "google/cloud/options.h"
 #include "google/cloud/version.h"
@@ -23,6 +24,8 @@
 #include <opentelemetry/nostd/shared_ptr.h>
 #include <opentelemetry/trace/span.h>
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY
+#include <chrono>
+#include <functional>
 
 namespace google {
 namespace cloud {
@@ -60,6 +63,12 @@ opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span> MakeSpanGrpc(
 void InjectTraceContext(grpc::ClientContext& context, Options const& options);
 
 /**
+ * Extracts attributes from the `context` and adds them to the `span`.
+ */
+void ExtractAttributes(grpc::ClientContext& context,
+                       opentelemetry::trace::Span& span);
+
+/**
  * Extracts information from the `grpc::ClientContext`, and adds it to a span.
  *
  * The span is ended. The original value is returned, for the sake of
@@ -70,13 +79,37 @@ void InjectTraceContext(grpc::ClientContext& context, Options const& options);
 template <typename T>
 T EndSpan(grpc::ClientContext& context, opentelemetry::trace::Span& span,
           T value) {
-  // TODO(#10489): extract IP version, IP address, port from peer URI.
-  // https://github.com/grpc/grpc/blob/master/src/core/lib/address_utils/parse_address.h
-  span.SetAttribute("grpc.peer", context.peer());
+  ExtractAttributes(context, span);
   return EndSpan(span, std::move(value));
 }
 
+template <typename T>
+future<T> EndSpan(
+    std::shared_ptr<grpc::ClientContext> context,
+    opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span> span,
+    future<T> fut) {
+  return fut.then([c = std::move(context), s = std::move(span)](auto f) {
+    ExtractAttributes(*c, *s);
+    return EndSpan(*s, f.get());
+  });
+}
+
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY
+
+/**
+ * Returns a traced timer, if OpenTelemetry tracing is enabled.
+ */
+template <typename Rep, typename Period>
+future<StatusOr<std::chrono::system_clock::time_point>> TracedAsyncBackoff(
+    CompletionQueue& cq, std::chrono::duration<Rep, Period> duration) {
+  auto timer = cq.MakeRelativeTimer(duration);
+#ifdef GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY
+  if (TracingEnabled(CurrentOptions())) {
+    timer = EndSpan(MakeSpan("Async Backoff"), std::move(timer));
+  }
+#endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY
+  return timer;
+}
 
 }  // namespace internal
 GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_END

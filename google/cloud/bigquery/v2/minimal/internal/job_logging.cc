@@ -15,11 +15,52 @@
 // Implementation of internal interface for Bigquery V2 Job resource.
 
 #include "google/cloud/bigquery/v2/minimal/internal/job_logging.h"
+#include "google/cloud/bigquery/v2/minimal/internal/log_wrapper.h"
+#include "google/cloud/internal/absl_str_join_quiet.h"
+#include "google/cloud/internal/rest_context.h"
+#include "google/cloud/status_or.h"
 
 namespace google {
 namespace cloud {
 namespace bigquery_v2_minimal_internal {
 GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_BEGIN
+
+BigQueryJobLogging::BigQueryJobLogging(
+    std::shared_ptr<BigQueryJobRestStub> child, TracingOptions tracing_options,
+    std::set<std::string> components)
+    : child_(std::move(child)),
+      tracing_options_(std::move(tracing_options)),
+      components_(std::move(components)) {}
+
+// Customized LogWrapper is used here since GetJobRequest is
+// not a protobuf message.
+StatusOr<GetJobResponse> BigQueryJobLogging::GetJob(
+    rest_internal::RestContext& rest_context, GetJobRequest const& request) {
+  return LogWrapper(
+      [this](rest_internal::RestContext& rest_context,
+             GetJobRequest const& request) {
+        return child_->GetJob(rest_context, request);
+      },
+      rest_context, request, __func__,
+      "google.cloud.bigquery.v2.minimal.internal.GetJobRequest",
+      "google.cloud.bigquery.v2.minimal.internal.GetJobResponse",
+      tracing_options_);
+}
+
+// Customized LogWrapper is used here since ListJobsRequest is
+// not a protobuf message.
+StatusOr<ListJobsResponse> BigQueryJobLogging::ListJobs(
+    rest_internal::RestContext& rest_context, ListJobsRequest const& request) {
+  return LogWrapper(
+      [this](rest_internal::RestContext& rest_context,
+             ListJobsRequest const& request) {
+        return child_->ListJobs(rest_context, request);
+      },
+      rest_context, request, __func__,
+      "google.cloud.bigquery.v2.minimal.internal.ListJobsRequest",
+      "google.cloud.bigquery.v2.minimal.internal.ListJobsResponse",
+      tracing_options_);
+}
 
 GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_END
 }  // namespace bigquery_v2_minimal_internal

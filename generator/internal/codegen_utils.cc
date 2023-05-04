@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "generator/internal/codegen_utils.h"
+#include "generator/internal/scaffold_generator.h"
 #include "google/cloud/internal/absl_str_cat_quiet.h"
 #include "google/cloud/internal/absl_str_join_quiet.h"
 #include "google/cloud/internal/absl_str_replace_quiet.h"
@@ -238,21 +239,19 @@ std::string ProtoNameToCppName(absl::string_view proto_name) {
   return absl::StrReplaceAll(proto_name, {{".", "::"}});
 }
 
-std::vector<std::string> BuildNamespaces(std::string const& product_path,
-                                         NamespaceType ns_type) {
-  std::vector<std::string> v =
-      absl::StrSplit(product_path, '/', absl::SkipEmpty());
-  std::string name =
-      absl::StrJoin(v.begin() + (v.size() > 2 ? 2 : 0), v.end(), "_");
+std::string Namespace(std::string const& product_path, NamespaceType ns_type) {
+  auto ns = absl::StrCat(LibraryName(product_path), "/",
+                         ServiceSubdirectory(product_path));
+  ns = std::string{absl::StripSuffix(ns, "/")};
+  ns = absl::StrReplaceAll(ns, {{"/", "_"}});
+
   if (ns_type == NamespaceType::kInternal) {
-    absl::StrAppend(&name, "_internal");
+    absl::StrAppend(&ns, "_internal");
   }
   if (ns_type == NamespaceType::kMocks) {
-    absl::StrAppend(&name, "_mocks");
+    absl::StrAppend(&ns, "_mocks");
   }
-
-  return std::vector<std::string>{"google", "cloud", name,
-                                  "GOOGLE_CLOUD_CPP_NS"};
+  return ns;
 }
 
 StatusOr<std::vector<std::pair<std::string, std::string>>>
@@ -304,6 +303,61 @@ std::string CopyrightLicenseFileHeader() {
   "// limitations under the License.\n";
   // clang-format on
   return kHeader;
+}
+
+std::string CapitalizeFirstLetter(std::string str) {
+  str[0] = static_cast<unsigned char>(
+      std::toupper(static_cast<unsigned char>(str[0])));
+  return str;
+}
+
+std::string FormatCommentBlock(std::string const& comment,
+                               std::size_t indent_level,
+                               std::string const& comment_introducer,
+                               std::size_t indent_width,
+                               std::size_t line_length) {
+  if (comment.empty()) return {};
+  auto offset = indent_level * indent_width + comment_introducer.length();
+  if (offset >= line_length) GCP_LOG(FATAL) << "line_length is too small";
+  auto comment_width = line_length - offset;
+
+  std::vector<std::string> lines;
+  std::size_t start_pos = 0;
+  while (start_pos != std::string::npos) {
+    std::size_t boundary = start_pos + comment_width;
+    std::size_t end_pos = boundary;
+    if (boundary < comment.length()) {
+      // Look backward from the boundary for the last word
+      end_pos = comment.rfind(' ', boundary);
+      // If there is only one word, find and use its boundary
+      if (end_pos == std::string::npos || end_pos < start_pos) {
+        end_pos = comment.find(' ', boundary);
+      }
+    }
+    lines.push_back(comment.substr(start_pos, end_pos - start_pos));
+    start_pos = comment.find_first_not_of(' ', end_pos);
+  }
+
+  std::string indent(indent_level * indent_width, ' ');
+  std::string joiner = absl::StrCat("\n", indent, comment_introducer);
+  return absl::StrCat(indent, comment_introducer, absl::StrJoin(lines, joiner));
+}
+
+std::string FormatCommentKeyValueList(
+    std::vector<std::pair<std::string, std::string>> const& comment,
+    std::size_t indent_level, std::string const& separator,
+    std::string const& comment_introducer, std::size_t indent_width,
+    std::size_t line_length) {
+  if (comment.empty() || line_length == 0) return {};
+  auto formatter = [&](std::string* s,
+                       std::pair<std::string, std::string> const& p) {
+    auto raw = absl::StrCat(p.first, separator, " ", p.second);
+    auto formatted = FormatCommentBlock(raw, indent_level, comment_introducer,
+                                        indent_width, line_length);
+    *s += formatted;
+  };
+
+  return absl::StrCat(absl::StrJoin(comment, "\n", formatter));
 }
 
 }  // namespace generator_internal

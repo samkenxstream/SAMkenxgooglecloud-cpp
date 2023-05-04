@@ -40,7 +40,10 @@ RUN dnf makecache && dnf install -y "dnf-command(debuginfo-install)"
 RUN dnf makecache && dnf debuginfo-install -y libstdc++
 
 # This is used by the docfx tool.
-RUN dnf makecache && dnf install -y pugixml-devel yaml-cpp-devel
+RUN dnf makecache && dnf install -y pugixml-devel
+
+# This is used in the `publish-docs` build
+RUN dnf makecache && dnf install -y libxslt
 
 # Sets root's password to the empty string to enable users to get a root shell
 # inside the container with `su -` and no password. Sudo would not work because
@@ -63,10 +66,24 @@ RUN curl -sSL https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.g
     ldconfig
 ENV PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib64/pkgconfig
 
+# Installs the yaml-cpp-devel from source. The version included with Fedora:37
+# leaves trailing whitespace in the output:
+#     https://github.com/jbeder/yaml-cpp/pull/1005
+WORKDIR /var/tmp/build
+RUN curl -sSL https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.7.0.tar.gz | \
+    tar -xzf - --strip-components=1 && \
+    cmake \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_SHARED_LIBS=ON \
+      -DBUILD_TESTING=OFF \
+      -GNinja -S . -B cmake-out && \
+    cmake --build cmake-out --target install && \
+    ldconfig && cd /var/tmp && rm -fr build
+
 # We expose `absl::optional<>` in our public API. An Abseil LTS update will
 # break our `check-api` build, unless we disable the inline namespace.
 WORKDIR /var/tmp/build
-RUN curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.1.tar.gz | \
+RUN curl -sSL https://github.com/abseil/abseil-cpp/archive/20230125.3.tar.gz | \
     tar -xzf - --strip-components=1 && \
     sed -i 's/^#define ABSL_OPTION_USE_\(.*\) 2/#define ABSL_OPTION_USE_\1 0/' "absl/base/options.h" && \
     sed -i 's/^#define ABSL_OPTION_USE_INLINE_NAMESPACE 1$/#define ABSL_OPTION_USE_INLINE_NAMESPACE 0/' "absl/base/options.h" && \
@@ -152,7 +169,7 @@ RUN curl -sSL https://github.com/google/re2/archive/2023-03-01.tar.gz | \
 
 WORKDIR /var/tmp/build/grpc
 RUN dnf makecache && dnf install -y c-ares-devel
-RUN curl -sSL https://github.com/grpc/grpc/archive/v1.52.1.tar.gz | \
+RUN curl -sSL https://github.com/grpc/grpc/archive/v1.54.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -DCMAKE_BUILD_TYPE=Release \
@@ -170,7 +187,7 @@ RUN curl -sSL https://github.com/grpc/grpc/archive/v1.52.1.tar.gz | \
     ldconfig && cd /var/tmp && rm -fr build
 
 WORKDIR /var/tmp/build/
-RUN curl -sSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.8.2.tar.gz | \
+RUN curl -sSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.9.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_CXX_STANDARD=14 \
@@ -180,6 +197,7 @@ RUN curl -sSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.8.2
         -DWITH_EXAMPLES=OFF \
         -DWITH_ABSEIL=ON \
         -DBUILD_TESTING=OFF \
+        -DOPENTELEMETRY_INSTALL=ON \
         -H. -Bcmake-out -GNinja && \
     cmake --build cmake-out --target install && \
     ldconfig && cd /var/tmp && rm -fr build

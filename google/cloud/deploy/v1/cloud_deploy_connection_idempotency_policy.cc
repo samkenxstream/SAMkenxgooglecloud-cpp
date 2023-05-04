@@ -17,7 +17,6 @@
 // source: google/cloud/deploy/v1/cloud_deploy.proto
 
 #include "google/cloud/deploy/v1/cloud_deploy_connection_idempotency_policy.h"
-#include "absl/memory/memory.h"
 #include <memory>
 
 namespace google {
@@ -32,7 +31,7 @@ CloudDeployConnectionIdempotencyPolicy::
 
 std::unique_ptr<CloudDeployConnectionIdempotencyPolicy>
 CloudDeployConnectionIdempotencyPolicy::clone() const {
-  return absl::make_unique<CloudDeployConnectionIdempotencyPolicy>(*this);
+  return std::make_unique<CloudDeployConnectionIdempotencyPolicy>(*this);
 }
 
 Idempotency CloudDeployConnectionIdempotencyPolicy::ListDeliveryPipelines(
@@ -110,6 +109,16 @@ Idempotency CloudDeployConnectionIdempotencyPolicy::ApproveRollout(
   return Idempotency::kNonIdempotent;
 }
 
+Idempotency CloudDeployConnectionIdempotencyPolicy::AdvanceRollout(
+    google::cloud::deploy::v1::AdvanceRolloutRequest const&) {
+  return Idempotency::kNonIdempotent;
+}
+
+Idempotency CloudDeployConnectionIdempotencyPolicy::CancelRollout(
+    google::cloud::deploy::v1::CancelRolloutRequest const&) {
+  return Idempotency::kNonIdempotent;
+}
+
 Idempotency CloudDeployConnectionIdempotencyPolicy::ListRollouts(
     google::cloud::deploy::v1::ListRolloutsRequest) {  // NOLINT
   return Idempotency::kIdempotent;
@@ -122,6 +131,11 @@ Idempotency CloudDeployConnectionIdempotencyPolicy::GetRollout(
 
 Idempotency CloudDeployConnectionIdempotencyPolicy::CreateRollout(
     google::cloud::deploy::v1::CreateRolloutRequest const&) {
+  return Idempotency::kNonIdempotent;
+}
+
+Idempotency CloudDeployConnectionIdempotencyPolicy::IgnoreJob(
+    google::cloud::deploy::v1::IgnoreJobRequest const&) {
   return Idempotency::kNonIdempotent;
 }
 
@@ -140,6 +154,11 @@ Idempotency CloudDeployConnectionIdempotencyPolicy::GetJobRun(
   return Idempotency::kIdempotent;
 }
 
+Idempotency CloudDeployConnectionIdempotencyPolicy::TerminateJobRun(
+    google::cloud::deploy::v1::TerminateJobRunRequest const&) {
+  return Idempotency::kNonIdempotent;
+}
+
 Idempotency CloudDeployConnectionIdempotencyPolicy::GetConfig(
     google::cloud::deploy::v1::GetConfigRequest const&) {
   return Idempotency::kIdempotent;
@@ -147,7 +166,7 @@ Idempotency CloudDeployConnectionIdempotencyPolicy::GetConfig(
 
 std::unique_ptr<CloudDeployConnectionIdempotencyPolicy>
 MakeDefaultCloudDeployConnectionIdempotencyPolicy() {
-  return absl::make_unique<CloudDeployConnectionIdempotencyPolicy>();
+  return std::make_unique<CloudDeployConnectionIdempotencyPolicy>();
 }
 
 GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_END

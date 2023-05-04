@@ -74,7 +74,7 @@ TEST(GoldenKitchenSinkRoundRobinDecoratorTest, StreamingRead) {
   for (int i = 0; i != kRepeats; ++i) {
     for (auto& m : mocks) {
       EXPECT_CALL(*m, StreamingRead).WillOnce([](auto, auto) {
-        return absl::make_unique<MockStreamingReadRpc>();
+        return std::make_unique<MockStreamingReadRpc>();
       });
     }
   }
@@ -82,7 +82,7 @@ TEST(GoldenKitchenSinkRoundRobinDecoratorTest, StreamingRead) {
   GoldenKitchenSinkRoundRobin stub(AsPlainStubs(mocks));
   for (size_t i = 0; i != kRepeats * mocks.size(); ++i) {
     auto stream =
-        stub.StreamingRead(absl::make_unique<grpc::ClientContext>(), Request{});
+        stub.StreamingRead(std::make_shared<grpc::ClientContext>(), Request{});
     EXPECT_THAT(stream, NotNull());
   }
 }
@@ -93,14 +93,14 @@ TEST(GoldenKitchenSinkRoundRobinDecoratorTest, StreamingWrite) {
   for (int i = 0; i != kRepeats; ++i) {
     for (auto& m : mocks) {
       EXPECT_CALL(*m, StreamingWrite).WillOnce([](auto) {
-        return absl::make_unique<MockStreamingWriteRpc>();
+        return std::make_unique<MockStreamingWriteRpc>();
       });
     }
   }
 
   GoldenKitchenSinkRoundRobin stub(AsPlainStubs(mocks));
   for (size_t i = 0; i != kRepeats * mocks.size(); ++i) {
-    auto stream = stub.StreamingWrite(absl::make_unique<grpc::ClientContext>());
+    auto stream = stub.StreamingWrite(std::make_shared<grpc::ClientContext>());
     EXPECT_THAT(stream, NotNull());
   }
 }
@@ -111,7 +111,7 @@ TEST(GoldenKitchenSinkRoundRobinDecoratorTest, AsyncStreamingReadWrite) {
   for (int i = 0; i != kRepeats; ++i) {
     for (auto& m : mocks) {
       EXPECT_CALL(*m, AsyncStreamingReadWrite).WillOnce([](auto&, auto) {
-        return absl::make_unique<MockAsyncStreamingReadWriteRpc>();
+        return std::make_unique<MockAsyncStreamingReadWriteRpc>();
       });
     }
   }
@@ -120,7 +120,7 @@ TEST(GoldenKitchenSinkRoundRobinDecoratorTest, AsyncStreamingReadWrite) {
   GoldenKitchenSinkRoundRobin stub(AsPlainStubs(mocks));
   for (size_t i = 0; i != kRepeats * mocks.size(); ++i) {
     auto stream = stub.AsyncStreamingReadWrite(
-        cq, absl::make_unique<grpc::ClientContext>());
+        cq, std::make_shared<grpc::ClientContext>());
     EXPECT_THAT(stream, NotNull());
   }
 }
@@ -131,7 +131,7 @@ TEST(GoldenKitchenSinkRoundRobinDecoratorTest, AsyncStreamingRead) {
   for (int i = 0; i != kRepeats; ++i) {
     for (auto& m : mocks) {
       EXPECT_CALL(*m, AsyncStreamingRead).WillOnce([](auto&, auto, auto) {
-        return absl::make_unique<MockAsyncStreamingReadRpc>();
+        return std::make_unique<MockAsyncStreamingReadRpc>();
       });
     }
   }
@@ -140,7 +140,7 @@ TEST(GoldenKitchenSinkRoundRobinDecoratorTest, AsyncStreamingRead) {
   GoldenKitchenSinkRoundRobin stub(AsPlainStubs(mocks));
   for (size_t i = 0; i != kRepeats * mocks.size(); ++i) {
     auto stream = stub.AsyncStreamingRead(
-        cq, absl::make_unique<grpc::ClientContext>(), Request{});
+        cq, std::make_shared<grpc::ClientContext>(), Request{});
     EXPECT_THAT(stream, NotNull());
   }
 }
@@ -151,7 +151,7 @@ TEST(GoldenKitchenSinkRoundRobinDecoratorTest, AsyncStreamingWrite) {
   for (int i = 0; i != kRepeats; ++i) {
     for (auto& m : mocks) {
       EXPECT_CALL(*m, AsyncStreamingWrite).WillOnce([](auto&, auto) {
-        return absl::make_unique<MockAsyncStreamingWriteRpc>();
+        return std::make_unique<MockAsyncStreamingWriteRpc>();
       });
     }
   }
@@ -160,7 +160,7 @@ TEST(GoldenKitchenSinkRoundRobinDecoratorTest, AsyncStreamingWrite) {
   GoldenKitchenSinkRoundRobin stub(AsPlainStubs(mocks));
   for (size_t i = 0; i != kRepeats * mocks.size(); ++i) {
     auto stream =
-        stub.AsyncStreamingWrite(cq, absl::make_unique<grpc::ClientContext>());
+        stub.AsyncStreamingWrite(cq, std::make_shared<grpc::ClientContext>());
     EXPECT_THAT(stream, NotNull());
   }
 }

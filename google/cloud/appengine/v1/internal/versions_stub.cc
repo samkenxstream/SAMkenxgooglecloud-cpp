@@ -56,9 +56,11 @@ StatusOr<google::appengine::v1::Version> DefaultVersionsStub::GetVersion(
 future<StatusOr<google::longrunning::Operation>>
 DefaultVersionsStub::AsyncCreateVersion(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::appengine::v1::CreateVersionRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::appengine::v1::CreateVersionRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::appengine::v1::CreateVersionRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -70,9 +72,11 @@ DefaultVersionsStub::AsyncCreateVersion(
 future<StatusOr<google::longrunning::Operation>>
 DefaultVersionsStub::AsyncUpdateVersion(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::appengine::v1::UpdateVersionRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::appengine::v1::UpdateVersionRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::appengine::v1::UpdateVersionRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -84,9 +88,11 @@ DefaultVersionsStub::AsyncUpdateVersion(
 future<StatusOr<google::longrunning::Operation>>
 DefaultVersionsStub::AsyncDeleteVersion(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::appengine::v1::DeleteVersionRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::appengine::v1::DeleteVersionRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::appengine::v1::DeleteVersionRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -98,9 +104,11 @@ DefaultVersionsStub::AsyncDeleteVersion(
 future<StatusOr<google::longrunning::Operation>>
 DefaultVersionsStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -111,16 +119,17 @@ DefaultVersionsStub::AsyncGetOperation(
 
 future<Status> DefaultVersionsStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

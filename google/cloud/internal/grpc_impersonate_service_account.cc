@@ -43,7 +43,7 @@ AsyncAccessTokenSource MakeSource(ImpersonateServiceAccountConfig const& config,
 
   return [stub, request](CompletionQueue& cq) {
     return stub
-        ->AsyncGenerateAccessToken(cq, absl::make_unique<grpc::ClientContext>(),
+        ->AsyncGenerateAccessToken(cq, std::make_shared<grpc::ClientContext>(),
                                    request)
         .then([](future<StatusOr<GenerateAccessTokenResponse>> f)
                   -> StatusOr<AccessToken> {
@@ -101,14 +101,14 @@ Status GrpcImpersonateServiceAccount::ConfigureContext(
   return Status{};
 }
 
-future<StatusOr<std::unique_ptr<grpc::ClientContext>>>
+future<StatusOr<std::shared_ptr<grpc::ClientContext>>>
 GrpcImpersonateServiceAccount::AsyncConfigureContext(
-    std::unique_ptr<grpc::ClientContext> context) {
+    std::shared_ptr<grpc::ClientContext> context) {
   struct Capture {
     std::weak_ptr<GrpcImpersonateServiceAccount> w;
-    std::unique_ptr<grpc::ClientContext> context;
+    std::shared_ptr<grpc::ClientContext> context;
 
-    StatusOr<std::unique_ptr<grpc::ClientContext>> operator()(
+    StatusOr<std::shared_ptr<grpc::ClientContext>> operator()(
         future<StatusOr<AccessToken>> f) {
       auto self = w.lock();
       if (!self) return Status{StatusCode::kUnknown, "lost reference"};
@@ -129,9 +129,9 @@ GrpcImpersonateServiceAccount::UpdateCallCredentials(std::string token) {
   return credentials_;
 }
 
-StatusOr<std::unique_ptr<grpc::ClientContext>>
+StatusOr<std::shared_ptr<grpc::ClientContext>>
 GrpcImpersonateServiceAccount::OnGetCallCredentials(
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     StatusOr<AccessToken> result) {
   if (!result) return std::move(result).status();
   context->set_credentials(UpdateCallCredentials(std::move(result->token)));

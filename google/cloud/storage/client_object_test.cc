@@ -79,7 +79,7 @@ TEST_F(ObjectTest, InsertObjectMedia) {
         EXPECT_EQ(CurrentOptions().get<UserProjectOption>(), "u-p-test");
         EXPECT_EQ("test-bucket-name", request.bucket_name());
         EXPECT_EQ("test-object-name", request.object_name());
-        EXPECT_EQ("test object contents", request.contents());
+        EXPECT_EQ("test object contents", request.payload());
         return make_status_or(expected);
       });
 
@@ -241,7 +241,7 @@ TEST_F(ObjectTest, ReadObject) {
         EXPECT_EQ(CurrentOptions().get<UserProjectOption>(), "u-p-test");
         EXPECT_EQ("test-bucket-name", r.bucket_name());
         EXPECT_EQ("test-object-name", r.object_name());
-        auto read_source = absl::make_unique<testing::MockObjectReadSource>();
+        auto read_source = std::make_unique<testing::MockObjectReadSource>();
         EXPECT_CALL(*read_source, IsOpen()).WillRepeatedly(Return(true));
         EXPECT_CALL(*read_source, Read)
             .WillOnce(Return(internal::ReadSourceResult{1024, {}}));
@@ -358,7 +358,7 @@ TEST_F(ObjectTest, UploadFile) {
         EXPECT_EQ(CurrentOptions().get<UserProjectOption>(), "u-p-test");
         EXPECT_EQ("test-bucket-name", request.bucket_name());
         EXPECT_EQ("test-object-name", request.object_name());
-        EXPECT_EQ(contents, request.contents());
+        EXPECT_EQ(contents, request.payload());
         return make_status_or(expected);
       });
 
@@ -416,7 +416,7 @@ TEST_F(ObjectTest, DownloadToFile) {
         EXPECT_EQ(CurrentOptions().get<UserProjectOption>(), "u-p-test");
         EXPECT_EQ("test-bucket-name", r.bucket_name());
         EXPECT_EQ("test-object-name", r.object_name());
-        auto read_source = absl::make_unique<testing::MockObjectReadSource>();
+        auto read_source = std::make_unique<testing::MockObjectReadSource>();
         EXPECT_CALL(*read_source, IsOpen()).WillRepeatedly(Return(true));
         EXPECT_CALL(*read_source, Read)
             .WillOnce(Return(internal::ReadSourceResult{contents.size(), {}}))

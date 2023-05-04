@@ -57,42 +57,77 @@ BareMetalSolutionTracingStub::GetInstance(
 future<StatusOr<google::longrunning::Operation>>
 BareMetalSolutionTracingStub::AsyncUpdateInstance(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::baremetalsolution::v2::UpdateInstanceRequest const&
         request) {
-  return child_->AsyncUpdateInstance(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.baremetalsolution.v2.BareMetalSolution", "UpdateInstance");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateInstance(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 BareMetalSolutionTracingStub::AsyncResetInstance(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::baremetalsolution::v2::ResetInstanceRequest const& request) {
-  return child_->AsyncResetInstance(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.baremetalsolution.v2.BareMetalSolution", "ResetInstance");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncResetInstance(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 BareMetalSolutionTracingStub::AsyncStartInstance(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::baremetalsolution::v2::StartInstanceRequest const& request) {
-  return child_->AsyncStartInstance(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.baremetalsolution.v2.BareMetalSolution", "StartInstance");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncStartInstance(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 BareMetalSolutionTracingStub::AsyncStopInstance(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::baremetalsolution::v2::StopInstanceRequest const& request) {
-  return child_->AsyncStopInstance(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.baremetalsolution.v2.BareMetalSolution", "StopInstance");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncStopInstance(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 BareMetalSolutionTracingStub::AsyncDetachLun(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::baremetalsolution::v2::DetachLunRequest const& request) {
-  return child_->AsyncDetachLun(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.baremetalsolution.v2.BareMetalSolution", "DetachLun");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDetachLun(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::baremetalsolution::v2::ListVolumesResponse>
@@ -121,17 +156,31 @@ BareMetalSolutionTracingStub::GetVolume(
 future<StatusOr<google::longrunning::Operation>>
 BareMetalSolutionTracingStub::AsyncUpdateVolume(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::baremetalsolution::v2::UpdateVolumeRequest const& request) {
-  return child_->AsyncUpdateVolume(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.baremetalsolution.v2.BareMetalSolution", "UpdateVolume");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateVolume(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 BareMetalSolutionTracingStub::AsyncResizeVolume(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::baremetalsolution::v2::ResizeVolumeRequest const& request) {
-  return child_->AsyncResizeVolume(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.baremetalsolution.v2.BareMetalSolution", "ResizeVolume");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncResizeVolume(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::baremetalsolution::v2::ListNetworksResponse>
@@ -175,9 +224,16 @@ BareMetalSolutionTracingStub::GetNetwork(
 future<StatusOr<google::longrunning::Operation>>
 BareMetalSolutionTracingStub::AsyncUpdateNetwork(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::baremetalsolution::v2::UpdateNetworkRequest const& request) {
-  return child_->AsyncUpdateNetwork(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.baremetalsolution.v2.BareMetalSolution", "UpdateNetwork");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateNetwork(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::baremetalsolution::v2::Lun>
@@ -229,25 +285,46 @@ BareMetalSolutionTracingStub::ListNfsShares(
 future<StatusOr<google::longrunning::Operation>>
 BareMetalSolutionTracingStub::AsyncUpdateNfsShare(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::baremetalsolution::v2::UpdateNfsShareRequest const&
         request) {
-  return child_->AsyncUpdateNfsShare(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.baremetalsolution.v2.BareMetalSolution", "UpdateNfsShare");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateNfsShare(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 BareMetalSolutionTracingStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return child_->AsyncGetOperation(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.longrunning.Operations", "GetOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncGetOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<Status> BareMetalSolutionTracingStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return child_->AsyncCancelOperation(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.longrunning.Operations",
+                                     "CancelOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCancelOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY

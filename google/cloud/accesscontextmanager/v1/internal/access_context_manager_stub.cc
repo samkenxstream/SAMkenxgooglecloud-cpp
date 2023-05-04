@@ -62,9 +62,12 @@ DefaultAccessContextManagerStub::GetAccessPolicy(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAccessContextManagerStub::AsyncCreateAccessPolicy(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::identity::accesscontextmanager::v1::AccessPolicy const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::identity::accesscontextmanager::v1::AccessPolicy,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::identity::accesscontextmanager::v1::AccessPolicy const&
                  request,
@@ -77,10 +80,13 @@ DefaultAccessContextManagerStub::AsyncCreateAccessPolicy(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAccessContextManagerStub::AsyncUpdateAccessPolicy(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::identity::accesscontextmanager::v1::UpdateAccessPolicyRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::identity::accesscontextmanager::v1::UpdateAccessPolicyRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::identity::accesscontextmanager::v1::
                  UpdateAccessPolicyRequest const& request,
@@ -93,10 +99,13 @@ DefaultAccessContextManagerStub::AsyncUpdateAccessPolicy(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAccessContextManagerStub::AsyncDeleteAccessPolicy(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::identity::accesscontextmanager::v1::DeleteAccessPolicyRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::identity::accesscontextmanager::v1::DeleteAccessPolicyRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::identity::accesscontextmanager::v1::
                  DeleteAccessPolicyRequest const& request,
@@ -136,10 +145,13 @@ DefaultAccessContextManagerStub::GetAccessLevel(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAccessContextManagerStub::AsyncCreateAccessLevel(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::identity::accesscontextmanager::v1::CreateAccessLevelRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::identity::accesscontextmanager::v1::CreateAccessLevelRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::identity::accesscontextmanager::v1::
                  CreateAccessLevelRequest const& request,
@@ -152,10 +164,13 @@ DefaultAccessContextManagerStub::AsyncCreateAccessLevel(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAccessContextManagerStub::AsyncUpdateAccessLevel(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::identity::accesscontextmanager::v1::UpdateAccessLevelRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::identity::accesscontextmanager::v1::UpdateAccessLevelRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::identity::accesscontextmanager::v1::
                  UpdateAccessLevelRequest const& request,
@@ -168,10 +183,13 @@ DefaultAccessContextManagerStub::AsyncUpdateAccessLevel(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAccessContextManagerStub::AsyncDeleteAccessLevel(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::identity::accesscontextmanager::v1::DeleteAccessLevelRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::identity::accesscontextmanager::v1::DeleteAccessLevelRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::identity::accesscontextmanager::v1::
                  DeleteAccessLevelRequest const& request,
@@ -184,10 +202,13 @@ DefaultAccessContextManagerStub::AsyncDeleteAccessLevel(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAccessContextManagerStub::AsyncReplaceAccessLevels(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::identity::accesscontextmanager::v1::
         ReplaceAccessLevelsRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::identity::accesscontextmanager::v1::ReplaceAccessLevelsRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::identity::accesscontextmanager::v1::
                  ReplaceAccessLevelsRequest const& request,
@@ -230,10 +251,13 @@ DefaultAccessContextManagerStub::GetServicePerimeter(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAccessContextManagerStub::AsyncCreateServicePerimeter(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::identity::accesscontextmanager::v1::
         CreateServicePerimeterRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::identity::accesscontextmanager::v1::CreateServicePerimeterRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::identity::accesscontextmanager::v1::
                  CreateServicePerimeterRequest const& request,
@@ -246,10 +270,13 @@ DefaultAccessContextManagerStub::AsyncCreateServicePerimeter(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAccessContextManagerStub::AsyncUpdateServicePerimeter(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::identity::accesscontextmanager::v1::
         UpdateServicePerimeterRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::identity::accesscontextmanager::v1::UpdateServicePerimeterRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::identity::accesscontextmanager::v1::
                  UpdateServicePerimeterRequest const& request,
@@ -262,10 +289,13 @@ DefaultAccessContextManagerStub::AsyncUpdateServicePerimeter(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAccessContextManagerStub::AsyncDeleteServicePerimeter(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::identity::accesscontextmanager::v1::
         DeleteServicePerimeterRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::identity::accesscontextmanager::v1::DeleteServicePerimeterRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::identity::accesscontextmanager::v1::
                  DeleteServicePerimeterRequest const& request,
@@ -278,10 +308,13 @@ DefaultAccessContextManagerStub::AsyncDeleteServicePerimeter(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAccessContextManagerStub::AsyncReplaceServicePerimeters(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::identity::accesscontextmanager::v1::
         ReplaceServicePerimetersRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::identity::accesscontextmanager::v1::
+                                        ReplaceServicePerimetersRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::identity::accesscontextmanager::v1::
                  ReplaceServicePerimetersRequest const& request,
@@ -294,10 +327,13 @@ DefaultAccessContextManagerStub::AsyncReplaceServicePerimeters(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAccessContextManagerStub::AsyncCommitServicePerimeters(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::identity::accesscontextmanager::v1::
         CommitServicePerimetersRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::identity::accesscontextmanager::v1::
+                                        CommitServicePerimetersRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::identity::accesscontextmanager::v1::
                  CommitServicePerimetersRequest const& request,
@@ -340,10 +376,13 @@ DefaultAccessContextManagerStub::GetGcpUserAccessBinding(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAccessContextManagerStub::AsyncCreateGcpUserAccessBinding(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::identity::accesscontextmanager::v1::
         CreateGcpUserAccessBindingRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::identity::accesscontextmanager::v1::
+                                        CreateGcpUserAccessBindingRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::identity::accesscontextmanager::v1::
                  CreateGcpUserAccessBindingRequest const& request,
@@ -357,10 +396,13 @@ DefaultAccessContextManagerStub::AsyncCreateGcpUserAccessBinding(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAccessContextManagerStub::AsyncUpdateGcpUserAccessBinding(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::identity::accesscontextmanager::v1::
         UpdateGcpUserAccessBindingRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::identity::accesscontextmanager::v1::
+                                        UpdateGcpUserAccessBindingRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::identity::accesscontextmanager::v1::
                  UpdateGcpUserAccessBindingRequest const& request,
@@ -374,10 +416,13 @@ DefaultAccessContextManagerStub::AsyncUpdateGcpUserAccessBinding(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAccessContextManagerStub::AsyncDeleteGcpUserAccessBinding(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::identity::accesscontextmanager::v1::
         DeleteGcpUserAccessBindingRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::identity::accesscontextmanager::v1::
+                                        DeleteGcpUserAccessBindingRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::identity::accesscontextmanager::v1::
                  DeleteGcpUserAccessBindingRequest const& request,
@@ -426,9 +471,11 @@ DefaultAccessContextManagerStub::TestIamPermissions(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAccessContextManagerStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -439,16 +486,17 @@ DefaultAccessContextManagerStub::AsyncGetOperation(
 
 future<Status> DefaultAccessContextManagerStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

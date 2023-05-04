@@ -18,6 +18,8 @@
 
 #include "generator/integration_tests/golden/v1/internal/golden_kitchen_sink_tracing_stub.h"
 #include "google/cloud/internal/grpc_opentelemetry.h"
+#include "google/cloud/internal/streaming_read_rpc_tracing.h"
+#include "google/cloud/internal/streaming_write_rpc_tracing.h"
 
 namespace google {
 namespace cloud {
@@ -102,17 +104,26 @@ Status GoldenKitchenSinkTracingStub::Deprecated2(
 
 std::unique_ptr<google::cloud::internal::StreamingReadRpc<google::test::admin::database::v1::Response>>
 GoldenKitchenSinkTracingStub::StreamingRead(
-   std::unique_ptr<grpc::ClientContext> context,
-   google::test::admin::database::v1::Request const& request) {
-  return child_->StreamingRead(std::move(context), request);
+    std::shared_ptr<grpc::ClientContext> context,
+    google::test::admin::database::v1::Request const& request) {
+  auto span = internal::MakeSpanGrpc("google.test.admin.database.v1.GoldenKitchenSink", "StreamingRead");
+  auto scope = opentelemetry::trace::Scope(span);
+  internal::InjectTraceContext(*context, internal::CurrentOptions());
+  auto stream = child_->StreamingRead(context, request);
+  return std::make_unique<internal::StreamingReadRpcTracing<google::test::admin::database::v1::Response>>(
+      std::move(context), std::move(stream), std::move(span));
 }
 
-std::unique_ptr<::google::cloud::internal::StreamingWriteRpc<
-    google::test::admin::database::v1::Request,
-    google::test::admin::database::v1::Response>>
+std::unique_ptr<internal::StreamingWriteRpc<google::test::admin::database::v1::Request, google::test::admin::database::v1::Response>>
 GoldenKitchenSinkTracingStub::StreamingWrite(
-    std::unique_ptr<grpc::ClientContext> context) {
-  return child_->StreamingWrite(std::move(context));
+    std::shared_ptr<grpc::ClientContext> context) {
+  auto span = internal::MakeSpanGrpc("google.test.admin.database.v1.GoldenKitchenSink", "StreamingWrite");
+  auto scope = opentelemetry::trace::Scope(span);
+  internal::InjectTraceContext(*context, internal::CurrentOptions());
+  auto stream = child_->StreamingWrite(context);
+  return std::make_unique<
+      internal::StreamingWriteRpcTracing<google::test::admin::database::v1::Request, google::test::admin::database::v1::Response>>(
+      std::move(context), std::move(stream), std::move(span));
 }
 
 std::unique_ptr<::google::cloud::AsyncStreamingReadWriteRpc<
@@ -120,7 +131,7 @@ std::unique_ptr<::google::cloud::AsyncStreamingReadWriteRpc<
     google::test::admin::database::v1::Response>>
 GoldenKitchenSinkTracingStub::AsyncStreamingReadWrite(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context) {
+    std::shared_ptr<grpc::ClientContext> context) {
   return child_->AsyncStreamingReadWrite(cq, std::move(context));
 }
 
@@ -148,7 +159,7 @@ std::unique_ptr<::google::cloud::internal::AsyncStreamingReadRpc<
     google::test::admin::database::v1::Response>>
 GoldenKitchenSinkTracingStub::AsyncStreamingRead(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::test::admin::database::v1::Request const& request) {
   return child_->AsyncStreamingRead(cq, std::move(context), request);
 }
@@ -157,7 +168,7 @@ std::unique_ptr<::google::cloud::internal::AsyncStreamingWriteRpc<
     google::test::admin::database::v1::Request, google::test::admin::database::v1::Response>>
 GoldenKitchenSinkTracingStub::AsyncStreamingWrite(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context) {
+    std::shared_ptr<grpc::ClientContext> context) {
   return child_->AsyncStreamingWrite(cq, std::move(context));
 }
 

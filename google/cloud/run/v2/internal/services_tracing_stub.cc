@@ -32,9 +32,16 @@ ServicesTracingStub::ServicesTracingStub(std::shared_ptr<ServicesStub> child)
 future<StatusOr<google::longrunning::Operation>>
 ServicesTracingStub::AsyncCreateService(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::run::v2::CreateServiceRequest const& request) {
-  return child_->AsyncCreateService(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.cloud.run.v2.Services", "CreateService");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateService(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::run::v2::Service> ServicesTracingStub::GetService(
@@ -63,17 +70,31 @@ ServicesTracingStub::ListServices(
 future<StatusOr<google::longrunning::Operation>>
 ServicesTracingStub::AsyncUpdateService(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::run::v2::UpdateServiceRequest const& request) {
-  return child_->AsyncUpdateService(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.cloud.run.v2.Services", "UpdateService");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateService(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 ServicesTracingStub::AsyncDeleteService(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::run::v2::DeleteServiceRequest const& request) {
-  return child_->AsyncDeleteService(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.cloud.run.v2.Services", "DeleteService");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDeleteService(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::iam::v1::Policy> ServicesTracingStub::GetIamPolicy(
@@ -113,16 +134,30 @@ ServicesTracingStub::TestIamPermissions(
 future<StatusOr<google::longrunning::Operation>>
 ServicesTracingStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return child_->AsyncGetOperation(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.longrunning.Operations", "GetOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncGetOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<Status> ServicesTracingStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return child_->AsyncCancelOperation(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.longrunning.Operations",
+                                     "CancelOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCancelOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY

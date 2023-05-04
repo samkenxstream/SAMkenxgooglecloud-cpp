@@ -21,7 +21,6 @@
 
 #include "google/cloud/connectors/v1/connectors_connection_idempotency_policy.h"
 #include "google/cloud/connectors/v1/internal/connectors_retry_traits.h"
-#include "google/cloud/connectors/v1/internal/connectors_stub.h"
 #include "google/cloud/backoff_policy.h"
 #include "google/cloud/future.h"
 #include "google/cloud/options.h"
@@ -29,6 +28,7 @@
 #include "google/cloud/status_or.h"
 #include "google/cloud/stream_range.h"
 #include "google/cloud/version.h"
+#include <google/cloud/connectors/v1/connectors_service.pb.h>
 #include <google/longrunning/operations.grpc.pb.h>
 #include <memory>
 
@@ -110,6 +110,12 @@ class ConnectorsConnection {
       google::cloud::connectors::v1::GetConnectionSchemaMetadataRequest const&
           request);
 
+  virtual future<
+      StatusOr<google::cloud::connectors::v1::ConnectionSchemaMetadata>>
+  RefreshConnectionSchemaMetadata(
+      google::cloud::connectors::v1::
+          RefreshConnectionSchemaMetadataRequest const& request);
+
   virtual StreamRange<google::cloud::connectors::v1::RuntimeEntitySchema>
   ListRuntimeEntitySchemas(
       google::cloud::connectors::v1::ListRuntimeEntitySchemasRequest request);
@@ -121,6 +127,9 @@ class ConnectorsConnection {
   virtual StatusOr<google::cloud::connectors::v1::RuntimeConfig>
   GetRuntimeConfig(
       google::cloud::connectors::v1::GetRuntimeConfigRequest const& request);
+
+  virtual StatusOr<google::cloud::connectors::v1::Settings> GetGlobalSettings(
+      google::cloud::connectors::v1::GetGlobalSettingsRequest const& request);
 };
 
 /**

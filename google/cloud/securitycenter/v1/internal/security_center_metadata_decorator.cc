@@ -37,10 +37,19 @@ SecurityCenterMetadata::SecurityCenterMetadata(
 future<StatusOr<google::longrunning::Operation>>
 SecurityCenterMetadata::AsyncBulkMuteFindings(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::securitycenter::v1::BulkMuteFindingsRequest const& request) {
   SetMetadata(*context, "parent=" + request.parent());
   return child_->AsyncBulkMuteFindings(cq, std::move(context), request);
+}
+
+StatusOr<google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+SecurityCenterMetadata::CreateSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        CreateSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  SetMetadata(context, "parent=" + request.parent());
+  return child_->CreateSecurityHealthAnalyticsCustomModule(context, request);
 }
 
 StatusOr<google::cloud::securitycenter::v1::Source>
@@ -91,6 +100,14 @@ Status SecurityCenterMetadata::DeleteNotificationConfig(
   return child_->DeleteNotificationConfig(context, request);
 }
 
+Status SecurityCenterMetadata::DeleteSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        DeleteSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  SetMetadata(context, "name=" + request.name());
+  return child_->DeleteSecurityHealthAnalyticsCustomModule(context, request);
+}
+
 StatusOr<google::cloud::securitycenter::v1::BigQueryExport>
 SecurityCenterMetadata::GetBigQueryExport(
     grpc::ClientContext& context,
@@ -133,6 +150,26 @@ SecurityCenterMetadata::GetOrganizationSettings(
   return child_->GetOrganizationSettings(context, request);
 }
 
+StatusOr<google::cloud::securitycenter::v1::
+             EffectiveSecurityHealthAnalyticsCustomModule>
+SecurityCenterMetadata::GetEffectiveSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        GetEffectiveSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  SetMetadata(context, "name=" + request.name());
+  return child_->GetEffectiveSecurityHealthAnalyticsCustomModule(context,
+                                                                 request);
+}
+
+StatusOr<google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+SecurityCenterMetadata::GetSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        GetSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  SetMetadata(context, "name=" + request.name());
+  return child_->GetSecurityHealthAnalyticsCustomModule(context, request);
+}
+
 StatusOr<google::cloud::securitycenter::v1::Source>
 SecurityCenterMetadata::GetSource(
     grpc::ClientContext& context,
@@ -165,6 +202,18 @@ SecurityCenterMetadata::ListAssets(
   return child_->ListAssets(context, request);
 }
 
+StatusOr<google::cloud::securitycenter::v1::
+             ListDescendantSecurityHealthAnalyticsCustomModulesResponse>
+SecurityCenterMetadata::ListDescendantSecurityHealthAnalyticsCustomModules(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        ListDescendantSecurityHealthAnalyticsCustomModulesRequest const&
+            request) {
+  SetMetadata(context, "parent=" + request.parent());
+  return child_->ListDescendantSecurityHealthAnalyticsCustomModules(context,
+                                                                    request);
+}
+
 StatusOr<google::cloud::securitycenter::v1::ListFindingsResponse>
 SecurityCenterMetadata::ListFindings(
     grpc::ClientContext& context,
@@ -190,6 +239,28 @@ SecurityCenterMetadata::ListNotificationConfigs(
   return child_->ListNotificationConfigs(context, request);
 }
 
+StatusOr<google::cloud::securitycenter::v1::
+             ListEffectiveSecurityHealthAnalyticsCustomModulesResponse>
+SecurityCenterMetadata::ListEffectiveSecurityHealthAnalyticsCustomModules(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        ListEffectiveSecurityHealthAnalyticsCustomModulesRequest const&
+            request) {
+  SetMetadata(context, "parent=" + request.parent());
+  return child_->ListEffectiveSecurityHealthAnalyticsCustomModules(context,
+                                                                   request);
+}
+
+StatusOr<google::cloud::securitycenter::v1::
+             ListSecurityHealthAnalyticsCustomModulesResponse>
+SecurityCenterMetadata::ListSecurityHealthAnalyticsCustomModules(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        ListSecurityHealthAnalyticsCustomModulesRequest const& request) {
+  SetMetadata(context, "parent=" + request.parent());
+  return child_->ListSecurityHealthAnalyticsCustomModules(context, request);
+}
+
 StatusOr<google::cloud::securitycenter::v1::ListSourcesResponse>
 SecurityCenterMetadata::ListSources(
     grpc::ClientContext& context,
@@ -201,7 +272,7 @@ SecurityCenterMetadata::ListSources(
 future<StatusOr<google::longrunning::Operation>>
 SecurityCenterMetadata::AsyncRunAssetDiscovery(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::securitycenter::v1::RunAssetDiscoveryRequest const&
         request) {
   SetMetadata(*context, "parent=" + request.parent());
@@ -285,6 +356,17 @@ SecurityCenterMetadata::UpdateOrganizationSettings(
   return child_->UpdateOrganizationSettings(context, request);
 }
 
+StatusOr<google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+SecurityCenterMetadata::UpdateSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& context,
+    google::cloud::securitycenter::v1::
+        UpdateSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  SetMetadata(context,
+              "security_health_analytics_custom_module.name=" +
+                  request.security_health_analytics_custom_module().name());
+  return child_->UpdateSecurityHealthAnalyticsCustomModule(context, request);
+}
+
 StatusOr<google::cloud::securitycenter::v1::Source>
 SecurityCenterMetadata::UpdateSource(
     grpc::ClientContext& context,
@@ -342,7 +424,7 @@ SecurityCenterMetadata::ListBigQueryExports(
 future<StatusOr<google::longrunning::Operation>>
 SecurityCenterMetadata::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
   SetMetadata(*context, "name=" + request.name());
   return child_->AsyncGetOperation(cq, std::move(context), request);
@@ -350,7 +432,7 @@ SecurityCenterMetadata::AsyncGetOperation(
 
 future<Status> SecurityCenterMetadata::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
   SetMetadata(*context, "name=" + request.name());
   return child_->AsyncCancelOperation(cq, std::move(context), request);

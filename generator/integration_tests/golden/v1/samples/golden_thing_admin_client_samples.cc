@@ -26,7 +26,9 @@
 #include <string>
 #include <vector>
 
+// clang-format off
 // main-dox-marker: golden_v1::GoldenThingAdminClient
+// clang-format on
 namespace {
 
 void SetClientEndpoint(std::vector<std::string> const& argv) {
@@ -56,7 +58,7 @@ void WithServiceAccount(std::vector<std::string> const& argv) {
         google::cloud::Options{}.set<google::cloud::UnifiedCredentialsOption>(
             google::cloud::MakeServiceAccountCredentials(contents));
     return google::cloud::golden_v1::GoldenThingAdminClient(
-        google::cloud::golden_v1::MakeGoldenThingAdminConnection(options));
+      google::cloud::golden_v1::MakeGoldenThingAdminConnection(options));
   }
   //! [with-service-account]
   (argv.at(0));

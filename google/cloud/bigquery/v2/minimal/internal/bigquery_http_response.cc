@@ -13,7 +13,9 @@
 // limitations under the License.
 
 #include "google/cloud/bigquery/v2/minimal/internal/bigquery_http_response.h"
+#include "google/cloud/internal/debug_string.h"
 #include "google/cloud/internal/make_status.h"
+#include "google/cloud/internal/rest_response.h"
 
 namespace google {
 namespace cloud {
@@ -40,6 +42,18 @@ StatusOr<BigQueryHttpResponse> BigQueryHttpResponse::BuildFromRestResponse(
 
   response.payload = std::move(*payload);
   return response;
+}
+
+std::string BigQueryHttpResponse::DebugString(absl::string_view name,
+                                              TracingOptions const& options,
+                                              int indent) const {
+  // Payload is not logged as it might contain user sensitive data like
+  // ldap/emails.
+  return internal::DebugFormatter(name, options, indent)
+      .Field("status_code", http_status_code)
+      .Field("http_headers", http_headers)
+      .Field("payload", "REDACTED")
+      .Build();
 }
 
 GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_END

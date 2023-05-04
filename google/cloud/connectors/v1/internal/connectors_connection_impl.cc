@@ -95,18 +95,18 @@ ConnectorsConnectionImpl::CreateConnection(
       google::cloud::connectors::v1::Connection>(
       background_->cq(), request,
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::connectors::v1::CreateConnectionRequest const&
                  request) {
         return stub->AsyncCreateConnection(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::GetOperationRequest const& request) {
         return stub->AsyncGetOperation(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::CancelOperationRequest const& request) {
         return stub->AsyncCancelOperation(cq, std::move(context), request);
       },
@@ -125,18 +125,18 @@ ConnectorsConnectionImpl::UpdateConnection(
       google::cloud::connectors::v1::Connection>(
       background_->cq(), request,
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::connectors::v1::UpdateConnectionRequest const&
                  request) {
         return stub->AsyncUpdateConnection(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::GetOperationRequest const& request) {
         return stub->AsyncGetOperation(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::CancelOperationRequest const& request) {
         return stub->AsyncCancelOperation(cq, std::move(context), request);
       },
@@ -155,18 +155,18 @@ ConnectorsConnectionImpl::DeleteConnection(
       google::cloud::connectors::v1::OperationMetadata>(
       background_->cq(), request,
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::connectors::v1::DeleteConnectionRequest const&
                  request) {
         return stub->AsyncDeleteConnection(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::GetOperationRequest const& request) {
         return stub->AsyncGetOperation(cq, std::move(context), request);
       },
       [stub](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::CancelOperationRequest const& request) {
         return stub->AsyncCancelOperation(cq, std::move(context), request);
       },
@@ -333,6 +333,38 @@ ConnectorsConnectionImpl::GetConnectionSchemaMetadata(
       request, __func__);
 }
 
+future<StatusOr<google::cloud::connectors::v1::ConnectionSchemaMetadata>>
+ConnectorsConnectionImpl::RefreshConnectionSchemaMetadata(
+    google::cloud::connectors::v1::RefreshConnectionSchemaMetadataRequest const&
+        request) {
+  auto& stub = stub_;
+  return google::cloud::internal::AsyncLongRunningOperation<
+      google::cloud::connectors::v1::ConnectionSchemaMetadata>(
+      background_->cq(), request,
+      [stub](google::cloud::CompletionQueue& cq,
+             std::shared_ptr<grpc::ClientContext> context,
+             google::cloud::connectors::v1::
+                 RefreshConnectionSchemaMetadataRequest const& request) {
+        return stub->AsyncRefreshConnectionSchemaMetadata(
+            cq, std::move(context), request);
+      },
+      [stub](google::cloud::CompletionQueue& cq,
+             std::shared_ptr<grpc::ClientContext> context,
+             google::longrunning::GetOperationRequest const& request) {
+        return stub->AsyncGetOperation(cq, std::move(context), request);
+      },
+      [stub](google::cloud::CompletionQueue& cq,
+             std::shared_ptr<grpc::ClientContext> context,
+             google::longrunning::CancelOperationRequest const& request) {
+        return stub->AsyncCancelOperation(cq, std::move(context), request);
+      },
+      &google::cloud::internal::ExtractLongRunningResultResponse<
+          google::cloud::connectors::v1::ConnectionSchemaMetadata>,
+      retry_policy(), backoff_policy(),
+      idempotency_policy()->RefreshConnectionSchemaMetadata(request),
+      polling_policy(), __func__);
+}
+
 StreamRange<google::cloud::connectors::v1::RuntimeEntitySchema>
 ConnectorsConnectionImpl::ListRuntimeEntitySchemas(
     google::cloud::connectors::v1::ListRuntimeEntitySchemasRequest request) {
@@ -410,6 +442,20 @@ ConnectorsConnectionImpl::GetRuntimeConfig(
       [this](grpc::ClientContext& context,
              google::cloud::connectors::v1::GetRuntimeConfigRequest const&
                  request) { return stub_->GetRuntimeConfig(context, request); },
+      request, __func__);
+}
+
+StatusOr<google::cloud::connectors::v1::Settings>
+ConnectorsConnectionImpl::GetGlobalSettings(
+    google::cloud::connectors::v1::GetGlobalSettingsRequest const& request) {
+  return google::cloud::internal::RetryLoop(
+      retry_policy(), backoff_policy(),
+      idempotency_policy()->GetGlobalSettings(request),
+      [this](grpc::ClientContext& context,
+             google::cloud::connectors::v1::GetGlobalSettingsRequest const&
+                 request) {
+        return stub_->GetGlobalSettings(context, request);
+      },
       request, __func__);
 }
 

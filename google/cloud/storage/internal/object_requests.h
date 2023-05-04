@@ -20,15 +20,18 @@
 #include "google/cloud/storage/hashing_options.h"
 #include "google/cloud/storage/internal/const_buffer.h"
 #include "google/cloud/storage/internal/generic_object_request.h"
+#include "google/cloud/storage/internal/hash_function.h"
 #include "google/cloud/storage/internal/hash_values.h"
 #include "google/cloud/storage/internal/http_response.h"
 #include "google/cloud/storage/object_metadata.h"
 #include "google/cloud/storage/upload_options.h"
 #include "google/cloud/storage/version.h"
 #include "google/cloud/storage/well_known_parameters.h"
+#include "absl/strings/string_view.h"
 #include "absl/types/optional.h"
 #include "absl/types/span.h"
 #include <map>
+#include <memory>
 #include <numeric>
 #include <string>
 #include <vector>
@@ -108,23 +111,46 @@ class InsertObjectMediaRequest
           MD5HashValue, PredefinedAcl, Projection, UserProject,
           UploadFromOffset, UploadLimit, WithObjectMetadata> {
  public:
-  InsertObjectMediaRequest() = default;
+  InsertObjectMediaRequest();
+  InsertObjectMediaRequest(std::string bucket_name, std::string object_name,
+                           absl::string_view payload);
 
-  explicit InsertObjectMediaRequest(std::string bucket_name,
-                                    std::string object_name,
-                                    std::string contents)
-      : GenericObjectRequest(std::move(bucket_name), std::move(object_name)),
-        contents_(std::move(contents)) {}
+  absl::string_view payload() const { return payload_; }
+  void set_payload(absl::string_view payload);
 
-  std::string const& contents() const { return contents_; }
-  InsertObjectMediaRequest& set_contents(std::string&& v) {
-    contents_ = std::move(v);
+  template <typename... O>
+  InsertObjectMediaRequest& set_multiple_options(O&&... o) {
+    GenericObjectRequest::set_multiple_options(std::forward<O>(o)...);
+    reset_hash_function();
     return *this;
   }
+  HashFunction& hash_function() const { return *hash_function_; }
+
+  ///@{
+  /**
+   * @name Backwards compatibility.
+   *
+   * While this class is in the internal namespace, the storage library
+   * requires applications to use parts of the internal namespace in mocks.
+   *
+   * These functions are only provided for backwards compatibility. The library
+   * no longer uses them, and mocks (if any) should migrate to payload() and
+   * set_payload().
+   */
+  [[deprecated("use payload() instead")]] std::string const& contents() const;
+  [[deprecated("use set_payload() instead")]] void set_contents(std::string v);
+  ///@}
 
  private:
-  std::string contents_;
+  void reset_hash_function();
+
+  absl::string_view payload_;
+  std::shared_ptr<HashFunction> hash_function_;
+  mutable std::string contents_;
+  mutable bool dirty_ = true;
 };
+
+HashValues FinishHashes(InsertObjectMediaRequest const& request);
 
 std::ostream& operator<<(std::ostream& os, InsertObjectMediaRequest const& r);
 
@@ -411,26 +437,30 @@ class UploadChunkRequest
  public:
   UploadChunkRequest() = default;
 
-  // A non-final chunk
+  // A non-final chunk.
   UploadChunkRequest(std::string upload_session_url, std::uint64_t offset,
-                     ConstBufferSequence payload)
-      : upload_session_url_(std::move(upload_session_url)),
-        offset_(offset),
-        payload_(std::move(payload)) {}
+                     ConstBufferSequence payload,
+                     std::shared_ptr<HashFunction> hash_function);
 
+  // A chunk that finalizes the upload.
   UploadChunkRequest(std::string upload_session_url, std::uint64_t offset,
-                     ConstBufferSequence payload, HashValues full_object_hashes)
-      : upload_session_url_(std::move(upload_session_url)),
-        offset_(offset),
-        upload_size_(offset + TotalBytes(payload)),
-        payload_(std::move(payload)),
-        full_object_hashes_(std::move(full_object_hashes)) {}
+                     ConstBufferSequence payload,
+                     std::shared_ptr<HashFunction> hash_function,
+                     HashValues known_hashes);
 
   std::string const& upload_session_url() const { return upload_session_url_; }
   std::uint64_t offset() const { return offset_; }
   absl::optional<std::uint64_t> upload_size() const { return upload_size_; }
   ConstBufferSequence const& payload() const { return payload_; }
-  HashValues const& full_object_hashes() const { return full_object_hashes_; }
+
+  [[deprecated("use known_hashes() and hash_function()")]] HashValues const&
+  full_object_hashes() const {
+    return known_object_hashes_;
+  }
+
+  HashValues const& known_object_hashes() const { return known_object_hashes_; }
+
+  HashFunction& hash_function() const { return *hash_function_; }
 
   bool last_chunk() const { return upload_size_.has_value(); }
   std::size_t payload_size() const { return TotalBytes(payload_); }
@@ -465,8 +495,11 @@ class UploadChunkRequest
   std::uint64_t offset_ = 0;
   absl::optional<std::uint64_t> upload_size_;
   ConstBufferSequence payload_;
-  HashValues full_object_hashes_;
+  std::shared_ptr<HashFunction> hash_function_;
+  HashValues known_object_hashes_;
 };
+
+HashValues FinishHashes(UploadChunkRequest const& request);
 
 std::ostream& operator<<(std::ostream& os, UploadChunkRequest const& r);
 

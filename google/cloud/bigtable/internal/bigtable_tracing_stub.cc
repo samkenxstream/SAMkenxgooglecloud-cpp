@@ -18,6 +18,7 @@
 
 #include "google/cloud/bigtable/internal/bigtable_tracing_stub.h"
 #include "google/cloud/internal/grpc_opentelemetry.h"
+#include "google/cloud/internal/streaming_read_rpc_tracing.h"
 
 namespace google {
 namespace cloud {
@@ -32,17 +33,30 @@ BigtableTracingStub::BigtableTracingStub(std::shared_ptr<BigtableStub> child)
 std::unique_ptr<google::cloud::internal::StreamingReadRpc<
     google::bigtable::v2::ReadRowsResponse>>
 BigtableTracingStub::ReadRows(
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::v2::ReadRowsRequest const& request) {
-  return child_->ReadRows(std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.bigtable.v2.Bigtable", "ReadRows");
+  auto scope = opentelemetry::trace::Scope(span);
+  internal::InjectTraceContext(*context, internal::CurrentOptions());
+  auto stream = child_->ReadRows(context, request);
+  return std::make_unique<internal::StreamingReadRpcTracing<
+      google::bigtable::v2::ReadRowsResponse>>(
+      std::move(context), std::move(stream), std::move(span));
 }
 
 std::unique_ptr<google::cloud::internal::StreamingReadRpc<
     google::bigtable::v2::SampleRowKeysResponse>>
 BigtableTracingStub::SampleRowKeys(
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::v2::SampleRowKeysRequest const& request) {
-  return child_->SampleRowKeys(std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.bigtable.v2.Bigtable", "SampleRowKeys");
+  auto scope = opentelemetry::trace::Scope(span);
+  internal::InjectTraceContext(*context, internal::CurrentOptions());
+  auto stream = child_->SampleRowKeys(context, request);
+  return std::make_unique<internal::StreamingReadRpcTracing<
+      google::bigtable::v2::SampleRowKeysResponse>>(
+      std::move(context), std::move(stream), std::move(span));
 }
 
 StatusOr<google::bigtable::v2::MutateRowResponse>
@@ -59,9 +73,16 @@ BigtableTracingStub::MutateRow(
 std::unique_ptr<google::cloud::internal::StreamingReadRpc<
     google::bigtable::v2::MutateRowsResponse>>
 BigtableTracingStub::MutateRows(
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::v2::MutateRowsRequest const& request) {
-  return child_->MutateRows(std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.bigtable.v2.Bigtable", "MutateRows");
+  auto scope = opentelemetry::trace::Scope(span);
+  internal::InjectTraceContext(*context, internal::CurrentOptions());
+  auto stream = child_->MutateRows(context, request);
+  return std::make_unique<internal::StreamingReadRpcTracing<
+      google::bigtable::v2::MutateRowsResponse>>(
+      std::move(context), std::move(stream), std::move(span));
 }
 
 StatusOr<google::bigtable::v2::CheckAndMutateRowResponse>
@@ -104,7 +125,7 @@ std::unique_ptr<::google::cloud::internal::AsyncStreamingReadRpc<
     google::bigtable::v2::ReadRowsResponse>>
 BigtableTracingStub::AsyncReadRows(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::v2::ReadRowsRequest const& request) {
   return child_->AsyncReadRows(cq, std::move(context), request);
 }
@@ -113,7 +134,7 @@ std::unique_ptr<::google::cloud::internal::AsyncStreamingReadRpc<
     google::bigtable::v2::SampleRowKeysResponse>>
 BigtableTracingStub::AsyncSampleRowKeys(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::v2::SampleRowKeysRequest const& request) {
   return child_->AsyncSampleRowKeys(cq, std::move(context), request);
 }
@@ -121,16 +142,23 @@ BigtableTracingStub::AsyncSampleRowKeys(
 future<StatusOr<google::bigtable::v2::MutateRowResponse>>
 BigtableTracingStub::AsyncMutateRow(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::v2::MutateRowRequest const& request) {
-  return child_->AsyncMutateRow(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.bigtable.v2.Bigtable", "MutateRow");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncMutateRow(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 std::unique_ptr<::google::cloud::internal::AsyncStreamingReadRpc<
     google::bigtable::v2::MutateRowsResponse>>
 BigtableTracingStub::AsyncMutateRows(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::v2::MutateRowsRequest const& request) {
   return child_->AsyncMutateRows(cq, std::move(context), request);
 }
@@ -138,17 +166,31 @@ BigtableTracingStub::AsyncMutateRows(
 future<StatusOr<google::bigtable::v2::CheckAndMutateRowResponse>>
 BigtableTracingStub::AsyncCheckAndMutateRow(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::v2::CheckAndMutateRowRequest const& request) {
-  return child_->AsyncCheckAndMutateRow(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.bigtable.v2.Bigtable",
+                                     "CheckAndMutateRow");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCheckAndMutateRow(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::bigtable::v2::ReadModifyWriteRowResponse>>
 BigtableTracingStub::AsyncReadModifyWriteRow(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::bigtable::v2::ReadModifyWriteRowRequest const& request) {
-  return child_->AsyncReadModifyWriteRow(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.bigtable.v2.Bigtable",
+                                     "ReadModifyWriteRow");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncReadModifyWriteRow(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY

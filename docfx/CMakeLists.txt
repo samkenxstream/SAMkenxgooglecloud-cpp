@@ -25,30 +25,51 @@ endif ()
 
 find_package(pugixml CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
-include(EnableWerror)
+include(GoogleCloudCppCommon)
+include(CreateBazelConfig)
 
 add_library(
     docfx # cmake-format: sort
     config.h
+    doxygen2children.cc
+    doxygen2children.h
     doxygen2markdown.cc
     doxygen2markdown.h
+    doxygen2references.cc
+    doxygen2references.h
+    doxygen2syntax.cc
+    doxygen2syntax.h
     doxygen2toc.cc
     doxygen2toc.h
+    doxygen2yaml.cc
+    doxygen2yaml.h
+    doxygen_errors.cc
+    doxygen_errors.h
+    doxygen_groups.cc
+    doxygen_groups.h
     doxygen_pages.cc
     doxygen_pages.h
+    function_classifiers.cc
+    function_classifiers.h
+    generate_metadata.cc
+    generate_metadata.h
     parse_arguments.cc
     parse_arguments.h
+    public_docs.cc
+    public_docs.h
     toc_entry.cc
-    toc_entry.h)
+    toc_entry.h
+    yaml_context.cc
+    yaml_context.h
+    yaml_emit.cc
+    yaml_emit.h)
 google_cloud_cpp_add_common_options(docfx)
 target_include_directories(docfx PUBLIC "${PROJECT_SOURCE_DIR}")
 target_compile_features(docfx PUBLIC cxx_std_17)
-target_link_libraries(docfx PUBLIC pugixml::pugixml yaml-cpp)
-
-# To avoid maintaining the list of files for the library, export them to a .bzl
-# file.
-include(CreateBazelConfig)
+target_link_libraries(docfx PUBLIC pugixml::pugixml yaml-cpp
+                                   nlohmann_json::nlohmann_json)
 create_bazel_config(docfx YEAR "2023")
 
 add_executable(doxygen2docfx doxygen2docfx.cc)
@@ -61,10 +82,29 @@ if (NOT BUILD_TESTING)
     return()
 endif ()
 
+add_library(docfx_testing # cmake-format: sort
+            testing/inputs.cc testing/inputs.h)
+google_cloud_cpp_add_common_options(docfx_testing)
+target_include_directories(docfx_testing PUBLIC "${PROJECT_SOURCE_DIR}")
+target_compile_features(docfx_testing PUBLIC cxx_std_17)
+target_link_libraries(docfx_testing PUBLIC docfx)
+create_bazel_config(docfx_testing YEAR "2023")
+
 set(unit_tests
     # cmake-format: sort
-    doxygen2markdown_test.cc doxygen2toc_test.cc doxygen_pages_test.cc
-    parse_arguments_test.cc)
+    doxygen2children_test.cc
+    doxygen2markdown_test.cc
+    doxygen2references_test.cc
+    doxygen2syntax_test.cc
+    doxygen2toc_test.cc
+    doxygen2yaml_test.cc
+    doxygen_groups_test.cc
+    doxygen_pages_test.cc
+    function_classifiers_test.cc
+    generate_metadata_test.cc
+    parse_arguments_test.cc
+    public_docs_test.cc
+    yaml_context_test.cc)
 
 # Export the list of unit tests to a .bzl file so we do not need to maintain the
 # list in two places.
@@ -72,8 +112,9 @@ export_list_to_bazel("unit_tests.bzl" "unit_tests" YEAR "2023")
 
 foreach (fname IN LISTS unit_tests)
     google_cloud_cpp_add_executable(target "docfx" "${fname}")
-    target_link_libraries(${target} PRIVATE docfx GTest::gmock_main
-                                            GTest::gmock GTest::gtest)
+    target_link_libraries(
+        ${target} PRIVATE docfx_testing docfx GTest::gmock_main GTest::gmock
+                          GTest::gtest)
     google_cloud_cpp_add_common_options(${target})
 
     add_test(NAME ${target} COMMAND ${target})

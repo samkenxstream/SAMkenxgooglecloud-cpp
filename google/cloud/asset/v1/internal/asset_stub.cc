@@ -33,9 +33,12 @@ AssetServiceStub::~AssetServiceStub() = default;
 future<StatusOr<google::longrunning::Operation>>
 DefaultAssetServiceStub::AsyncExportAssets(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::asset::v1::ExportAssetsRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::asset::v1::ExportAssetsRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::asset::v1::ExportAssetsRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -167,10 +170,13 @@ DefaultAssetServiceStub::AnalyzeIamPolicy(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAssetServiceStub::AsyncAnalyzeIamPolicyLongrunning(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::asset::v1::AnalyzeIamPolicyLongrunningRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::asset::v1::AnalyzeIamPolicyLongrunningRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::asset::v1::AnalyzeIamPolicyLongrunningRequest const&
                  request,
@@ -326,9 +332,11 @@ DefaultAssetServiceStub::AnalyzeOrgPolicyGovernedAssets(
 future<StatusOr<google::longrunning::Operation>>
 DefaultAssetServiceStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -339,16 +347,17 @@ DefaultAssetServiceStub::AsyncGetOperation(
 
 future<Status> DefaultAssetServiceStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

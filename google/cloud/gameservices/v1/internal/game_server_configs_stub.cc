@@ -59,9 +59,12 @@ DefaultGameServerConfigsServiceStub::GetGameServerConfig(
 future<StatusOr<google::longrunning::Operation>>
 DefaultGameServerConfigsServiceStub::AsyncCreateGameServerConfig(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::gaming::v1::CreateGameServerConfigRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::gaming::v1::CreateGameServerConfigRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::gaming::v1::CreateGameServerConfigRequest const&
                  request,
@@ -74,9 +77,12 @@ DefaultGameServerConfigsServiceStub::AsyncCreateGameServerConfig(
 future<StatusOr<google::longrunning::Operation>>
 DefaultGameServerConfigsServiceStub::AsyncDeleteGameServerConfig(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::gaming::v1::DeleteGameServerConfigRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::gaming::v1::DeleteGameServerConfigRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::gaming::v1::DeleteGameServerConfigRequest const&
                  request,
@@ -89,9 +95,11 @@ DefaultGameServerConfigsServiceStub::AsyncDeleteGameServerConfig(
 future<StatusOr<google::longrunning::Operation>>
 DefaultGameServerConfigsServiceStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -102,16 +110,17 @@ DefaultGameServerConfigsServiceStub::AsyncGetOperation(
 
 future<Status> DefaultGameServerConfigsServiceStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

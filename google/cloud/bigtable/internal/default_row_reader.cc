@@ -15,7 +15,6 @@
 #include "google/cloud/bigtable/internal/default_row_reader.h"
 #include "google/cloud/bigtable/table.h"
 #include "google/cloud/grpc_error_delegate.h"
-#include "absl/memory/memory.h"
 #include <thread>
 
 namespace google {
@@ -57,7 +56,7 @@ void DefaultRowReader::MakeRequest() {
   }
 
   auto const& options = internal::CurrentOptions();
-  auto context = absl::make_unique<grpc::ClientContext>();
+  auto context = std::make_shared<grpc::ClientContext>();
   internal::ConfigureContext(*context, options);
   stream_ = stub_->ReadRows(std::move(context), request);
   stream_is_open_ = true;

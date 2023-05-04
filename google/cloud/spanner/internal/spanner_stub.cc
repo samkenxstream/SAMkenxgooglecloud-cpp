@@ -52,21 +52,21 @@ class DefaultSpannerStub : public SpannerStub {
   future<StatusOr<google::spanner::v1::BatchCreateSessionsResponse>>
   AsyncBatchCreateSessions(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::spanner::v1::BatchCreateSessionsRequest const& request) override;
   Status DeleteSession(
       grpc::ClientContext& client_context,
       google::spanner::v1::DeleteSessionRequest const& request) override;
   future<Status> AsyncDeleteSession(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::spanner::v1::DeleteSessionRequest const& request) override;
   StatusOr<google::spanner::v1::ResultSet> ExecuteSql(
       grpc::ClientContext& client_context,
       google::spanner::v1::ExecuteSqlRequest const& request) override;
   future<StatusOr<google::spanner::v1::ResultSet>> AsyncExecuteSql(
       google::cloud::CompletionQueue& cq,
-      std::unique_ptr<grpc::ClientContext> context,
+      std::shared_ptr<grpc::ClientContext> context,
       google::spanner::v1::ExecuteSqlRequest const& request) override;
   std::unique_ptr<
       grpc::ClientReaderInterface<google::spanner::v1::PartialResultSet>>
@@ -127,9 +127,12 @@ DefaultSpannerStub::BatchCreateSessions(
 future<StatusOr<google::spanner::v1::BatchCreateSessionsResponse>>
 DefaultSpannerStub::AsyncBatchCreateSessions(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::spanner::v1::BatchCreateSessionsRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::spanner::v1::BatchCreateSessionsRequest,
+      google::spanner::v1::BatchCreateSessionsResponse>(
+      cq,
       [this](grpc::ClientContext* context,
              google::spanner::v1::BatchCreateSessionsRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -149,16 +152,17 @@ Status DefaultSpannerStub::DeleteSession(
 
 future<Status> DefaultSpannerStub::AsyncDeleteSession(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::spanner::v1::DeleteSessionRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::spanner::v1::DeleteSessionRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return grpc_stub_->AsyncDeleteSession(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::spanner::v1::DeleteSessionRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::spanner::v1::DeleteSessionRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return grpc_stub_->AsyncDeleteSession(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });
@@ -179,9 +183,11 @@ StatusOr<google::spanner::v1::ResultSet> DefaultSpannerStub::ExecuteSql(
 future<StatusOr<google::spanner::v1::ResultSet>>
 DefaultSpannerStub::AsyncExecuteSql(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::spanner::v1::ExecuteSqlRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::spanner::v1::ExecuteSqlRequest,
+                                    google::spanner::v1::ResultSet>(
+      cq,
       [this](grpc::ClientContext* context,
              google::spanner::v1::ExecuteSqlRequest const& request,
              grpc::CompletionQueue* cq) {

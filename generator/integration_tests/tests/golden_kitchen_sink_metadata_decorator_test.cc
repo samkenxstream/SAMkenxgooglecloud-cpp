@@ -20,7 +20,6 @@
 #include "google/cloud/internal/async_streaming_write_rpc_impl.h"
 #include "google/cloud/testing_util/status_matchers.h"
 #include "google/cloud/testing_util/validate_metadata.h"
-#include "absl/memory/memory.h"
 #include "absl/strings/str_split.h"
 #include <gmock/gmock.h>
 #include <memory>
@@ -215,9 +214,8 @@ TEST_F(MetadataDecoratorTest, ListServiceAccountKeys) {
 
 TEST_F(MetadataDecoratorTest, StreamingRead) {
   EXPECT_CALL(*mock_, StreamingRead)
-      .WillOnce([this](std::unique_ptr<grpc::ClientContext> context,
-                       Request const& request) {
-        auto mock_response = absl::make_unique<MockStreamingReadRpc>();
+      .WillOnce([this](auto context, Request const& request) {
+        auto mock_response = std::make_unique<MockStreamingReadRpc>();
         EXPECT_CALL(*mock_response, Read)
             .WillOnce(Return(Status(StatusCode::kPermissionDenied, "uh-oh")));
         IsContextMDValid(
@@ -228,30 +226,27 @@ TEST_F(MetadataDecoratorTest, StreamingRead) {
       });
   GoldenKitchenSinkMetadata stub(mock_);
   auto response =
-      stub.StreamingRead(absl::make_unique<grpc::ClientContext>(), Request{});
+      stub.StreamingRead(std::make_shared<grpc::ClientContext>(), Request{});
   EXPECT_THAT(absl::get<Status>(response->Read()), Not(IsOk()));
 }
 
 TEST_F(MetadataDecoratorTest, StreamingWrite) {
-  EXPECT_CALL(*mock_, StreamingWrite)
-      .WillOnce([this](std::unique_ptr<grpc::ClientContext> context) {
-        IsContextMDValid(
-            *context,
-            "google.test.admin.database.v1.GoldenKitchenSink.StreamingWrite",
-            Request{});
+  EXPECT_CALL(*mock_, StreamingWrite).WillOnce([this](auto context) {
+    IsContextMDValid(
+        *context,
+        "google.test.admin.database.v1.GoldenKitchenSink.StreamingWrite",
+        Request{});
 
-        auto stream = absl::make_unique<MockStreamingWriteRpc>();
-        EXPECT_CALL(*stream, Write)
-            .WillOnce(Return(true))
-            .WillOnce(Return(false));
-        auto response = Response{};
-        response.set_response("test-only");
-        EXPECT_CALL(*stream, Close).WillOnce(Return(make_status_or(response)));
-        return stream;
-      });
+    auto stream = std::make_unique<MockStreamingWriteRpc>();
+    EXPECT_CALL(*stream, Write).WillOnce(Return(true)).WillOnce(Return(false));
+    auto response = Response{};
+    response.set_response("test-only");
+    EXPECT_CALL(*stream, Close).WillOnce(Return(make_status_or(response)));
+    return stream;
+  });
 
   GoldenKitchenSinkMetadata stub(mock_);
-  auto stream = stub.StreamingWrite(absl::make_unique<grpc::ClientContext>());
+  auto stream = stub.StreamingWrite(std::make_shared<grpc::ClientContext>());
   EXPECT_TRUE(stream->Write(Request{}, grpc::WriteOptions()));
   EXPECT_FALSE(stream->Write(Request{}, grpc::WriteOptions()));
   auto response = stream->Close();
@@ -261,8 +256,7 @@ TEST_F(MetadataDecoratorTest, StreamingWrite) {
 
 TEST_F(MetadataDecoratorTest, AsyncStreamingRead) {
   EXPECT_CALL(*mock_, AsyncStreamingRead)
-      .WillOnce([this](google::cloud::CompletionQueue const&,
-                       std::unique_ptr<grpc::ClientContext> context,
+      .WillOnce([this](google::cloud::CompletionQueue const&, auto context,
                        Request const& request) {
         IsContextMDValid(
             *context,
@@ -270,14 +264,14 @@ TEST_F(MetadataDecoratorTest, AsyncStreamingRead) {
             request);
         using ErrorStream =
             ::google::cloud::internal::AsyncStreamingReadRpcError<Response>;
-        return absl::make_unique<ErrorStream>(
+        return std::make_unique<ErrorStream>(
             Status(StatusCode::kAborted, "uh-oh"));
       });
   GoldenKitchenSinkMetadata stub(mock_);
 
   google::cloud::CompletionQueue cq;
   auto stream = stub.AsyncStreamingRead(
-      cq, absl::make_unique<grpc::ClientContext>(), Request{});
+      cq, std::make_shared<grpc::ClientContext>(), Request{});
 
   auto start = stream->Start().get();
   EXPECT_FALSE(start);
@@ -287,8 +281,7 @@ TEST_F(MetadataDecoratorTest, AsyncStreamingRead) {
 
 TEST_F(MetadataDecoratorTest, AsyncStreamingWrite) {
   EXPECT_CALL(*mock_, AsyncStreamingWrite)
-      .WillOnce([this](google::cloud::CompletionQueue const&,
-                       std::unique_ptr<grpc::ClientContext> context) {
+      .WillOnce([this](google::cloud::CompletionQueue const&, auto context) {
         IsContextMDValid(
             *context,
             "google.test.admin.database.v1.GoldenKitchenSink.StreamingWrite",
@@ -296,14 +289,14 @@ TEST_F(MetadataDecoratorTest, AsyncStreamingWrite) {
         using ErrorStream =
             ::google::cloud::internal::AsyncStreamingWriteRpcError<Request,
                                                                    Response>;
-        return absl::make_unique<ErrorStream>(
+        return std::make_unique<ErrorStream>(
             Status(StatusCode::kAborted, "uh-oh"));
       });
   GoldenKitchenSinkMetadata stub(mock_);
 
   google::cloud::CompletionQueue cq;
   auto stream =
-      stub.AsyncStreamingWrite(cq, absl::make_unique<grpc::ClientContext>());
+      stub.AsyncStreamingWrite(cq, std::make_shared<grpc::ClientContext>());
 
   auto start = stream->Start().get();
   EXPECT_FALSE(start);

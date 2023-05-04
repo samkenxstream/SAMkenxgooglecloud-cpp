@@ -33,9 +33,12 @@ SecurityCenterStub::~SecurityCenterStub() = default;
 future<StatusOr<google::longrunning::Operation>>
 DefaultSecurityCenterStub::AsyncBulkMuteFindings(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::securitycenter::v1::BulkMuteFindingsRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::securitycenter::v1::BulkMuteFindingsRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::securitycenter::v1::BulkMuteFindingsRequest const&
                  request,
@@ -43,6 +46,21 @@ DefaultSecurityCenterStub::AsyncBulkMuteFindings(
         return grpc_stub_->AsyncBulkMuteFindings(context, request, cq);
       },
       request, std::move(context));
+}
+
+StatusOr<google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+DefaultSecurityCenterStub::CreateSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& client_context,
+    google::cloud::securitycenter::v1::
+        CreateSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule
+      response;
+  auto status = grpc_stub_->CreateSecurityHealthAnalyticsCustomModule(
+      &client_context, request, &response);
+  if (!status.ok()) {
+    return google::cloud::MakeStatusFromRpcError(status);
+  }
+  return response;
 }
 
 StatusOr<google::cloud::securitycenter::v1::Source>
@@ -121,6 +139,19 @@ Status DefaultSecurityCenterStub::DeleteNotificationConfig(
   return google::cloud::Status();
 }
 
+Status DefaultSecurityCenterStub::DeleteSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& client_context,
+    google::cloud::securitycenter::v1::
+        DeleteSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  google::protobuf::Empty response;
+  auto status = grpc_stub_->DeleteSecurityHealthAnalyticsCustomModule(
+      &client_context, request, &response);
+  if (!status.ok()) {
+    return google::cloud::MakeStatusFromRpcError(status);
+  }
+  return google::cloud::Status();
+}
+
 StatusOr<google::cloud::securitycenter::v1::BigQueryExport>
 DefaultSecurityCenterStub::GetBigQueryExport(
     grpc::ClientContext& client_context,
@@ -186,6 +217,37 @@ DefaultSecurityCenterStub::GetOrganizationSettings(
   return response;
 }
 
+StatusOr<google::cloud::securitycenter::v1::
+             EffectiveSecurityHealthAnalyticsCustomModule>
+DefaultSecurityCenterStub::GetEffectiveSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& client_context,
+    google::cloud::securitycenter::v1::
+        GetEffectiveSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  google::cloud::securitycenter::v1::
+      EffectiveSecurityHealthAnalyticsCustomModule response;
+  auto status = grpc_stub_->GetEffectiveSecurityHealthAnalyticsCustomModule(
+      &client_context, request, &response);
+  if (!status.ok()) {
+    return google::cloud::MakeStatusFromRpcError(status);
+  }
+  return response;
+}
+
+StatusOr<google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+DefaultSecurityCenterStub::GetSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& client_context,
+    google::cloud::securitycenter::v1::
+        GetSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule
+      response;
+  auto status = grpc_stub_->GetSecurityHealthAnalyticsCustomModule(
+      &client_context, request, &response);
+  if (!status.ok()) {
+    return google::cloud::MakeStatusFromRpcError(status);
+  }
+  return response;
+}
+
 StatusOr<google::cloud::securitycenter::v1::Source>
 DefaultSecurityCenterStub::GetSource(
     grpc::ClientContext& client_context,
@@ -234,6 +296,23 @@ DefaultSecurityCenterStub::ListAssets(
   return response;
 }
 
+StatusOr<google::cloud::securitycenter::v1::
+             ListDescendantSecurityHealthAnalyticsCustomModulesResponse>
+DefaultSecurityCenterStub::ListDescendantSecurityHealthAnalyticsCustomModules(
+    grpc::ClientContext& client_context,
+    google::cloud::securitycenter::v1::
+        ListDescendantSecurityHealthAnalyticsCustomModulesRequest const&
+            request) {
+  google::cloud::securitycenter::v1::
+      ListDescendantSecurityHealthAnalyticsCustomModulesResponse response;
+  auto status = grpc_stub_->ListDescendantSecurityHealthAnalyticsCustomModules(
+      &client_context, request, &response);
+  if (!status.ok()) {
+    return google::cloud::MakeStatusFromRpcError(status);
+  }
+  return response;
+}
+
 StatusOr<google::cloud::securitycenter::v1::ListFindingsResponse>
 DefaultSecurityCenterStub::ListFindings(
     grpc::ClientContext& client_context,
@@ -273,6 +352,39 @@ DefaultSecurityCenterStub::ListNotificationConfigs(
   return response;
 }
 
+StatusOr<google::cloud::securitycenter::v1::
+             ListEffectiveSecurityHealthAnalyticsCustomModulesResponse>
+DefaultSecurityCenterStub::ListEffectiveSecurityHealthAnalyticsCustomModules(
+    grpc::ClientContext& client_context,
+    google::cloud::securitycenter::v1::
+        ListEffectiveSecurityHealthAnalyticsCustomModulesRequest const&
+            request) {
+  google::cloud::securitycenter::v1::
+      ListEffectiveSecurityHealthAnalyticsCustomModulesResponse response;
+  auto status = grpc_stub_->ListEffectiveSecurityHealthAnalyticsCustomModules(
+      &client_context, request, &response);
+  if (!status.ok()) {
+    return google::cloud::MakeStatusFromRpcError(status);
+  }
+  return response;
+}
+
+StatusOr<google::cloud::securitycenter::v1::
+             ListSecurityHealthAnalyticsCustomModulesResponse>
+DefaultSecurityCenterStub::ListSecurityHealthAnalyticsCustomModules(
+    grpc::ClientContext& client_context,
+    google::cloud::securitycenter::v1::
+        ListSecurityHealthAnalyticsCustomModulesRequest const& request) {
+  google::cloud::securitycenter::v1::
+      ListSecurityHealthAnalyticsCustomModulesResponse response;
+  auto status = grpc_stub_->ListSecurityHealthAnalyticsCustomModules(
+      &client_context, request, &response);
+  if (!status.ok()) {
+    return google::cloud::MakeStatusFromRpcError(status);
+  }
+  return response;
+}
+
 StatusOr<google::cloud::securitycenter::v1::ListSourcesResponse>
 DefaultSecurityCenterStub::ListSources(
     grpc::ClientContext& client_context,
@@ -288,10 +400,13 @@ DefaultSecurityCenterStub::ListSources(
 future<StatusOr<google::longrunning::Operation>>
 DefaultSecurityCenterStub::AsyncRunAssetDiscovery(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::securitycenter::v1::RunAssetDiscoveryRequest const&
         request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::cloud::securitycenter::v1::RunAssetDiscoveryRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::cloud::securitycenter::v1::RunAssetDiscoveryRequest const&
                  request,
@@ -417,6 +532,21 @@ DefaultSecurityCenterStub::UpdateOrganizationSettings(
   return response;
 }
 
+StatusOr<google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule>
+DefaultSecurityCenterStub::UpdateSecurityHealthAnalyticsCustomModule(
+    grpc::ClientContext& client_context,
+    google::cloud::securitycenter::v1::
+        UpdateSecurityHealthAnalyticsCustomModuleRequest const& request) {
+  google::cloud::securitycenter::v1::SecurityHealthAnalyticsCustomModule
+      response;
+  auto status = grpc_stub_->UpdateSecurityHealthAnalyticsCustomModule(
+      &client_context, request, &response);
+  if (!status.ok()) {
+    return google::cloud::MakeStatusFromRpcError(status);
+  }
+  return response;
+}
+
 StatusOr<google::cloud::securitycenter::v1::Source>
 DefaultSecurityCenterStub::UpdateSource(
     grpc::ClientContext& client_context,
@@ -501,9 +631,11 @@ DefaultSecurityCenterStub::ListBigQueryExports(
 future<StatusOr<google::longrunning::Operation>>
 DefaultSecurityCenterStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -514,16 +646,17 @@ DefaultSecurityCenterStub::AsyncGetOperation(
 
 future<Status> DefaultSecurityCenterStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

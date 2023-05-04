@@ -61,11 +61,11 @@ ConnectorsLogging::GetConnection(
 future<StatusOr<google::longrunning::Operation>>
 ConnectorsLogging::AsyncCreateConnection(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::connectors::v1::CreateConnectionRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::connectors::v1::CreateConnectionRequest const&
                  request) {
         return child_->AsyncCreateConnection(cq, std::move(context), request);
@@ -76,11 +76,11 @@ ConnectorsLogging::AsyncCreateConnection(
 future<StatusOr<google::longrunning::Operation>>
 ConnectorsLogging::AsyncUpdateConnection(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::connectors::v1::UpdateConnectionRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::connectors::v1::UpdateConnectionRequest const&
                  request) {
         return child_->AsyncUpdateConnection(cq, std::move(context), request);
@@ -91,11 +91,11 @@ ConnectorsLogging::AsyncUpdateConnection(
 future<StatusOr<google::longrunning::Operation>>
 ConnectorsLogging::AsyncDeleteConnection(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::connectors::v1::DeleteConnectionRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::cloud::connectors::v1::DeleteConnectionRequest const&
                  request) {
         return child_->AsyncDeleteConnection(cq, std::move(context), request);
@@ -195,6 +195,23 @@ ConnectorsLogging::GetConnectionSchemaMetadata(
       context, request, __func__, tracing_options_);
 }
 
+future<StatusOr<google::longrunning::Operation>>
+ConnectorsLogging::AsyncRefreshConnectionSchemaMetadata(
+    google::cloud::CompletionQueue& cq,
+    std::shared_ptr<grpc::ClientContext> context,
+    google::cloud::connectors::v1::RefreshConnectionSchemaMetadataRequest const&
+        request) {
+  return google::cloud::internal::LogWrapper(
+      [this](google::cloud::CompletionQueue& cq,
+             std::shared_ptr<grpc::ClientContext> context,
+             google::cloud::connectors::v1::
+                 RefreshConnectionSchemaMetadataRequest const& request) {
+        return child_->AsyncRefreshConnectionSchemaMetadata(
+            cq, std::move(context), request);
+      },
+      cq, std::move(context), request, __func__, tracing_options_);
+}
+
 StatusOr<google::cloud::connectors::v1::ListRuntimeEntitySchemasResponse>
 ConnectorsLogging::ListRuntimeEntitySchemas(
     grpc::ClientContext& context,
@@ -238,14 +255,27 @@ ConnectorsLogging::GetRuntimeConfig(
       context, request, __func__, tracing_options_);
 }
 
+StatusOr<google::cloud::connectors::v1::Settings>
+ConnectorsLogging::GetGlobalSettings(
+    grpc::ClientContext& context,
+    google::cloud::connectors::v1::GetGlobalSettingsRequest const& request) {
+  return google::cloud::internal::LogWrapper(
+      [this](grpc::ClientContext& context,
+             google::cloud::connectors::v1::GetGlobalSettingsRequest const&
+                 request) {
+        return child_->GetGlobalSettings(context, request);
+      },
+      context, request, __func__, tracing_options_);
+}
+
 future<StatusOr<google::longrunning::Operation>>
 ConnectorsLogging::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::GetOperationRequest const& request) {
         return child_->AsyncGetOperation(cq, std::move(context), request);
       },
@@ -254,11 +284,11 @@ ConnectorsLogging::AsyncGetOperation(
 
 future<Status> ConnectorsLogging::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::longrunning::CancelOperationRequest const& request) {
         return child_->AsyncCancelOperation(cq, std::move(context), request);
       },

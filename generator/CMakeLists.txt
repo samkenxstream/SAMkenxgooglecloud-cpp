@@ -41,6 +41,11 @@ add_library(
     internal/connection_rest_generator.h
     internal/descriptor_utils.cc
     internal/descriptor_utils.h
+    internal/discovery_document.h
+    internal/discovery_file.cc
+    internal/discovery_file.h
+    internal/discovery_resource.cc
+    internal/discovery_resource.h
     internal/discovery_to_proto.cc
     internal/discovery_to_proto.h
     internal/discovery_type_vertex.cc
@@ -60,6 +65,8 @@ add_library(
     internal/forwarding_options_generator.cc
     internal/forwarding_options_generator.h
     internal/generator_interface.h
+    internal/http_option_utils.cc
+    internal/http_option_utils.h
     internal/idempotency_policy_generator.cc
     internal/idempotency_policy_generator.h
     internal/logging_decorator_generator.cc
@@ -76,6 +83,8 @@ add_library(
     internal/option_defaults_generator.h
     internal/options_generator.cc
     internal/options_generator.h
+    internal/pagination.cc
+    internal/pagination.h
     internal/predicate_utils.cc
     internal/predicate_utils.h
     internal/printer.h
@@ -189,8 +198,14 @@ function (google_cloud_cpp_generator_define_tests)
         generator_test.cc
         internal/codegen_utils_test.cc
         internal/descriptor_utils_test.cc
+        internal/discovery_file_test.cc
+        internal/discovery_resource_test.cc
+        internal/discovery_to_proto_test.cc
+        internal/discovery_type_vertex_test.cc
         internal/format_class_comments_test.cc
         internal/format_method_comments_test.cc
+        internal/http_option_utils_test.cc
+        internal/pagination_test.cc
         internal/predicate_utils_test.cc
         internal/printer_test.cc
         internal/resolve_comment_references_test.cc

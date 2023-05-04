@@ -61,28 +61,52 @@ CertificateManagerTracingStub::GetCertificate(
 future<StatusOr<google::longrunning::Operation>>
 CertificateManagerTracingStub::AsyncCreateCertificate(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::CreateCertificateRequest const&
         request) {
-  return child_->AsyncCreateCertificate(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.certificatemanager.v1.CertificateManager",
+      "CreateCertificate");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateCertificate(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 CertificateManagerTracingStub::AsyncUpdateCertificate(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::UpdateCertificateRequest const&
         request) {
-  return child_->AsyncUpdateCertificate(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.certificatemanager.v1.CertificateManager",
+      "UpdateCertificate");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateCertificate(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 CertificateManagerTracingStub::AsyncDeleteCertificate(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::DeleteCertificateRequest const&
         request) {
-  return child_->AsyncDeleteCertificate(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.certificatemanager.v1.CertificateManager",
+      "DeleteCertificate");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDeleteCertificate(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::certificatemanager::v1::ListCertificateMapsResponse>
@@ -116,28 +140,52 @@ CertificateManagerTracingStub::GetCertificateMap(
 future<StatusOr<google::longrunning::Operation>>
 CertificateManagerTracingStub::AsyncCreateCertificateMap(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::CreateCertificateMapRequest const&
         request) {
-  return child_->AsyncCreateCertificateMap(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.certificatemanager.v1.CertificateManager",
+      "CreateCertificateMap");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateCertificateMap(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 CertificateManagerTracingStub::AsyncUpdateCertificateMap(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::UpdateCertificateMapRequest const&
         request) {
-  return child_->AsyncUpdateCertificateMap(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.certificatemanager.v1.CertificateManager",
+      "UpdateCertificateMap");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateCertificateMap(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 CertificateManagerTracingStub::AsyncDeleteCertificateMap(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::DeleteCertificateMapRequest const&
         request) {
-  return child_->AsyncDeleteCertificateMap(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.certificatemanager.v1.CertificateManager",
+      "DeleteCertificateMap");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDeleteCertificateMap(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<
@@ -172,31 +220,52 @@ CertificateManagerTracingStub::GetCertificateMapEntry(
 future<StatusOr<google::longrunning::Operation>>
 CertificateManagerTracingStub::AsyncCreateCertificateMapEntry(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::
         CreateCertificateMapEntryRequest const& request) {
-  return child_->AsyncCreateCertificateMapEntry(cq, std::move(context),
-                                                request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.certificatemanager.v1.CertificateManager",
+      "CreateCertificateMapEntry");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateCertificateMapEntry(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 CertificateManagerTracingStub::AsyncUpdateCertificateMapEntry(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::
         UpdateCertificateMapEntryRequest const& request) {
-  return child_->AsyncUpdateCertificateMapEntry(cq, std::move(context),
-                                                request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.certificatemanager.v1.CertificateManager",
+      "UpdateCertificateMapEntry");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateCertificateMapEntry(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 CertificateManagerTracingStub::AsyncDeleteCertificateMapEntry(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::
         DeleteCertificateMapEntryRequest const& request) {
-  return child_->AsyncDeleteCertificateMapEntry(cq, std::move(context),
-                                                request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.certificatemanager.v1.CertificateManager",
+      "DeleteCertificateMapEntry");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDeleteCertificateMapEntry(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::certificatemanager::v1::ListDnsAuthorizationsResponse>
@@ -230,28 +299,52 @@ CertificateManagerTracingStub::GetDnsAuthorization(
 future<StatusOr<google::longrunning::Operation>>
 CertificateManagerTracingStub::AsyncCreateDnsAuthorization(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::CreateDnsAuthorizationRequest const&
         request) {
-  return child_->AsyncCreateDnsAuthorization(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.certificatemanager.v1.CertificateManager",
+      "CreateDnsAuthorization");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateDnsAuthorization(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 CertificateManagerTracingStub::AsyncUpdateDnsAuthorization(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::UpdateDnsAuthorizationRequest const&
         request) {
-  return child_->AsyncUpdateDnsAuthorization(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.certificatemanager.v1.CertificateManager",
+      "UpdateDnsAuthorization");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncUpdateDnsAuthorization(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 CertificateManagerTracingStub::AsyncDeleteDnsAuthorization(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::DeleteDnsAuthorizationRequest const&
         request) {
-  return child_->AsyncDeleteDnsAuthorization(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.certificatemanager.v1.CertificateManager",
+      "DeleteDnsAuthorization");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDeleteDnsAuthorization(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 StatusOr<google::cloud::certificatemanager::v1::
@@ -286,36 +379,64 @@ CertificateManagerTracingStub::GetCertificateIssuanceConfig(
 future<StatusOr<google::longrunning::Operation>>
 CertificateManagerTracingStub::AsyncCreateCertificateIssuanceConfig(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::
         CreateCertificateIssuanceConfigRequest const& request) {
-  return child_->AsyncCreateCertificateIssuanceConfig(cq, std::move(context),
-                                                      request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.certificatemanager.v1.CertificateManager",
+      "CreateCertificateIssuanceConfig");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCreateCertificateIssuanceConfig(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 CertificateManagerTracingStub::AsyncDeleteCertificateIssuanceConfig(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::certificatemanager::v1::
         DeleteCertificateIssuanceConfigRequest const& request) {
-  return child_->AsyncDeleteCertificateIssuanceConfig(cq, std::move(context),
-                                                      request);
+  auto span = internal::MakeSpanGrpc(
+      "google.cloud.certificatemanager.v1.CertificateManager",
+      "DeleteCertificateIssuanceConfig");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncDeleteCertificateIssuanceConfig(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<StatusOr<google::longrunning::Operation>>
 CertificateManagerTracingStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return child_->AsyncGetOperation(cq, std::move(context), request);
+  auto span =
+      internal::MakeSpanGrpc("google.longrunning.Operations", "GetOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncGetOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 future<Status> CertificateManagerTracingStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return child_->AsyncCancelOperation(cq, std::move(context), request);
+  auto span = internal::MakeSpanGrpc("google.longrunning.Operations",
+                                     "CancelOperation");
+  {
+    auto scope = opentelemetry::trace::Scope(span);
+    internal::InjectTraceContext(*context, internal::CurrentOptions());
+  }
+  auto f = child_->AsyncCancelOperation(cq, context, request);
+  return internal::EndSpan(std::move(context), std::move(span), std::move(f));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY

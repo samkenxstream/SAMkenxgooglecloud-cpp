@@ -14,6 +14,7 @@
 
 #include "google/cloud/storage/internal/grpc_client.h"
 #include "google/cloud/storage/grpc_plugin.h"
+#include "google/cloud/storage/options.h"
 #include "google/cloud/storage/testing/mock_storage_stub.h"
 #include "google/cloud/credentials.h"
 #include "google/cloud/grpc_options.h"
@@ -36,6 +37,7 @@ using ::google::cloud::storage::BucketMetadata;
 using ::google::cloud::storage::Fields;
 using ::google::cloud::storage::ObjectMetadata;
 using ::google::cloud::storage::QuotaUser;
+using ::google::cloud::storage::internal::CreateNullHashFunction;
 using ::google::cloud::storage::testing::MockInsertStream;
 using ::google::cloud::storage::testing::MockStorageStub;
 using ::google::cloud::testing_util::ScopedEnvironment;
@@ -69,7 +71,7 @@ std::shared_ptr<GrpcClient> CreateTestClient(
   return GrpcClient::CreateMock(std::move(stub), TestOptions());
 }
 
-TEST_F(GrpcClientTest, DefaultOptionsGrpcChannelCount) {
+TEST(DefaultOptionsGrpc, DefaultOptionsGrpcChannelCount) {
   using ::google::cloud::GrpcNumChannelsOption;
   struct TestCase {
     std::string endpoint;
@@ -96,7 +98,7 @@ TEST_F(GrpcClientTest, DefaultOptionsGrpcChannelCount) {
   }
 }
 
-TEST_F(GrpcClientTest, DefaultOptionsGrpcEndpointNoEnv) {
+TEST(DefaultOptionsGrpc, DefaultOptionsGrpcEndpointNoEnv) {
   auto expected = std::string("storage.googleapis.com");
   auto alternatives = [](std::string const& value) {
     return std::vector<absl::optional<std::string>>{absl::nullopt, value};
@@ -118,6 +120,18 @@ TEST_F(GrpcClientTest, DefaultOptionsGrpcEndpointNoEnv) {
       EXPECT_EQ(actual.get<EndpointOption>(), expected);
     }
   }
+}
+
+TEST(DefaultOptionsGrpc, DefaultOptionsUploadBuffer) {
+  auto const with_defaults =
+      DefaultOptionsGrpc(Options{}).get<storage::UploadBufferSizeOption>();
+  EXPECT_GE(with_defaults, 32 * 1024 * 1024L);
+
+  auto const with_override =
+      DefaultOptionsGrpc(
+          Options{}.set<storage::UploadBufferSizeOption>(256 * 1024))
+          .get<storage::UploadBufferSizeOption>();
+  EXPECT_EQ(with_override, 256 * 1024L);
 }
 
 TEST_F(GrpcClientTest, QueryResumableUpload) {
@@ -167,26 +181,26 @@ TEST_F(GrpcClientTest, DeleteResumableUpload) {
 
 TEST_F(GrpcClientTest, UploadChunk) {
   auto mock = std::make_shared<MockStorageStub>();
-  EXPECT_CALL(*mock, WriteObject)
-      .WillOnce([this](std::unique_ptr<grpc::ClientContext> context) {
-        auto metadata = GetMetadata(*context);
-        EXPECT_THAT(metadata,
-                    UnorderedElementsAre(
-                        Pair("x-goog-quota-user", "test-quota-user"),
-                        // Map JSON names to the `resource` subobject
-                        Pair("x-goog-fieldmask", "resource(field1,field2)"),
-                        Pair("x-goog-request-params",
-                             "bucket=projects/_/buckets/test-bucket")));
-        ::testing::InSequence sequence;
-        auto stream = absl::make_unique<MockInsertStream>();
-        EXPECT_CALL(*stream, Write).WillOnce(Return(false));
-        EXPECT_CALL(*stream, Close).WillOnce(Return(PermanentError()));
-        return stream;
-      });
+  EXPECT_CALL(*mock, WriteObject).WillOnce([this](auto context) {
+    auto metadata = GetMetadata(*context);
+    EXPECT_THAT(metadata,
+                UnorderedElementsAre(
+                    Pair("x-goog-quota-user", "test-quota-user"),
+                    // Map JSON names to the `resource` subobject
+                    Pair("x-goog-fieldmask", "resource(field1,field2)"),
+                    Pair("x-goog-request-params",
+                         "bucket=projects/_/buckets/test-bucket")));
+    ::testing::InSequence sequence;
+    auto stream = std::make_unique<MockInsertStream>();
+    EXPECT_CALL(*stream, Write).WillOnce(Return(false));
+    EXPECT_CALL(*stream, Close).WillOnce(Return(PermanentError()));
+    return stream;
+  });
   auto client = CreateTestClient(mock);
   auto response = client->UploadChunk(
       storage::internal::UploadChunkRequest(
-          "projects/_/buckets/test-bucket/test-upload-id", 0, {})
+          "projects/_/buckets/test-bucket/test-upload-id", 0, {},
+          CreateNullHashFunction())
           .set_multiple_options(Fields("field1,field2"),
                                 QuotaUser("test-quota-user")));
   EXPECT_EQ(response.status(), PermanentError());
@@ -430,22 +444,21 @@ TEST_F(GrpcClientTest, TestBucketIamPermissions) {
 
 TEST_F(GrpcClientTest, InsertObjectMedia) {
   auto mock = std::make_shared<MockStorageStub>();
-  EXPECT_CALL(*mock, WriteObject)
-      .WillOnce([this](std::unique_ptr<grpc::ClientContext> context) {
-        auto metadata = GetMetadata(*context);
-        EXPECT_THAT(metadata,
-                    UnorderedElementsAre(
-                        Pair("x-goog-quota-user", "test-quota-user"),
-                        // Map JSON names to the `resource` subobject
-                        Pair("x-goog-fieldmask", "resource(field1,field2)"),
-                        Pair("x-goog-request-params",
-                             "bucket=projects/_/buckets/test-bucket")));
-        ::testing::InSequence sequence;
-        auto stream = absl::make_unique<MockInsertStream>();
-        EXPECT_CALL(*stream, Write).WillOnce(Return(false));
-        EXPECT_CALL(*stream, Close).WillOnce(Return(PermanentError()));
-        return stream;
-      });
+  EXPECT_CALL(*mock, WriteObject).WillOnce([this](auto context) {
+    auto metadata = GetMetadata(*context);
+    EXPECT_THAT(metadata,
+                UnorderedElementsAre(
+                    Pair("x-goog-quota-user", "test-quota-user"),
+                    // Map JSON names to the `resource` subobject
+                    Pair("x-goog-fieldmask", "resource(field1,field2)"),
+                    Pair("x-goog-request-params",
+                         "bucket=projects/_/buckets/test-bucket")));
+    ::testing::InSequence sequence;
+    auto stream = std::make_unique<MockInsertStream>();
+    EXPECT_CALL(*stream, Write).WillOnce(Return(false));
+    EXPECT_CALL(*stream, Close).WillOnce(Return(PermanentError()));
+    return stream;
+  });
   auto client = CreateTestClient(mock);
   auto response = client->InsertObjectMedia(
       storage::internal::InsertObjectMediaRequest(
@@ -540,15 +553,14 @@ TEST_F(GrpcClientTest, GetObjectMetadata) {
 TEST_F(GrpcClientTest, ReadObject) {
   auto mock = std::make_shared<MockStorageStub>();
   EXPECT_CALL(*mock, ReadObject)
-      .WillOnce([this](std::unique_ptr<grpc::ClientContext> context,
-                       v2::ReadObjectRequest const& request) {
+      .WillOnce([this](auto context, v2::ReadObjectRequest const& request) {
         auto metadata = GetMetadata(*context);
         EXPECT_THAT(metadata, UnorderedElementsAre(
                                   Pair("x-goog-quota-user", "test-quota-user"),
                                   Pair("x-goog-fieldmask", "field1,field2")));
         EXPECT_THAT(request.bucket(), "projects/_/buckets/test-bucket");
         EXPECT_THAT(request.object(), "test-object");
-        return absl::make_unique<storage::testing::MockObjectMediaStream>();
+        return std::make_unique<storage::testing::MockObjectMediaStream>();
       });
   auto client = CreateTestClient(mock);
   auto stream = client->ReadObject(

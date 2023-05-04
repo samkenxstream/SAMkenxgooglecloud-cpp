@@ -33,9 +33,12 @@ ServiceUsageStub::~ServiceUsageStub() = default;
 future<StatusOr<google::longrunning::Operation>>
 DefaultServiceUsageStub::AsyncEnableService(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::api::serviceusage::v1::EnableServiceRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::api::serviceusage::v1::EnableServiceRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::api::serviceusage::v1::EnableServiceRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -47,9 +50,12 @@ DefaultServiceUsageStub::AsyncEnableService(
 future<StatusOr<google::longrunning::Operation>>
 DefaultServiceUsageStub::AsyncDisableService(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::api::serviceusage::v1::DisableServiceRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::api::serviceusage::v1::DisableServiceRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](
           grpc::ClientContext* context,
           google::api::serviceusage::v1::DisableServiceRequest const& request,
@@ -86,9 +92,12 @@ DefaultServiceUsageStub::ListServices(
 future<StatusOr<google::longrunning::Operation>>
 DefaultServiceUsageStub::AsyncBatchEnableServices(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::api::serviceusage::v1::BatchEnableServicesRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<
+      google::api::serviceusage::v1::BatchEnableServicesRequest,
+      google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::api::serviceusage::v1::BatchEnableServicesRequest const&
                  request,
@@ -114,9 +123,11 @@ DefaultServiceUsageStub::BatchGetServices(
 future<StatusOr<google::longrunning::Operation>>
 DefaultServiceUsageStub::AsyncGetOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::GetOperationRequest const& request) {
-  return cq.MakeUnaryRpc(
+  return internal::MakeUnaryRpcImpl<google::longrunning::GetOperationRequest,
+                                    google::longrunning::Operation>(
+      cq,
       [this](grpc::ClientContext* context,
              google::longrunning::GetOperationRequest const& request,
              grpc::CompletionQueue* cq) {
@@ -127,16 +138,17 @@ DefaultServiceUsageStub::AsyncGetOperation(
 
 future<Status> DefaultServiceUsageStub::AsyncCancelOperation(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::longrunning::CancelOperationRequest const& request) {
-  return cq
-      .MakeUnaryRpc(
-          [this](grpc::ClientContext* context,
-                 google::longrunning::CancelOperationRequest const& request,
-                 grpc::CompletionQueue* cq) {
-            return operations_->AsyncCancelOperation(context, request, cq);
-          },
-          request, std::move(context))
+  return internal::MakeUnaryRpcImpl<google::longrunning::CancelOperationRequest,
+                                    google::protobuf::Empty>(
+             cq,
+             [this](grpc::ClientContext* context,
+                    google::longrunning::CancelOperationRequest const& request,
+                    grpc::CompletionQueue* cq) {
+               return operations_->AsyncCancelOperation(context, request, cq);
+             },
+             request, std::move(context))
       .then([](future<StatusOr<google::protobuf::Empty>> f) {
         return f.get().status();
       });

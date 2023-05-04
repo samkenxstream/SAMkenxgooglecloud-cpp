@@ -51,21 +51,21 @@ BigQueryReadLogging::CreateReadSession(
 std::unique_ptr<google::cloud::internal::StreamingReadRpc<
     google::cloud::bigquery::storage::v1::ReadRowsResponse>>
 BigQueryReadLogging::ReadRows(
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::cloud::bigquery::storage::v1::ReadRowsRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](
-          std::unique_ptr<grpc::ClientContext> context,
+          std::shared_ptr<grpc::ClientContext> context,
           google::cloud::bigquery::storage::v1::ReadRowsRequest const& request)
           -> std::unique_ptr<google::cloud::internal::StreamingReadRpc<
               google::cloud::bigquery::storage::v1::ReadRowsResponse>> {
         auto stream = child_->ReadRows(std::move(context), request);
         if (components_.count("rpc-streams") > 0) {
-          stream = absl::make_unique<
-              google::cloud::internal::StreamingReadRpcLogging<
+          stream =
+              std::make_unique<google::cloud::internal::StreamingReadRpcLogging<
                   google::cloud::bigquery::storage::v1::ReadRowsResponse>>(
-              std::move(stream), tracing_options_,
-              google::cloud::internal::RequestIdForLogging());
+                  std::move(stream), tracing_options_,
+                  google::cloud::internal::RequestIdForLogging());
         }
         return stream;
       },

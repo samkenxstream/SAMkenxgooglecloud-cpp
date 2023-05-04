@@ -18,9 +18,6 @@
 namespace docfx {
 namespace {
 
-using ::testing::ElementsAre;
-using ::testing::FieldsAre;
-
 TEST(DoxygenPages, CommonPage) {
   auto constexpr kXml =
       R"xml(<?xml version="1.0" standalone="yes"?><doxygen version="1.9.1" xml:lang="en-US">
@@ -60,8 +57,11 @@ TEST(DoxygenPages, CommonPage) {
       </compounddef>
     </doxygen>)xml";
 
-  auto constexpr kExpected =
-      R"md(# Common Components for the Google Cloud C++ Client Libraries
+  auto constexpr kExpected = R"md(---
+uid: indexpage
+---
+
+# Common Components for the Google Cloud C++ Client Libraries
 
 
 ## Overview
@@ -95,34 +95,6 @@ This library contains common components shared by all the Google Cloud C++ Clien
   ASSERT_TRUE(selected);
   auto const actual = Page2Markdown(selected.node());
   EXPECT_EQ(kExpected, actual);
-}
-
-TEST(DoxygenPages, PagesToc) {
-  auto constexpr kXml =
-      R"xml(<?xml version="1.0" standalone="yes"?><doxygen version="1.9.1" xml:lang="en-US">
-        <compounddef xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="common-error-handling" kind="page">
-          <compoundname>common-error-handling</compoundname>
-          <title>Error Handling</title>
-          <briefdescription><para>An overview of error handling in the Google Cloud C++ client libraries.</para>
-          </briefdescription>
-          <detaileddescription><para>More details about error handling.</para></detaileddescription>
-        </compounddef>
-        <compounddef xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="indexpage" kind="page">
-          <compoundname>index</compoundname>
-          <title>The Page Title: unused in this test</title>
-          <briefdescription><para>Some brief description.</para>
-          </briefdescription>
-          <detaileddescription><para>More details about the index.</para></detaileddescription>
-        </compounddef>
-      </doxygen>)xml";
-
-  pugi::xml_document doc;
-  ASSERT_TRUE(doc.load_string(kXml));
-  auto const actual = PagesToc(doc);
-
-  EXPECT_THAT(actual, ElementsAre(FieldsAre("common-error-handling.md",
-                                            "common-error-handling"),
-                                  FieldsAre("indexpage.md", "README")));
 }
 
 }  // namespace

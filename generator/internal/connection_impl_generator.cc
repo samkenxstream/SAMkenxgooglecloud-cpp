@@ -14,6 +14,7 @@
 
 #include "generator/internal/connection_impl_generator.h"
 #include "generator/internal/codegen_utils.h"
+#include "generator/internal/pagination.h"
 #include "generator/internal/predicate_utils.h"
 #include "generator/internal/printer.h"
 #include "google/cloud/internal/absl_str_cat_quiet.h"
@@ -316,7 +317,7 @@ $connection_class_name$Impl::$method_name$($request_type$ const& request) {
   auto backoff = std::shared_ptr<BackoffPolicy const>(backoff_policy());
 
   auto factory = [stub]($request_type$ const& request) {
-    return stub->$method_name$(absl::make_unique<grpc::ClientContext>(), request);
+    return stub->$method_name$(std::make_shared<grpc::ClientContext>(), request);
   };
   auto resumable =
       internal::MakeResumableStreamingReadRpc<$response_type$, $request_type$>(
@@ -385,17 +386,17 @@ $connection_class_name$Impl::$method_name$($request_type$ const& request) {
   return google::cloud::internal::AsyncLongRunningOperation<$longrunning_deduced_response_type$>(
     background_->cq(), request,
     [stub](google::cloud::CompletionQueue& cq,
-          std::unique_ptr<grpc::ClientContext> context,
+          std::shared_ptr<grpc::ClientContext> context,
           $request_type$ const& request) {
      return stub->Async$method_name$(cq, std::move(context), request);
     },
     [stub](google::cloud::CompletionQueue& cq,
-          std::unique_ptr<grpc::ClientContext> context,
+          std::shared_ptr<grpc::ClientContext> context,
           google::longrunning::GetOperationRequest const& request) {
      return stub->AsyncGetOperation(cq, std::move(context), request);
     },
     [stub](google::cloud::CompletionQueue& cq,
-          std::unique_ptr<grpc::ClientContext> context,
+          std::shared_ptr<grpc::ClientContext> context,
           google::longrunning::CancelOperationRequest const& request) {
      return stub->AsyncCancelOperation(cq, std::move(context), request);
     },)""",
@@ -459,7 +460,7 @@ $connection_class_name$Impl::Async$method_name$($request_type$ const& request) {
       idempotency_policy()->$method_name$(request),
       background_->cq(),
       [stub](CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              $request_type$ const& request) {
         return stub->Async$method_name$(cq, std::move(context), request);
       },

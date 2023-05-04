@@ -14,11 +14,14 @@
 
 #include "google/cloud/internal/async_rest_polling_loop.h"
 #include "google/cloud/internal/completion_queue_impl.h"
+#include "google/cloud/internal/make_status.h"
+#include "google/cloud/internal/opentelemetry.h"
+#include "google/cloud/internal/opentelemetry_options.h"
 #include "google/cloud/testing_util/async_sequencer.h"
 #include "google/cloud/testing_util/is_proto_equal.h"
 #include "google/cloud/testing_util/mock_completion_queue_impl.h"
+#include "google/cloud/testing_util/opentelemetry_matchers.h"
 #include "google/cloud/testing_util/status_matchers.h"
-#include "absl/memory/memory.h"
 #include <google/bigtable/admin/v2/bigtable_instance_admin.pb.h>
 #include <gmock/gmock.h>
 
@@ -40,6 +43,7 @@ using ::testing::Eq;
 using ::testing::HasSubstr;
 using ::testing::Not;
 using ::testing::Return;
+using TimerType = StatusOr<std::chrono::system_clock::time_point>;
 
 struct StringOption {
   using Type = std::string;
@@ -47,7 +51,8 @@ struct StringOption {
 
 class MockStub {
  public:
-  MOCK_METHOD(future<StatusOr<Operation>>, AsyncGetOperation,
+  MOCK_METHOD(future<StatusOr<google::longrunning::Operation>>,
+              AsyncGetOperation,
               (CompletionQueue&, std::unique_ptr<RestContext>,
                google::longrunning::GetOperationRequest const&),
               ());
@@ -91,7 +96,7 @@ TEST(AsyncRestPollingLoopTest, ImmediateSuccess) {
 
   auto mock = std::make_shared<MockStub>();
   EXPECT_CALL(*mock, AsyncGetOperation).Times(0);
-  auto policy = absl::make_unique<MockPollingPolicy>();
+  auto policy = std::make_unique<MockPollingPolicy>();
   EXPECT_CALL(*policy, clone()).Times(0);
   EXPECT_CALL(*policy, OnFailure).Times(0);
   EXPECT_CALL(*policy, WaitPeriod).Times(0);
@@ -123,8 +128,9 @@ TEST(AsyncRestPollingLoopTest, ImmediateCancel) {
                    google::longrunning::GetOperationRequest const&) {
         EXPECT_EQ(internal::CurrentOptions().get<StringOption>(),
                   "ImmediateCancel");
-        return make_ready_future(StatusOr<Operation>(Status{
-            StatusCode::kCancelled, "test-function: operation cancelled"}));
+        return make_ready_future(
+            StatusOr<google::longrunning::Operation>(Status{
+                StatusCode::kCancelled, "test-function: operation cancelled"}));
       });
   EXPECT_CALL(*mock, AsyncCancelOperation)
       .WillOnce([](CompletionQueue&, std::unique_ptr<RestContext>,
@@ -134,7 +140,7 @@ TEST(AsyncRestPollingLoopTest, ImmediateCancel) {
         EXPECT_EQ(request.name(), "test-op-name");
         return make_ready_future(Status{});
       });
-  auto policy = absl::make_unique<MockPollingPolicy>();
+  auto policy = std::make_unique<MockPollingPolicy>();
   EXPECT_CALL(*policy, clone()).Times(0);
   EXPECT_CALL(*policy, OnFailure).WillOnce([](Status const& status) {
     EXPECT_THAT(status, StatusIs(StatusCode::kCancelled));
@@ -185,7 +191,7 @@ TEST(AsyncRestPollingLoopTest, PollThenSuccess) {
                   "PollThenSuccess");
         return make_ready_future(make_status_or(expected));
       });
-  auto policy = absl::make_unique<MockPollingPolicy>();
+  auto policy = std::make_unique<MockPollingPolicy>();
   EXPECT_CALL(*policy, clone()).Times(0);
   EXPECT_CALL(*policy, OnFailure).Times(0);
   EXPECT_CALL(*policy, WaitPeriod)
@@ -215,7 +221,7 @@ TEST(AsyncRestPollingLoopTest, PollThenTimerError) {
 
   auto mock = std::make_shared<MockStub>();
   EXPECT_CALL(*mock, AsyncGetOperation).Times(0);
-  auto policy = absl::make_unique<MockPollingPolicy>();
+  auto policy = std::make_unique<MockPollingPolicy>();
   EXPECT_CALL(*policy, clone()).Times(0);
   EXPECT_CALL(*policy, OnFailure).Times(0);
   EXPECT_CALL(*policy, WaitPeriod)
@@ -258,8 +264,8 @@ TEST(AsyncRestPollingLoopTest, PollThenEventualSuccess) {
                    google::longrunning::GetOperationRequest const&) {
         EXPECT_EQ(internal::CurrentOptions().get<StringOption>(),
                   "PollThenEventualSuccess");
-        return make_ready_future(
-            StatusOr<Operation>(Status(StatusCode::kUnavailable, "try-again")));
+        return make_ready_future(StatusOr<google::longrunning::Operation>(
+            Status(StatusCode::kUnavailable, "try-again")));
       })
       .WillOnce([&](CompletionQueue&, std::unique_ptr<RestContext>,
                     google::longrunning::GetOperationRequest const&) {
@@ -273,7 +279,7 @@ TEST(AsyncRestPollingLoopTest, PollThenEventualSuccess) {
                   "PollThenEventualSuccess");
         return make_ready_future(make_status_or(expected));
       });
-  auto policy = absl::make_unique<MockPollingPolicy>();
+  auto policy = std::make_unique<MockPollingPolicy>();
   EXPECT_CALL(*policy, clone()).Times(0);
   EXPECT_CALL(*policy, OnFailure).WillRepeatedly(Return(true));
   EXPECT_CALL(*policy, WaitPeriod)
@@ -315,7 +321,7 @@ TEST(AsyncRestPollingLoopTest, PollThenExhaustedPollingPolicy) {
                   "PollThenExhaustedPollingPolicy");
         return make_ready_future(make_status_or(starting_op));
       });
-  auto policy = absl::make_unique<MockPollingPolicy>();
+  auto policy = std::make_unique<MockPollingPolicy>();
   EXPECT_CALL(*policy, clone()).Times(0);
   EXPECT_CALL(*policy, OnFailure)
       .WillOnce(Return(true))
@@ -360,10 +366,10 @@ TEST(AsyncRestPollingLoopTest, PollThenExhaustedPollingPolicyWithFailure) {
                           google::longrunning::GetOperationRequest const&) {
         EXPECT_EQ(internal::CurrentOptions().get<StringOption>(),
                   "PollThenExhaustedPollingPolicyWithFailure");
-        return make_ready_future(
-            StatusOr<Operation>(Status{StatusCode::kUnavailable, "try-again"}));
+        return make_ready_future(StatusOr<google::longrunning::Operation>(
+            Status{StatusCode::kUnavailable, "try-again"}));
       });
-  auto policy = absl::make_unique<MockPollingPolicy>();
+  auto policy = std::make_unique<MockPollingPolicy>();
   EXPECT_CALL(*policy, clone()).Times(0);
   EXPECT_CALL(*policy, OnFailure)
       .WillOnce(Return(true))
@@ -391,7 +397,6 @@ TEST(AsyncRestPollingLoopTest, PollLifetime) {
   expected.set_done(true);
   expected.mutable_metadata()->PackFrom(instance);
 
-  using TimerType = StatusOr<std::chrono::system_clock::time_point>;
   AsyncSequencer<TimerType> timer_sequencer;
   auto mock_cq = std::make_shared<MockCompletionQueueImpl>();
   EXPECT_CALL(*mock_cq, MakeRelativeTimer)
@@ -400,7 +405,7 @@ TEST(AsyncRestPollingLoopTest, PollLifetime) {
           [&](std::chrono::nanoseconds) { return timer_sequencer.PushBack(); });
   CompletionQueue cq(mock_cq);
 
-  AsyncSequencer<StatusOr<Operation>> get_sequencer;
+  AsyncSequencer<StatusOr<google::longrunning::Operation>> get_sequencer;
   auto mock = std::make_shared<MockStub>();
   EXPECT_CALL(*mock, AsyncGetOperation)
       .Times(4)
@@ -410,7 +415,7 @@ TEST(AsyncRestPollingLoopTest, PollLifetime) {
                   "PollLifetime");
         return get_sequencer.PushBack();
       });
-  auto policy = absl::make_unique<MockPollingPolicy>();
+  auto policy = std::make_unique<MockPollingPolicy>();
   EXPECT_CALL(*policy, clone()).Times(0);
   EXPECT_CALL(*policy, OnFailure).WillRepeatedly(Return(true));
   EXPECT_CALL(*policy, WaitPeriod)
@@ -437,7 +442,6 @@ TEST(AsyncRestPollingLoopTest, PollThenCancelDuringTimer) {
   google::longrunning::Operation starting_op;
   starting_op.set_name("test-op-name");
 
-  using TimerType = StatusOr<std::chrono::system_clock::time_point>;
   AsyncSequencer<TimerType> timer_sequencer;
   auto mock_cq = std::make_shared<MockCompletionQueueImpl>();
   EXPECT_CALL(*mock_cq, MakeRelativeTimer)
@@ -446,7 +450,7 @@ TEST(AsyncRestPollingLoopTest, PollThenCancelDuringTimer) {
           [&](std::chrono::nanoseconds) { return timer_sequencer.PushBack(); });
   CompletionQueue cq(mock_cq);
 
-  AsyncSequencer<StatusOr<Operation>> get_sequencer;
+  AsyncSequencer<StatusOr<google::longrunning::Operation>> get_sequencer;
   auto mock = std::make_shared<MockStub>();
   EXPECT_CALL(*mock, AsyncGetOperation)
       .Times(AtLeast(1))
@@ -463,7 +467,7 @@ TEST(AsyncRestPollingLoopTest, PollThenCancelDuringTimer) {
                   "PollThenCancelDuringTimer");
         return make_ready_future(Status{});
       });
-  auto policy = absl::make_unique<MockPollingPolicy>();
+  auto policy = std::make_unique<MockPollingPolicy>();
   EXPECT_CALL(*policy, clone()).Times(0);
   EXPECT_CALL(*policy, OnFailure)
       .Times(2)
@@ -501,7 +505,6 @@ TEST(AsyncRestPollingLoopTest, PollThenCancelDuringPoll) {
   google::longrunning::Operation starting_op;
   starting_op.set_name("test-op-name");
 
-  using TimerType = StatusOr<std::chrono::system_clock::time_point>;
   AsyncSequencer<TimerType> timer_sequencer;
   auto mock_cq = std::make_shared<MockCompletionQueueImpl>();
   EXPECT_CALL(*mock_cq, MakeRelativeTimer)
@@ -510,7 +513,7 @@ TEST(AsyncRestPollingLoopTest, PollThenCancelDuringPoll) {
           [&](std::chrono::nanoseconds) { return timer_sequencer.PushBack(); });
   CompletionQueue cq(mock_cq);
 
-  AsyncSequencer<StatusOr<Operation>> get_sequencer;
+  AsyncSequencer<StatusOr<google::longrunning::Operation>> get_sequencer;
   auto mock = std::make_shared<MockStub>();
   EXPECT_CALL(*mock, AsyncGetOperation)
       .Times(AtLeast(1))
@@ -527,7 +530,7 @@ TEST(AsyncRestPollingLoopTest, PollThenCancelDuringPoll) {
                   "PollThenCancelDuringPoll");
         return make_ready_future(Status{});
       });
-  auto policy = absl::make_unique<MockPollingPolicy>();
+  auto policy = std::make_unique<MockPollingPolicy>();
   EXPECT_CALL(*policy, clone()).Times(0);
   EXPECT_CALL(*policy, OnFailure)
       .Times(2)
@@ -560,6 +563,147 @@ TEST(AsyncRestPollingLoopTest, PollThenCancelDuringPoll) {
                                AllOf(HasSubstr("test-function"),
                                      HasSubstr("operation cancelled"))));
 }
+
+#ifdef GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY
+using ::google::cloud::testing_util::EnableTracing;
+using ::google::cloud::testing_util::IsActive;
+using ::google::cloud::testing_util::SpanAttribute;
+using ::google::cloud::testing_util::SpanHasAttributes;
+using ::google::cloud::testing_util::SpanNamed;
+using ::testing::AllOf;
+using ::testing::Each;
+using ::testing::SizeIs;
+
+TEST(AsyncRestPollingLoopTest, TracedAsyncBackoff) {
+  auto span_catcher = testing_util::InstallSpanCatcher();
+
+  google::longrunning::Operation starting_op;
+  starting_op.set_name("test-op-name");
+
+  auto mock_cq = std::make_shared<MockCompletionQueueImpl>();
+  EXPECT_CALL(*mock_cq, MakeRelativeTimer).WillRepeatedly([](auto) {
+    return make_ready_future<TimerType>(std::chrono::system_clock::now());
+  });
+  CompletionQueue cq(mock_cq);
+
+  auto mock = std::make_shared<MockStub>();
+  EXPECT_CALL(*mock, AsyncGetOperation).WillRepeatedly([](auto, auto, auto) {
+    return make_ready_future<StatusOr<google::longrunning::Operation>>(
+        internal::UnavailableError("try again"));
+  });
+
+  auto policy = std::make_unique<MockPollingPolicy>();
+  EXPECT_CALL(*policy, clone()).Times(0);
+  EXPECT_CALL(*policy, OnFailure)
+      .WillOnce(Return(true))
+      .WillOnce(Return(true))
+      .WillOnce(Return(true))
+      .WillOnce(Return(false));
+  EXPECT_CALL(*policy, WaitPeriod)
+      .WillRepeatedly(Return(std::chrono::milliseconds(1)));
+
+  internal::OptionsSpan o(EnableTracing(Options{}));
+  (void)AsyncRestPollingLoop(cq, make_ready_future(make_status_or(starting_op)),
+                             MakePoll(mock), MakeCancel(mock),
+                             std::move(policy), "test-function")
+      .get();
+
+  // The polling loop waits once initially, and once for each of the three retry
+  // attempts. So we expect a total of 4 backoffs.
+  auto spans = span_catcher->GetSpans();
+  EXPECT_THAT(spans, AllOf(SizeIs(4), Each(SpanNamed("Async Backoff"))));
+}
+
+TEST(AsyncRestPollingLoopTest, SpanActiveThroughout) {
+  auto span_catcher = testing_util::InstallSpanCatcher();
+
+  auto span = internal::MakeSpan("span");
+  google::longrunning::Operation starting_op;
+  starting_op.set_name("test-op-name");
+
+  AsyncSequencer<TimerType> timer_sequencer;
+  auto mock_cq = std::make_shared<MockCompletionQueueImpl>();
+  EXPECT_CALL(*mock_cq, MakeRelativeTimer)
+      .Times(AtLeast(1))
+      .WillRepeatedly([&](std::chrono::nanoseconds) {
+        EXPECT_THAT(span, IsActive());
+        return timer_sequencer.PushBack();
+      });
+  CompletionQueue cq(mock_cq);
+
+  AsyncSequencer<StatusOr<google::longrunning::Operation>> get_sequencer;
+  auto mock = std::make_shared<MockStub>();
+  EXPECT_CALL(*mock, AsyncGetOperation)
+      .Times(AtLeast(1))
+      .WillRepeatedly([&](CompletionQueue&, auto,
+                          google::longrunning::GetOperationRequest const&) {
+        EXPECT_THAT(span, IsActive());
+        return get_sequencer.PushBack();
+      });
+  EXPECT_CALL(*mock, AsyncCancelOperation)
+      .WillOnce([&](CompletionQueue&, auto,
+                    google::longrunning::CancelOperationRequest const&) {
+        EXPECT_THAT(span, IsActive());
+        return make_ready_future(Status{});
+      });
+  auto policy = std::make_unique<MockPollingPolicy>();
+  EXPECT_CALL(*policy, clone()).Times(0);
+  EXPECT_CALL(*policy, OnFailure)
+      .Times(2)
+      .WillRepeatedly([](Status const& status) {
+        return status.code() != StatusCode::kCancelled;
+      });
+  EXPECT_CALL(*policy, WaitPeriod)
+      .WillRepeatedly(Return(std::chrono::milliseconds(1)));
+
+  auto scope = opentelemetry::trace::Scope(span);
+  internal::OptionsSpan o(EnableTracing(Options{}));
+  auto pending = AsyncRestPollingLoop(
+      cq, make_ready_future(make_status_or(starting_op)), MakePoll(mock),
+      MakeCancel(mock), std::move(policy), "test-function");
+
+  timer_sequencer.PopFront().set_value(std::chrono::system_clock::now());
+  get_sequencer.PopFront().set_value(starting_op);
+  timer_sequencer.PopFront().set_value(std::chrono::system_clock::now());
+  auto g = get_sequencer.PopFront();
+  {
+    auto overlay = opentelemetry::trace::Scope(internal::MakeSpan("overlay"));
+    pending.cancel();
+  }
+  g.set_value(internal::CancelledError("cancelled"));
+
+  auto overlay = opentelemetry::trace::Scope(internal::MakeSpan("overlay"));
+  (void)pending.get();
+}
+
+TEST(AsyncRestPollingLoopTest, TraceCapturesOperationName) {
+  auto span_catcher = testing_util::InstallSpanCatcher();
+
+  google::longrunning::Operation op;
+  op.set_name("test-op-name");
+  op.set_done(true);
+
+  auto span = internal::MakeSpan("span");
+  auto mock = std::make_shared<MockStub>();
+  auto policy = std::make_unique<MockPollingPolicy>();
+  CompletionQueue cq;
+
+  auto scope = opentelemetry::trace::Scope(span);
+  internal::OptionsSpan o(EnableTracing(Options{}));
+  (void)AsyncRestPollingLoop(cq, make_ready_future(make_status_or(op)),
+                             MakePoll(mock), MakeCancel(mock),
+                             std::move(policy), "test-function")
+      .get();
+  span->End();
+
+  auto spans = span_catcher->GetSpans();
+  EXPECT_THAT(spans,
+              ElementsAre(AllOf(SpanNamed("span"),
+                                SpanHasAttributes(SpanAttribute<std::string>(
+                                    "gcloud.LRO_name", "test-op-name")))));
+}
+
+#endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY
 
 }  // namespace
 GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_END

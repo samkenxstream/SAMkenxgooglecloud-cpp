@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "google/cloud/storage/internal/async_accumulate_read_object.h"
+#include "google/cloud/storage/internal/grpc_ctype_cord_workaround.h"
 #include "google/cloud/storage/testing/mock_storage_stub.h"
 #include "google/cloud/testing_util/async_sequencer.h"
 #include "google/cloud/testing_util/is_proto_equal.h"
@@ -72,7 +73,7 @@ std::unique_ptr<
     google::cloud::internal::AsyncStreamingReadRpc<ReadObjectResponse>>
 MakeMockStreamPartial(int id, ReadObjectResponse response,
                       StatusCode code = StatusCode::kOk) {
-  auto stream = absl::make_unique<MockAsyncObjectMediaStream>();
+  auto stream = std::make_unique<MockAsyncObjectMediaStream>();
   EXPECT_CALL(*stream, Start).WillOnce(Return(ByMove(make_ready_future(true))));
   EXPECT_CALL(*stream, Read)
       .WillOnce(Return(
@@ -108,7 +109,7 @@ TEST(AsyncAccumulateReadObjectTest, PartialSimple) {
   ReadObjectResponse r1;
   ASSERT_TRUE(TextFormat::ParseFromString(kText1, &r1));
 
-  auto mock = absl::make_unique<MockAsyncObjectMediaStream>();
+  auto mock = std::make_unique<MockAsyncObjectMediaStream>();
   ::testing::InSequence sequence;
 
   EXPECT_CALL(*mock, Start).WillOnce(Return(ByMove(make_ready_future(true))));
@@ -139,7 +140,7 @@ TEST(AsyncAccumulateReadObjectTest, PartialStartTimeout) {
   AsyncSequencer<bool> async;
   auto cq = MakeMockedCompletionQueue(async);
 
-  auto mock = absl::make_unique<MockAsyncObjectMediaStream>();
+  auto mock = std::make_unique<MockAsyncObjectMediaStream>();
 
   EXPECT_CALL(*mock, Start).WillRepeatedly([&] {
     return async.PushBack("Start").then([](future<bool> f) { return f.get(); });
@@ -189,7 +190,7 @@ TEST(AsyncAccumulateReadObjectTest, PartialReadTimeout) {
   AsyncSequencer<bool> async;
   auto cq = MakeMockedCompletionQueue(async);
 
-  auto mock = absl::make_unique<MockAsyncObjectMediaStream>();
+  auto mock = std::make_unique<MockAsyncObjectMediaStream>();
 
   EXPECT_CALL(*mock, Start).WillRepeatedly([&] {
     return async.PushBack("Start").then([](future<bool> f) { return f.get(); });
@@ -249,7 +250,7 @@ TEST(AsyncAccumulateReadObjectTest, PartialFinishTimeout) {
   AsyncSequencer<bool> async;
   auto cq = MakeMockedCompletionQueue(async);
 
-  auto mock = absl::make_unique<MockAsyncObjectMediaStream>();
+  auto mock = std::make_unique<MockAsyncObjectMediaStream>();
 
   EXPECT_CALL(*mock, Start).WillRepeatedly([&] {
     return async.PushBack("Start").then([](future<bool> f) { return f.get(); });
@@ -342,7 +343,7 @@ TEST(AsyncAccumulateReadObjectTest, FullSimple) {
   ReadObjectResponse r1;
   ASSERT_TRUE(TextFormat::ParseFromString(kText1, &r1));
 
-  auto const r0_size = r0.checksummed_data().content().size();
+  auto const r0_size = GetContent(r0.checksummed_data()).size();
   auto constexpr kReadOffset = 1024;
   auto constexpr kReadLimit = 2048;
 
@@ -360,9 +361,9 @@ TEST(AsyncAccumulateReadObjectTest, FullSimple) {
         return MakeMockStreamPartial(1, r1);
       });
 
-  MockFunction<std::unique_ptr<grpc::ClientContext>()> context_factory;
+  MockFunction<std::shared_ptr<grpc::ClientContext>()> context_factory;
   EXPECT_CALL(context_factory, Call).Times(2).WillRepeatedly([] {
-    return absl::make_unique<grpc::ClientContext>();
+    return std::make_shared<grpc::ClientContext>();
   });
 
   CompletionQueue cq;
@@ -416,7 +417,7 @@ TEST(AsyncAccumulateReadObjectTest, FullTooManyTransients) {
           .set<storage::DownloadStallTimeoutOption>(std::chrono::minutes(1));
   auto response =
       AsyncAccumulateReadObjectFull(
-          cq, mock, []() { return absl::make_unique<grpc::ClientContext>(); },
+          cq, mock, []() { return std::make_shared<grpc::ClientContext>(); },
           ReadObjectRequest{}, options)
           .get();
   EXPECT_THAT(response.status, StatusIs(StatusCode::kUnavailable));
@@ -444,7 +445,7 @@ TEST(AsyncAccumulateReadObjectTest, PermanentFailure) {
           .set<storage::DownloadStallTimeoutOption>(std::chrono::minutes(1));
   auto response =
       AsyncAccumulateReadObjectFull(
-          cq, mock, []() { return absl::make_unique<grpc::ClientContext>(); },
+          cq, mock, []() { return std::make_shared<grpc::ClientContext>(); },
           ReadObjectRequest{}, options)
           .get();
   EXPECT_THAT(response.status, StatusIs(StatusCode::kPermissionDenied));

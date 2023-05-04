@@ -23,7 +23,6 @@
 #include "google/cloud/testing_util/scoped_log.h"
 #include "google/cloud/testing_util/status_matchers.h"
 #include "google/cloud/testing_util/validate_metadata.h"
-#include "absl/memory/memory.h"
 #include <gmock/gmock.h>
 #include <chrono>
 
@@ -93,7 +92,7 @@ TEST_F(BigtableStubFactory, ReadRows) {
         auto mock = std::make_shared<MockBigtableStub>();
         EXPECT_CALL(*mock, ReadRows)
             .WillOnce(
-                [this](std::unique_ptr<grpc::ClientContext> context,
+                [this](auto context,
                        google::bigtable::v2::ReadRowsRequest const& request) {
                   // Verify the Auth decorator is present
                   EXPECT_THAT(context->credentials(), NotNull());
@@ -101,7 +100,7 @@ TEST_F(BigtableStubFactory, ReadRows) {
                   IsContextMDValid(*context,
                                    "google.bigtable.v2.Bigtable.ReadRows",
                                    request);
-                  auto stream = absl::make_unique<MockReadRowsStream>();
+                  auto stream = std::make_unique<MockReadRowsStream>();
                   EXPECT_CALL(*stream, Read)
                       .WillOnce(Return(
                           Status(StatusCode::kUnavailable, "nothing here")));
@@ -121,7 +120,7 @@ TEST_F(BigtableStubFactory, ReadRows) {
   req.set_table_name(
       "projects/the-project/instances/the-instance/tables/the-table");
   auto stub = CreateTestStub(cq, factory.AsStdFunction());
-  auto stream = stub->ReadRows(absl::make_unique<grpc::ClientContext>(), req);
+  auto stream = stub->ReadRows(std::make_shared<grpc::ClientContext>(), req);
   auto read = stream->Read();
   ASSERT_TRUE(absl::holds_alternative<Status>(read));
   EXPECT_THAT(absl::get<Status>(read), StatusIs(StatusCode::kUnavailable));
@@ -175,8 +174,7 @@ TEST_F(BigtableStubFactory, AsyncReadRows) {
         auto mock = std::make_shared<MockBigtableStub>();
         EXPECT_CALL(*mock, AsyncReadRows)
             .WillOnce(
-                [this](CompletionQueue const&,
-                       std::unique_ptr<grpc::ClientContext> context,
+                [this](CompletionQueue const&, auto context,
                        google::bigtable::v2::ReadRowsRequest const& request) {
                   // Verify the Auth decorator is present
                   EXPECT_THAT(context->credentials(), NotNull());
@@ -187,7 +185,7 @@ TEST_F(BigtableStubFactory, AsyncReadRows) {
                   using ErrorStream =
                       ::google::cloud::internal::AsyncStreamingReadRpcError<
                           google::bigtable::v2::ReadRowsResponse>;
-                  return absl::make_unique<ErrorStream>(
+                  return std::make_unique<ErrorStream>(
                       Status(StatusCode::kUnavailable, "nothing here"));
                 });
         return mock;
@@ -205,7 +203,7 @@ TEST_F(BigtableStubFactory, AsyncReadRows) {
       "projects/the-project/instances/the-instance/tables/the-table");
   auto stub = CreateTestStub(cq, factory.AsStdFunction());
   auto stream =
-      stub->AsyncReadRows(cq, absl::make_unique<grpc::ClientContext>(), req);
+      stub->AsyncReadRows(cq, std::make_shared<grpc::ClientContext>(), req);
   auto start = stream->Start().get();
   EXPECT_FALSE(start);
   auto finish = stream->Finish().get();
@@ -221,8 +219,7 @@ TEST_F(BigtableStubFactory, AsyncMutateRow) {
         auto mock = std::make_shared<MockBigtableStub>();
         EXPECT_CALL(*mock, AsyncMutateRow)
             .WillOnce(
-                [this](CompletionQueue&,
-                       std::unique_ptr<grpc::ClientContext> context,
+                [this](CompletionQueue&, auto context,
                        google::bigtable::v2::MutateRowRequest const& request) {
                   // Verify the Auth decorator is present
                   EXPECT_THAT(context->credentials(), NotNull());
@@ -249,7 +246,7 @@ TEST_F(BigtableStubFactory, AsyncMutateRow) {
       "projects/the-project/instances/the-instance/tables/the-table");
   auto stub = CreateTestStub(cq, factory.AsStdFunction());
   auto response =
-      stub->AsyncMutateRow(cq, absl::make_unique<grpc::ClientContext>(), req);
+      stub->AsyncMutateRow(cq, std::make_shared<grpc::ClientContext>(), req);
   EXPECT_THAT(response.get(), StatusIs(StatusCode::kUnavailable));
   EXPECT_THAT(log.ExtractLines(), Contains(HasSubstr("AsyncMutateRow")));
 }

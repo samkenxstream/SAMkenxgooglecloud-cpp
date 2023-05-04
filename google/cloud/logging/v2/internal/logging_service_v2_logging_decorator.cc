@@ -101,7 +101,7 @@ std::unique_ptr<::google::cloud::AsyncStreamingReadWriteRpc<
     google::logging::v2::TailLogEntriesResponse>>
 LoggingServiceV2Logging::AsyncTailLogEntries(
     google::cloud::CompletionQueue const& cq,
-    std::unique_ptr<grpc::ClientContext> context) {
+    std::shared_ptr<grpc::ClientContext> context) {
   using LoggingStream =
       ::google::cloud::internal::AsyncStreamingReadWriteRpcLogging<
           google::logging::v2::TailLogEntriesRequest,
@@ -111,7 +111,7 @@ LoggingServiceV2Logging::AsyncTailLogEntries(
   GCP_LOG(DEBUG) << __func__ << "(" << request_id << ")";
   auto stream = child_->AsyncTailLogEntries(cq, std::move(context));
   if (components_.count("rpc-streams") > 0) {
-    stream = absl::make_unique<LoggingStream>(
+    stream = std::make_unique<LoggingStream>(
         std::move(stream), tracing_options_, std::move(request_id));
   }
   return stream;
@@ -120,11 +120,11 @@ LoggingServiceV2Logging::AsyncTailLogEntries(
 future<StatusOr<google::logging::v2::WriteLogEntriesResponse>>
 LoggingServiceV2Logging::AsyncWriteLogEntries(
     google::cloud::CompletionQueue& cq,
-    std::unique_ptr<grpc::ClientContext> context,
+    std::shared_ptr<grpc::ClientContext> context,
     google::logging::v2::WriteLogEntriesRequest const& request) {
   return google::cloud::internal::LogWrapper(
       [this](google::cloud::CompletionQueue& cq,
-             std::unique_ptr<grpc::ClientContext> context,
+             std::shared_ptr<grpc::ClientContext> context,
              google::logging::v2::WriteLogEntriesRequest const& request) {
         return child_->AsyncWriteLogEntries(cq, std::move(context), request);
       },
